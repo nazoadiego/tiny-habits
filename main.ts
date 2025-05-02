@@ -1,4 +1,7 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf } from 'obsidian';
+import { mount, unmount } from 'svelte';
+import Counter from 'view/Counter.svelte';
+import { ExampleView, VIEW_TYPE_EXAMPLE } from 'view/ExampleView';
 
 // Remember to rename these classes and interfaces!
 
@@ -89,21 +92,56 @@ export default class MyPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	async activateView() {
+		const { workspace } = this.app;
+
+		let leaf: WorkspaceLeaf | null = null;
+		const leaves = workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE);
+
+		if (leaves.length > 0) {
+			// A leaf with our view already exists, use that
+			leaf = leaves[0];
+		} else {
+			// Our view could not be found in the workspace, create a new leaf
+			// in the right sidebar for it
+			leaf = workspace.getRightLeaf(false);
+			await leaf?.setViewState({ type: VIEW_TYPE_EXAMPLE, active: true });
+		}
+
+		if (leaf == null) return
+		// "Reveal" the leaf in case it is in a collapsed sidebar
+		workspace.revealLeaf(leaf);
+	}
 }
 
 class SampleModal extends Modal {
+	counter: ReturnType<typeof Counter> | undefined;
+
 	constructor(app: App) {
 		super(app);
 	}
 
 	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
+		const { contentEl } = this;
+		this.counter = mount(Counter, {
+			target: contentEl,
+			props: {
+				startCount: 5,
+			}
+		});
+
+		// Since the component instance is typed, the exported `increment` method is known to TypeScript.
+		this.counter.increment();
 	}
 
 	onClose() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.empty();
+		if (this.counter) {
+			// Remove the Counter from the ItemView.
+			unmount(this.counter);
+		}
 	}
 }
 
@@ -116,7 +154,7 @@ class SampleSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 

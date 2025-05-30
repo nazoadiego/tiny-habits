@@ -1,16 +1,15 @@
 <script lang="ts">
-	import type { THabitGroup } from "types/THabitGroup";
-	import type { TEntry } from "types/TEntry";
 	import type { TDay } from "types/TDay";
 	import Entry from "models/Entry";
+	import type Habit from "models/Habit";
 
-	interface $$Props {
+	interface $Props {
 		hasHabits: boolean;
-		habitGroupList: THabitGroup[];
-		entryList: TEntry[];
+		habits: Habit[];
+		entriesByHabit: Record<string, Entry[]>;
 	}
 
-	const { habitGroupList, entryList }: $$Props = $props();
+	const { habits, entriesByHabit }: $Props = $props();
 
 	const days: TDay[] = Array.from(
 		{ length: 7 },
@@ -19,17 +18,15 @@
 
 	const title = "Habits";
 
-	const groupedEntries = Object.groupBy(entryList, (entry) => entry.groupId);
-
-	function getEntry(groupId: number, day: number): TEntry | null {
+	function getEntryByDay(habitId: string, day: number): Entry | null {
 		return (
-			groupedEntries[groupId]?.find(
+			entriesByHabit[habitId]?.find(
 				(entry) => entry.day === Number(day),
 			) ?? null
 		);
 	}
 
-	function addEntry(day: TDay, groupId: number) {
+	function addEntry(day: TDay, habitId: string) {
 		// Should add entry to obsidian file
 		return undefined;
 	}
@@ -42,7 +39,7 @@
 	}
 </script>
 
-{#snippet habitGroupHeader(value: string)}
+{#snippet habitsHeader(value: string)}
 	{#if value}
 		<th>
 			{value}
@@ -60,7 +57,7 @@
 	{/if}
 {/snippet}
 
-{#snippet habitGroupCell(value: string)}
+{#snippet habitCell(value: string)}
 	{#if value}
 		<td>
 			{value}
@@ -70,13 +67,13 @@
 	{/if}
 {/snippet}
 
-{#snippet habitEntryCell(entry: Entry | null, day: TDay, groupId: number)}
+{#snippet entryCell(entry: Entry | null, day: TDay, habitId: string)}
 	{#if entry}
 		<td onclick={toggleHabit(entry)} class="disable-text-selection">
 			{entry.display()}
 		</td>
 	{:else if entry === null}
-		<td onclick={addEntry(day, groupId)} class="disable-text-selection">
+		<td onclick={addEntry(day, habitId)} class="disable-text-selection">
 			{Entry.STATUS_DISPLAY.unstarted}
 		</td>
 	{:else}
@@ -87,21 +84,21 @@
 <table class="purpleTheme">
 	<thead>
 		<tr>
-			{@render habitGroupHeader(title)}
+			{@render habitsHeader(title)}
 			{#each days as day}
 				{@render dayHeader(day)}
 			{/each}
 		</tr>
 	</thead>
 	<tbody>
-		{#each habitGroupList as habitGroup}
+		{#each habits as habit}
 			<tr>
-				{@render habitGroupCell(habitGroup.name)}
+				{@render habitCell(habit.name)}
 				{#each days as day}
-					{@render habitEntryCell(
-						getEntry(habitGroup.id, day),
+					{@render entryCell(
+						getEntryByDay(habit.id, day),
 						day,
-						habitGroup.id,
+						habit.id,
 					)}
 				{/each}
 			</tr>

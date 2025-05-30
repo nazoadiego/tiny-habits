@@ -4,7 +4,7 @@ export type Status = "unstarted" | "completed" | "failed" | "skip";
 export type StatusDisplay = "O" | "X" | "-" | "";
 export type TEntry = {
   id: number;
-  groupId: number;
+  habitId: string;
   status: Status;
   day: TDay;
 };

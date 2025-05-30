@@ -9,7 +9,7 @@ import type { TEntry, Status, StatusDisplay } from "types/TEntry";
 
 class Entry implements TEntry {
   id: number;
-  groupId: number;
+  habitId: string;
   status: Status;
   day: TDay;
 
@@ -27,9 +27,9 @@ class Entry implements TEntry {
     skip: "-",
   };
 
-  constructor(id: number, groupId: number, status: Status, day: number) {
+  constructor(id: number, habitId: string, status: Status, day: number) {
     this.id = id;
-    this.groupId = groupId;
+    this.habitId = habitId;
     this.status = status;
     this.day = day;
   }

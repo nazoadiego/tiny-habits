@@ -1,7 +1,6 @@
 import type { Vault } from "obsidian";
 import type { THabitRepository } from '../types/THabitRepository';
 import Habit from "models/Habit";
-import type { THabitGroup } from "types/THabitGroup";
 import type { TEntry } from "types/TEntry";
 import Entry from "models/Entry";
 
@@ -11,7 +10,6 @@ class HabitRepository implements THabitRepository {
   constructor(private vault: Vault) { this.vault = vault }
 
   async allFiles() {
-    // Convert to our data object
     return this.vault
       .getMarkdownFiles()
       .filter(file => file.path.includes(this.HABITS_FOLDER_PATH)) // TODO: This is not quite right, if the Index note is called the same as the path, it will pick it up as well. Example, "Tiny Habits.md" and a "Tiny Habits" folder. This can be avoided by setting the path to "Tiny Habits", but it's a brittle solution if we let the user write it manually.
@@ -19,7 +17,6 @@ class HabitRepository implements THabitRepository {
   }
 
   async all() {
-    // Convert to our data object
     const files = await this.allFiles()
     const habits = await Promise.all(files.map(async file => Habit.fromFile(file)));
 
@@ -29,37 +26,39 @@ class HabitRepository implements THabitRepository {
 
   async allEntries() {
     const entries: TEntry[] = [
-      { id: 1, groupId: 1, status: "failed", day: 1 },
-      { id: 2, groupId: 1, status: "failed", day: 2 },
-      { id: 3, groupId: 1, status: "failed", day: 3 },
-      { id: 4, groupId: 1, status: "failed", day: 4 },
-      { id: 5, groupId: 1, status: "failed", day: 5 },
-      { id: 6, groupId: 1, status: "failed", day: 6 },
-      { id: 7, groupId: 1, status: "failed", day: 7 },
-      { id: 8, groupId: 2, status: "completed", day: 1 },
-      { id: 8, groupId: 2, status: "completed", day: 2 },
+      { id: 1, habitId: "03 Code!", status: "failed", day: 1 },
+      { id: 2, habitId: "03 Code!", status: "failed", day: 2 },
+      { id: 3, habitId: "03 Code!", status: "failed", day: 3 },
+      { id: 4, habitId: "03 Code!", status: "failed", day: 4 },
+      { id: 5, habitId: "03 Code!", status: "failed", day: 5 },
+      { id: 6, habitId: "03 Code!", status: "failed", day: 6 },
+      { id: 7, habitId: "03 Code!", status: "failed", day: 7 },
+      { id: 8, habitId: "04 Breakfast", status: "completed", day: 1 },
+      { id: 8, habitId: "04 Breakfast", status: "completed", day: 2 },
     ];
 
     const entryList = await Promise.all(entries.map(async entry => {
-      return new Entry(entry.id, entry.groupId, entry.status, entry.day)
+      return new Entry(entry.id, entry.habitId, entry.status, entry.day)
     }))
 
     return entryList
   }
 
-  async allGroups() {
-    const habitGroupList: THabitGroup[] = [
-      { id: 1, name: "Study" },
-      { id: 2, name: "Breakfast" },
-    ];
+  async entriesGroupedByHabit() {
+    const [habits, entries] = await Promise.all([
+      this.all(),
+      this.allEntries()
+    ]);
 
-    return habitGroupList
-  }
+    const groupedEntriesByHabit = Object.groupBy(entries, (entry) => entry.habitId);
 
-  async allEntriesGrouped() {
-    const entries = await this.allEntries()
+    // * To ensure all habits have an entry array, even if empty
+    const habitEntries: Record<string, Entry[]> = {};
+    habits.forEach(habit => {
+      habitEntries[habit.id] = groupedEntriesByHabit[habit.id] || [];
+    });
 
-    return Object.groupBy(entries, (entry) => entry.groupId);
+    return habitEntries;
   }
 }
 

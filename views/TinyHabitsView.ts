@@ -2,25 +2,34 @@ import { type App, type MarkdownPostProcessorContext } from 'obsidian'
 import { mount } from "svelte";
 import NoResultsPlaceholder from 'components/NoResultsPlaceholder.svelte';
 import HabitsTable from 'components/HabitsTable.svelte';
+import HabitRepository from 'repositories/HabitRepository';
 
 export default class TinyHabitsView {
+  markdownBlockElement: HTMLElement
+  habitRepository: HabitRepository
+
   constructor(source: string, markdownBlockElement: HTMLElement, context: MarkdownPostProcessorContext, app: App) {
-    const HABITS_FOLDER_PATH = "Tiny Habits"
+    this.habitRepository = new HabitRepository(app.vault)
+    this.markdownBlockElement = markdownBlockElement
 
-    mount(HabitsTable, { target: markdownBlockElement });
+    this.mountHabits()
+  }
 
-    // TODO: Before getting any data, we should show a default table to avoid flickering. Then you pass down the habits.
-    // TODO: This is a different concept from having NO results.
-    const habitFiles = app.vault
-      .getMarkdownFiles()
-      .filter(file => file.path.includes(HABITS_FOLDER_PATH)) // TODO: This is not quite right, if the Index note is called the same as the path, it will pick it up as well. Example, "Tiny Habits.md" and a "Tiny Habits" folder. This can be avoided by setting the path to "Tiny Habits", but it's a brittle solution if we let the user write it manually.
-      .sort((a, b) => a.name.localeCompare(b.name));
+  async mountHabits() {
+    const habitFiles = await this.habitRepository.all()
+    const entryList = await this.habitRepository.allEntries()
+    const habitGroupList = await this.habitRepository.allGroups()
+    const hasHabits = habitFiles.length > 0
 
-    const noHabitsFiles = habitFiles.length === 0
-
-    if (noHabitsFiles) {
-      mount(NoResultsPlaceholder, { target: markdownBlockElement });
+    // TODO: I should handle the mounting of the component more organized, specially if i have props. On the Svelte side.
+    // TODO: Three possible scenarios: no habits, habits and the placeholder while it opens
+    if (!hasHabits) {
+      mount(NoResultsPlaceholder, { target: this.markdownBlockElement });
       return
     }
+    mount(HabitsTable, {
+      target: this.markdownBlockElement,
+      props: { hasHabits, habitGroupList, entryList }
+    });
   }
 }

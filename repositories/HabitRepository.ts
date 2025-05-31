@@ -16,7 +16,7 @@ class HabitRepository implements THabitRepository {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  async all() {
+  async allHabits() {
     const files = await this.allFiles()
     const habits = await Promise.all(files.map(async file => Habit.fromFile(file)));
 
@@ -46,7 +46,7 @@ class HabitRepository implements THabitRepository {
 
   async entriesGroupedByHabit() {
     const [habits, entries] = await Promise.all([
-      this.all(),
+      this.allHabits(),
       this.allEntries()
     ]);
 

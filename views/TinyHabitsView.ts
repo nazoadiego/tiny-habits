@@ -16,7 +16,7 @@ export default class TinyHabitsView {
   }
 
   async mountHabits() {
-    const habits = await this.habitRepository.all()
+    const habits = await this.habitRepository.allHabits()
     const entriesByHabit = await this.habitRepository.entriesGroupedByHabit()
     const hasHabits = habits.length > 0
 

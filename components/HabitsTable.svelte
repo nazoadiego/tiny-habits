@@ -57,10 +57,12 @@
 	{/if}
 {/snippet}
 
-{#snippet habitCell(value: string)}
-	{#if value}
+{#snippet habitCell({ name, path }: Partial<Habit>)}
+	{#if name}
 		<td>
-			{value}
+			<a aria-label={path} href={path} class="internal-link">
+				{name}
+			</a>
 		</td>
 	{:else}
 		<td>Missing Habit Name</td>
@@ -85,15 +87,13 @@
 	<thead>
 		<tr>
 			{@render habitsHeader(title)}
-			{#each days as day}
-				{@render dayHeader(day)}
-			{/each}
+			{#each days as day}{@render dayHeader(day)}{/each}
 		</tr>
 	</thead>
 	<tbody>
 		{#each habits as habit}
 			<tr>
-				{@render habitCell(habit.name)}
+				{@render habitCell({ name: habit.name, path: habit.path })}
 				{#each days as day}
 					{@render entryCell(
 						getEntryByDay(habit.id, day),

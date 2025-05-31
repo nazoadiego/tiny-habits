@@ -1,4 +1,4 @@
-import type { TDay } from "./TDay";
+import type { DateValue } from "models/DateValue";
 
 export type Status = "unstarted" | "completed" | "failed" | "skip";
 export type StatusDisplay = "O" | "X" | "-" | "";
@@ -6,5 +6,5 @@ export type TEntry = {
   id: number;
   habitId: string;
   status: Status;
-  day: TDay;
+  date: DateValue;
 };

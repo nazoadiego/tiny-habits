@@ -4,14 +4,14 @@
 // A habit has many entries
 // A habit belongs to one or more Habit Groups
 
-import type { TDay } from "types/TDay";
 import type { TEntry, Status, StatusDisplay } from "types/TEntry";
+import type { DateValue } from "./DateValue";
 
 class Entry implements TEntry {
   id: number;
   habitId: string;
   status: Status;
-  day: TDay;
+  date: DateValue;
 
   static readonly STATUS = {
     unstarted: "unstarted",
@@ -27,11 +27,9 @@ class Entry implements TEntry {
     skip: "-",
   };
 
-  constructor(id: number, habitId: string, status: Status, day: number) {
-    this.id = id;
-    this.habitId = habitId;
+  constructor(date: DateValue, status: Status) {
     this.status = status;
-    this.day = day;
+    this.date = date;
   }
 
   cycleStatus(): void {

@@ -1,32 +1,40 @@
 <script lang="ts">
-	import type { TDay } from "types/TDay";
+	import { DateValue } from "models/DateValue";
 	import Entry from "models/Entry";
 	import type Habit from "models/Habit";
+	import type HabitRepository from "repositories/HabitRepository";
 
 	interface $Props {
 		hasHabits: boolean;
 		habits: Habit[];
-		entriesByHabit: Record<string, Entry[]>;
+		habitRepository: HabitRepository;
 	}
 
-	const { habits, entriesByHabit }: $Props = $props();
+	const { habits, habitRepository }: $Props = $props();
 
-	const days: TDay[] = Array.from(
+	const dateRange: DateValue[] = Array.from(
 		{ length: 7 },
-		(_element, index) => index + 1,
+		(_element, index) => {
+			const date = new Date();
+			date.setDate(date.getDate() + index);
+			return new DateValue(date);
+		},
 	);
 
 	const title = "Habits";
 
-	function getEntryByDay(habitId: string, day: number): Entry | null {
+	function getEntryByDate(habitId: string, date: DateValue): Entry | null {
+		const habit = habits.find((habit) => habit.id === habitId);
+
+		if (!habit) return null;
+
 		return (
-			entriesByHabit[habitId]?.find(
-				(entry) => entry.day === Number(day),
-			) ?? null
+			habit.entries.find((entry) => entry.date.isSameDay(date)) ?? null
 		);
 	}
 
-	function addEntry(day: TDay, habitId: string) {
+	function addEntry(day: DateValue, habitId: string) {
+		habitRepository.addEntry(habitId);
 		// Should add entry to obsidian file
 		return undefined;
 	}
@@ -49,12 +57,8 @@
 	{/if}
 {/snippet}
 
-{#snippet dayHeader(value: TDay)}
-	{#if value}
-		<th>{value}</th>
-	{:else}
-		<th>Date missing</th>
-	{/if}
+{#snippet dateHeader(date: DateValue)}
+	<th>{date.format()}</th>
 {/snippet}
 
 {#snippet habitCell({ name, path }: Partial<Habit>)}
@@ -69,13 +73,13 @@
 	{/if}
 {/snippet}
 
-{#snippet entryCell(entry: Entry | null, day: TDay, habitId: string)}
+{#snippet entryCell(entry: Entry | null, date: DateValue, habitId: string)}
 	{#if entry}
 		<td onclick={toggleHabit(entry)} class="disable-text-selection">
 			{entry.display()}
 		</td>
 	{:else if entry === null}
-		<td onclick={addEntry(day, habitId)} class="disable-text-selection">
+		<td onclick={addEntry(date, habitId)} class="disable-text-selection">
 			{Entry.STATUS_DISPLAY.unstarted}
 		</td>
 	{:else}
@@ -87,17 +91,17 @@
 	<thead>
 		<tr>
 			{@render habitsHeader(title)}
-			{#each days as day}{@render dayHeader(day)}{/each}
+			{#each dateRange as day}{@render dateHeader(day)}{/each}
 		</tr>
 	</thead>
 	<tbody>
 		{#each habits as habit}
 			<tr>
 				{@render habitCell({ name: habit.name, path: habit.path })}
-				{#each days as day}
+				{#each dateRange as date}
 					{@render entryCell(
-						getEntryByDay(habit.id, day),
-						day,
+						getEntryByDate(habit.id, date),
+						date,
 						habit.id,
 					)}
 				{/each}

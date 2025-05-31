@@ -1,65 +1,101 @@
-import type { Vault } from "obsidian";
+import { FileManager, Notice, parseYaml, TFile, type Vault } from "obsidian";
 import type { THabitRepository } from '../types/THabitRepository';
 import Habit from "models/Habit";
-import type { TEntry } from "types/TEntry";
 import Entry from "models/Entry";
+import { DateValue } from "models/DateValue";
+import type { Status } from "types/TEntry";
 
 class HabitRepository implements THabitRepository {
   private readonly HABITS_FOLDER_PATH = 'Tiny Habits';
+  private readonly vault
+  private readonly fileManager
 
-  constructor(private vault: Vault) { this.vault = vault }
+  constructor(vault: Vault, fileManager: FileManager) {
+    this.vault = vault
+    this.fileManager = fileManager
+  }
 
-  async allFiles() {
-    return this.vault
-      .getMarkdownFiles()
-      .filter(file => file.path.includes(this.HABITS_FOLDER_PATH)) // TODO: This is not quite right, if the Index note is called the same as the path, it will pick it up as well. Example, "Tiny Habits.md" and a "Tiny Habits" folder. This can be avoided by setting the path to "Tiny Habits", but it's a brittle solution if we let the user write it manually.
-      .sort((a, b) => a.name.localeCompare(b.name));
+  async allHabitFiles() {
+    const folder = this.vault.getFolderByPath(this.HABITS_FOLDER_PATH)
+
+    if (folder == null) return []
+
+    const files = folder.children as TFile[]
+    return files.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async allHabits() {
-    const files = await this.allFiles()
-    const habits = await Promise.all(files.map(async file => Habit.fromFile(file)));
+    const files = await this.allHabitFiles()
+
+    // Get it? Build habits haha
+    const buildHabits = async (file: TFile) => {
+      // TODO: handle reading file errors
+      const data = await this.vault.read(file);
+
+      // TODO: Extract Frontmatter to an object
+      const frontmatter = data.split('---')[1]
+
+      // * If the Habit file has no frontmatter, we return an empty entries array 
+      if (!frontmatter) return Habit.fromFile(file, [])
+
+      // TODO: handle parsing yaml errors
+      const rawEntryData = parseYaml(frontmatter);
+      const entries: Entry[] = [];
+
+      for (const [date, status] of Object.entries(rawEntryData)) {
+        if (!DateValue.validate(date)) {
+          console.warn(`Invalid date format for habit ${file.basename}: ${date}`);
+          continue;
+        }
+
+        const dateValue = new DateValue(date);
+        const entry = new Entry(dateValue, status as Status);
+        entries.push(entry);
+      }
+
+      return Habit.fromFile(file, entries)
+    }
+
+    const habits = await Promise.all(
+      files.map(file => buildHabits(file))
+    );
 
     return habits
   }
 
+  addEntry(path: Habit['path'], value = "FIXME") {
+    // * It needs to be the full path, with the folder and extension on it. Like this:
+    // * "Tiny Habits/03 Code!.md"
+    // TODO: Create a template literal function for the full path, maybe inside a model or something
+    const fullPath = `${this.HABITS_FOLDER_PATH}/${path}.md`
+    const file = this.vault.getFileByPath(fullPath)
 
-  async allEntries() {
-    const entries: TEntry[] = [
-      { id: 1, habitId: "03 Code!", status: "failed", day: 1 },
-      { id: 2, habitId: "03 Code!", status: "failed", day: 2 },
-      { id: 3, habitId: "03 Code!", status: "failed", day: 3 },
-      { id: 4, habitId: "03 Code!", status: "failed", day: 4 },
-      { id: 5, habitId: "03 Code!", status: "failed", day: 5 },
-      { id: 6, habitId: "03 Code!", status: "failed", day: 6 },
-      { id: 7, habitId: "03 Code!", status: "failed", day: 7 },
-      { id: 8, habitId: "04 Breakfast", status: "completed", day: 1 },
-      { id: 8, habitId: "04 Breakfast", status: "completed", day: 2 },
-    ];
+    if (!file || !(file instanceof TFile)) {
+      new Notice("Couldn't update the habit entry!")
+      return
+    }
 
-    const entryList = await Promise.all(entries.map(async entry => {
-      return new Entry(entry.id, entry.habitId, entry.status, entry.day)
-    }))
+    // TODO: Handle errors
+    // TODO: fromFrontMatter method when reading the frontmatter
+    // this.vault.read(file).then((data) => {
+    //   const frontmatter = data.split('---')[1]
 
-    return entryList
-  }
+    //   if (!frontmatter) return {}
 
-  async entriesGroupedByHabit() {
-    const [habits, entries] = await Promise.all([
-      this.allHabits(),
-      this.allEntries()
-    ]);
+    //   return parseYaml(frontmatter)
+    // })
 
-    const groupedEntriesByHabit = Object.groupBy(entries, (entry) => entry.habitId);
 
-    // * To ensure all habits have an entry array, even if empty
-    const habitEntries: Record<string, Entry[]> = {};
-    habits.forEach(habit => {
-      habitEntries[habit.id] = groupedEntriesByHabit[habit.id] || [];
+    // TODO: Replace day with an actual date
+    const day = 1 // New Entry -> entry.cycleState -> entry.date
+
+    return
+    // TODO: Handle errors
+    this.fileManager.processFrontMatter(file, (frontmatter) => {
+      frontmatter[day] = value;
     });
-
-    return habitEntries;
   }
+
 }
 
 export default HabitRepository

@@ -9,7 +9,7 @@ export default class TinyHabitsView {
   habitRepository: HabitRepository
 
   constructor(source: string, markdownBlockElement: HTMLElement, context: MarkdownPostProcessorContext, app: App) {
-    this.habitRepository = new HabitRepository(app.vault)
+    this.habitRepository = new HabitRepository(app.vault, app.fileManager)
     this.markdownBlockElement = markdownBlockElement
 
     this.mountHabits()
@@ -17,9 +17,9 @@ export default class TinyHabitsView {
 
   async mountHabits() {
     const habits = await this.habitRepository.allHabits()
-    const entriesByHabit = await this.habitRepository.entriesGroupedByHabit()
     const hasHabits = habits.length > 0
 
+    debugger
     // TODO: I should handle the mounting of the component more organized, specially if i have props. On the Svelte side.
     // TODO: Three possible scenarios: no habits, habits and the placeholder while it opens
     if (!hasHabits) {
@@ -28,7 +28,11 @@ export default class TinyHabitsView {
     }
     mount(HabitsTable, {
       target: this.markdownBlockElement,
-      props: { hasHabits, habits, entriesByHabit }
+      props: {
+        hasHabits,
+        habits,
+        habitRepository: this.habitRepository
+      }
     });
   }
 }

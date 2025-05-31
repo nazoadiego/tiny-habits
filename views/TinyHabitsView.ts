@@ -19,7 +19,6 @@ export default class TinyHabitsView {
     const habits = await this.habitRepository.allHabits()
     const hasHabits = habits.length > 0
 
-    debugger
     // TODO: I should handle the mounting of the component more organized, specially if i have props. On the Svelte side.
     // TODO: Three possible scenarios: no habits, habits and the placeholder while it opens
     if (!hasHabits) {

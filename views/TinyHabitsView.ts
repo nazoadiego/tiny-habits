@@ -1,37 +1,46 @@
-import { type App, type MarkdownPostProcessorContext } from 'obsidian'
+import { Vault, type App, type MarkdownPostProcessorContext } from 'obsidian'
 import { mount } from "svelte";
-import NoResultsPlaceholder from 'components/NoResultsPlaceholder.svelte';
+// import NoResultsPlaceholder from 'components/NoResultsPlaceholder.svelte';
 import HabitsTable from 'components/HabitsTable.svelte';
 import HabitRepository from 'repositories/HabitRepository';
 
 export default class TinyHabitsView {
   markdownBlockElement: HTMLElement
   habitRepository: HabitRepository
+  vault: Vault
 
-  constructor(source: string, markdownBlockElement: HTMLElement, context: MarkdownPostProcessorContext, app: App) {
-    this.habitRepository = new HabitRepository(app.vault, app.fileManager)
+  constructor(
+    source: string,
+    markdownBlockElement: HTMLElement,
+    context: MarkdownPostProcessorContext,
+    app: App,
+    habitRepository: HabitRepository
+  ) {
+    this.habitRepository = habitRepository
     this.markdownBlockElement = markdownBlockElement
 
-    this.mountHabits()
+    this.renderView()
   }
 
   async mountHabits() {
-    const habits = await this.habitRepository.allHabits()
-    const hasHabits = habits.length > 0
 
-    // TODO: I should handle the mounting of the component more organized, specially if i have props. On the Svelte side.
-    // TODO: Three possible scenarios: no habits, habits and the placeholder while it opens
-    if (!hasHabits) {
-      mount(NoResultsPlaceholder, { target: this.markdownBlockElement });
-      return
-    }
+    // TODO: definitely don't do it here, read from the store in a svelte component
+    // const hasHabits = habits.length > 0;
+
+    // if (!hasHabits) {
+    //   mount(NoResultsPlaceholder, {
+    //     target: this.markdownBlockElement
+    //   });
+    //   return;
+    // }
+
     mount(HabitsTable, {
       target: this.markdownBlockElement,
-      props: {
-        hasHabits,
-        habits,
-        habitRepository: this.habitRepository
-      }
+      props: { habitRepository: this.habitRepository }
     });
+  }
+
+  async renderView() {
+    await this.mountHabits();
   }
 }

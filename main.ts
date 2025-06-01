@@ -2,6 +2,8 @@ import { App, Modal, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { mount, unmount } from 'svelte';
 import Counter from 'components/Counter.svelte';
 import TinyHabitsView from 'views/TinyHabitsView';
+import HabitRepository from 'repositories/HabitRepository';
+import { habitStore } from 'stores/store';
 
 // Remember to rename these classes and interfaces!
 
@@ -15,24 +17,44 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
+	private habitRepository: HabitRepository
 
 	async onload() {
 		await this.loadSettings();
+		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager)
 
 		this.mountCommands(this.app, this)
 		this.mountSettings(this.app, this)
+		this.registerHabitEvents()
+		this.loadHabits()
 
 		this.registerMarkdownCodeBlockProcessor(
 			'habits',
 			(source, element, context) => {
-				new TinyHabitsView(source, element, context, this.app)
-			},
+				new TinyHabitsView(source, element, context, this.app, this.habitRepository)
+			}
 		)
 	}
 
-	onunload() {
-
+	async loadHabits() {
+		const habits = await this.habitRepository.allHabits();
+		habitStore.set(habits);
 	}
+
+	registerHabitEvents() {
+		this.registerEvent(
+			this.app.vault.on("create", () => this.loadHabits())
+		);
+		this.registerEvent(
+			this.app.vault.on("delete", () => this.loadHabits())
+		);
+		this.registerEvent(
+			this.app.vault.on("modify", () => this.loadHabits())
+		);
+	}
+
+
+	onunload() { }
 
 	mountCommands(app: App, plugin: MyPlugin) {
 		// This adds a simple command that can be triggered anywhere

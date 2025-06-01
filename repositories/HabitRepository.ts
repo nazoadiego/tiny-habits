@@ -63,36 +63,19 @@ class HabitRepository implements THabitRepository {
     return habits
   }
 
-  addEntry(path: Habit['path'], value = "FIXME") {
-    // * It needs to be the full path, with the folder and extension on it. Like this:
-    // * "Tiny Habits/03 Code!.md"
-    // TODO: Create a template literal function for the full path, maybe inside a model or something
-    const fullPath = `${this.HABITS_FOLDER_PATH}/${path}.md`
-    const file = this.vault.getFileByPath(fullPath)
+  addEntry(habitPath: Habit['path'], date: DateValue) {
+    const file = this.vault.getFileByPath(habitPath)
 
     if (!file || !(file instanceof TFile)) {
       new Notice("Couldn't update the habit entry!")
       return
     }
 
-    // TODO: Handle errors
-    // TODO: fromFrontMatter method when reading the frontmatter
-    // this.vault.read(file).then((data) => {
-    //   const frontmatter = data.split('---')[1]
-
-    //   if (!frontmatter) return {}
-
-    //   return parseYaml(frontmatter)
-    // })
-
-
-    // TODO: Replace day with an actual date
-    const day = 1 // New Entry -> entry.cycleState -> entry.date
-
-    return
-    // TODO: Handle errors
+    const entry = new Entry(date, Entry.STATUS.unstarted);
+    entry.cycleStatus()
+    const isoDate = entry.date.toISODateString()
     this.fileManager.processFrontMatter(file, (frontmatter) => {
-      frontmatter[day] = value;
+      frontmatter[isoDate] = entry.status;
     });
   }
 

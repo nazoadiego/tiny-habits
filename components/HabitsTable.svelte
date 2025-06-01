@@ -3,15 +3,15 @@
 	import Entry from "models/Entry";
 	import type Habit from "models/Habit";
 	import type HabitRepository from "repositories/HabitRepository";
+	import { habitStore } from "stores/store";
 
 	interface $Props {
-		hasHabits: boolean;
-		habits: Habit[];
 		habitRepository: HabitRepository;
 	}
 
-	const { habits, habitRepository }: $Props = $props();
+	const { habitRepository }: $Props = $props();
 
+	// TODO: Move to DateValue class methods! why not
 	const dateRange: DateValue[] = Array.from(
 		{ length: 7 },
 		(_element, index) => {
@@ -24,7 +24,7 @@
 	const title = "Habits";
 
 	function getEntryByDate(habitId: string, date: DateValue): Entry | null {
-		const habit = habits.find((habit) => habit.id === habitId);
+		const habit = $habitStore.find((habit) => habit.id === habitId);
 
 		if (!habit) return null;
 
@@ -33,9 +33,9 @@
 		);
 	}
 
-	function addEntry(day: DateValue, habitId: string) {
-		habitRepository.addEntry(habitId);
-		// Should add entry to obsidian file
+	function addEntry(habitPath: Habit["path"], date: DateValue) {
+		habitRepository.addEntry(habitPath, date);
+
 		return undefined;
 	}
 
@@ -73,13 +73,17 @@
 	{/if}
 {/snippet}
 
-{#snippet entryCell(entry: Entry | null, date: DateValue, habitId: string)}
+{#snippet entryCell(
+	entry: Entry | null,
+	date: DateValue,
+	habitPath: Habit["path"],
+)}
 	{#if entry}
 		<td onclick={toggleHabit(entry)} class="disable-text-selection">
 			{entry.display()}
 		</td>
 	{:else if entry === null}
-		<td onclick={addEntry(date, habitId)} class="disable-text-selection">
+		<td onclick={addEntry(habitPath, date)} class="disable-text-selection">
 			{Entry.STATUS_DISPLAY.unstarted}
 		</td>
 	{:else}
@@ -95,14 +99,14 @@
 		</tr>
 	</thead>
 	<tbody>
-		{#each habits as habit}
+		{#each $habitStore as habit}
 			<tr>
 				{@render habitCell({ name: habit.name, path: habit.path })}
 				{#each dateRange as date}
 					{@render entryCell(
 						getEntryByDate(habit.id, date),
 						date,
-						habit.id,
+						habit.path,
 					)}
 				{/each}
 			</tr>

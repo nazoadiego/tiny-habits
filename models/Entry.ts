@@ -1,8 +1,5 @@
 // Relations
 // An Entry belongs to a habit
-// Relations
-// A habit has many entries
-// A habit belongs to one or more Habit Groups
 
 import type { TEntry, Status, StatusDisplay } from "types/TEntry";
 import type { DateValue } from "./DateValue";

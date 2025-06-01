@@ -40,6 +40,11 @@ export class DateValue {
     return formatter.format(this.value);
   }
 
+  toISODateString() {
+    if (!this.value) return "-";
+    return this.value.toISOString().split('T')[0];
+  }
+
   toString(): string {
     return this.value?.toISOString() || "-";
   }

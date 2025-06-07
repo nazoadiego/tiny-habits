@@ -1,5 +1,5 @@
 export class DateValue {
-  private value: Date | null;
+  private value: Date | undefined;
   isValid: boolean;
 
   constructor(input: Date | string) {
@@ -16,7 +16,7 @@ export class DateValue {
     if (typeof input === "string") {
       input = new Date(input);
     }
-    return input instanceof Date && !isNaN(input.getTime());
+    return input instanceof Date && !Number.isNaN(input.getTime());
   }
 
   static from(input: Date | string): DateValue {
@@ -24,10 +24,10 @@ export class DateValue {
   }
 
   static empty(): DateValue {
-    const obj = new DateValue(new Date());
-    obj.value = null;
-    obj.isValid = false;
-    return obj;
+    const valueObject = new DateValue(new Date());
+    valueObject.value = undefined;
+    valueObject.isValid = false;
+    return valueObject;
   }
 
   format(): string {

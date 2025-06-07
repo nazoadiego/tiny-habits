@@ -23,14 +23,12 @@
 
 	const title = "Habits";
 
-	function getEntryByDate(habitId: string, date: DateValue): Entry | null {
+	function getEntryByDate(habitId: string, date: DateValue): Entry | undefined {
 		const habit = $habitStore.find((habit) => habit.id === habitId);
 
-		if (!habit) return null;
+		if (!habit) return undefined;
 
-		return (
-			habit.entries.find((entry) => entry.date.isSameDay(date)) ?? null
-		);
+		return habit.entries.find((entry) => entry.date.isSameDay(date));
 	}
 
 	function addEntry(habitPath: Habit["path"], date: DateValue) {
@@ -73,18 +71,15 @@
 {/snippet}
 
 {#snippet entryCell(
-	entry: Entry | null,
+	entry: Entry | undefined,
 	date: DateValue,
 	habitPath: Habit["path"],
 )}
 	{#if entry}
-		<td
-			onclick={updateEntry(habitPath, entry)}
-			class="disable-text-selection"
-		>
+		<td onclick={updateEntry(habitPath, entry)} class="disable-text-selection">
 			{entry.display()}
 		</td>
-	{:else if entry === null}
+	{:else if entry === undefined}
 		<td onclick={addEntry(habitPath, date)} class="disable-text-selection">
 			{Entry.STATUS_DISPLAY.unstarted}
 		</td>
@@ -106,12 +101,8 @@
 		{#each $habitStore as habit (habit.id)}
 			<tr>
 				{@render habitCell({ name: habit.name, path: habit.path })}
-				{#each dateRange as date (date.toString)}
-					{@render entryCell(
-						getEntryByDate(habit.id, date),
-						date,
-						habit.path,
-					)}
+				{#each dateRange as date (date.toString())}
+					{@render entryCell(getEntryByDate(habit.id, date), date, habit.path)}
 				{/each}
 			</tr>
 		{/each}

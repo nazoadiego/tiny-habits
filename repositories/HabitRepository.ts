@@ -18,47 +18,47 @@ class HabitRepository implements THabitRepository {
   async allHabitFiles() {
     const folder = this.vault.getFolderByPath(this.HABITS_FOLDER_PATH)
 
-    if (folder == null) return []
+    if (folder == undefined) return []
 
     const files = folder.children as TFile[]
     return files.sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  // get it? haha build habits
+  async buildHabits(file: TFile) {
+    // TODO: handle reading file errors
+    const data = await this.vault.read(file);
+
+    // TODO: Extract Frontmatter to an object
+    const frontmatter = data.split('---')[1]
+
+    // * If the Habit file has no frontmatter, we return an empty entries array 
+    if (!frontmatter) return Habit.fromFile(file, [])
+
+    // TODO: handle parsing yaml errors
+    const rawEntryData = parseYaml(frontmatter);
+    const entries: Entry[] = [];
+
+    for (const [date, status] of Object.entries(rawEntryData)) {
+      if (!DateValue.validate(date)) {
+        console.warn(`Invalid date format for habit ${file.basename}: ${date}`);
+        continue;
+      }
+
+      const dateValue = new DateValue(date);
+      const entry = new Entry(dateValue, status as Status);
+      entries.push(entry);
+    }
+
+    return Habit.fromFile(file, entries)
+  }
+
   async allHabits() {
     const files = await this.allHabitFiles()
 
-    // Get it? Build habits haha
-    const buildHabits = async (file: TFile) => {
-      // TODO: handle reading file errors
-      const data = await this.vault.read(file);
-
-      // TODO: Extract Frontmatter to an object
-      const frontmatter = data.split('---')[1]
-
-      // * If the Habit file has no frontmatter, we return an empty entries array 
-      if (!frontmatter) return Habit.fromFile(file, [])
-
-      // TODO: handle parsing yaml errors
-      const rawEntryData = parseYaml(frontmatter);
-      const entries: Entry[] = [];
-
-      for (const [date, status] of Object.entries(rawEntryData)) {
-        if (!DateValue.validate(date)) {
-          console.warn(`Invalid date format for habit ${file.basename}: ${date}`);
-          continue;
-        }
-
-        const dateValue = new DateValue(date);
-        const entry = new Entry(dateValue, status as Status);
-        entries.push(entry);
-      }
-
-      return Habit.fromFile(file, entries)
-    }
-
     // TODO: Use Array.fromAsync instead
     const habits = await Promise.all(
-      files.map(file => buildHabits(file))
+      files.map(file => this.buildHabits(file))
     );
 
     return habits

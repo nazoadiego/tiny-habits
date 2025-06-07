@@ -97,14 +97,16 @@
 	<thead>
 		<tr>
 			{@render habitsHeader(title)}
-			{#each dateRange as day}{@render dateHeader(day)}{/each}
+			{#each dateRange as date (date.toString())}
+				{@render dateHeader(date)}
+			{/each}
 		</tr>
 	</thead>
 	<tbody>
-		{#each $habitStore as habit}
+		{#each $habitStore as habit (habit.id)}
 			<tr>
 				{@render habitCell({ name: habit.name, path: habit.path })}
-				{#each dateRange as date}
+				{#each dateRange as date (date.toString)}
 					{@render entryCell(
 						getEntryByDate(habit.id, date),
 						date,

@@ -1,160 +1,114 @@
 <script lang="ts">
-	// TODO: Move Types to a different file
-	type HabitGroup = {
-		id: number;
-		name: string;
-	};
+	import { DateValue } from "models/DateValue";
+	import Entry from "models/Entry";
+	import type Habit from "models/Habit";
+	import type HabitRepository from "repositories/HabitRepository";
+	import { habitStore } from "stores/store";
 
-	type Status = "unstarted" | "completed" | "failed" | "skip";
-	type StatusDisplay = "O" | "X" | "-" | "";
+	interface $Props {
+		habitRepository: HabitRepository;
+	}
 
-	const STATUS = {
-		unstarted: "unstarted",
-		completed: "completed",
-		failed: "failed",
-		skip: "skip",
-	} as const;
+	const { habitRepository }: $Props = $props();
 
-	const STATUS_CYCLE: Status[] = [
-		STATUS.unstarted,
-		STATUS.completed,
-		STATUS.failed,
-		STATUS.skip,
-	];
-
-	const STATUS_DISPLAY: Record<Status, StatusDisplay> = {
-		unstarted: "",
-		completed: "O",
-		failed: "X",
-		skip: "-",
-	};
-
-	type Day = number;
-
-	type HabitEntry = {
-		id: number;
-		groupId: number;
-		status: Status;
-		day: Day;
-	};
-
-	const days: Day[] = Array.from(
+	// TODO: Move to DateValue class methods! why not
+	const dateRange: DateValue[] = Array.from(
 		{ length: 7 },
-		(_element, index) => index + 1,
+		(_element, index) => {
+			const date = new Date();
+			date.setDate(date.getDate() + index);
+			return new DateValue(date);
+		},
 	);
 
 	const title = "Habits";
 
-	const habitGroups: HabitGroup[] = [
-		{ id: 1, name: "Study" },
-		{ id: 2, name: "Breakfast" },
-	];
+	function getEntryByDate(habitId: string, date: DateValue): Entry | null {
+		const habit = $habitStore.find((habit) => habit.id === habitId);
 
-	let entries: HabitEntry[] = [
-		{ id: 1, groupId: 1, status: "failed", day: 1 },
-		{ id: 2, groupId: 1, status: "failed", day: 2 },
-		{ id: 3, groupId: 1, status: "failed", day: 3 },
-		{ id: 4, groupId: 1, status: "failed", day: 4 },
-		{ id: 5, groupId: 1, status: "failed", day: 5 },
-		{ id: 6, groupId: 1, status: "failed", day: 6 },
-		{ id: 7, groupId: 1, status: "failed", day: 7 },
-		{ id: 8, groupId: 2, status: "completed", day: 1 },
-	];
+		if (!habit) return null;
 
-	$: groupedEntries = Object.groupBy(entries, (entry) => entry.groupId);
-
-	function getEntry(groupId: number, day: number): HabitEntry | null {
 		return (
-			groupedEntries[groupId]?.find(
-				(entry) => entry.day === Number(day),
-			) ?? null
+			habit.entries.find((entry) => entry.date.isSameDay(date)) ?? null
 		);
 	}
 
-	function cycleStatuses(currentStatus: Status) {
-		const currentIndex = STATUS_CYCLE.indexOf(currentStatus);
-		const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
-		const newStatus = STATUS_CYCLE[nextIndex];
-		return newStatus;
-	}
-
-	function addEntry(day: Day, groupId: number) {
-		const maxId = Math.max(...entries.map((e) => e.id));
-		const newEntry = {
-			id: maxId + 1,
-			groupId,
-			status: STATUS.unstarted,
-			day,
-		};
-		entries = [...entries, newEntry];
+	function addEntry(habitPath: Habit["path"], date: DateValue) {
+		habitRepository.addEntry(habitPath, date);
 
 		return undefined;
 	}
 
-	function toggleHabit(entryToUpdate: HabitEntry) {
-		entryToUpdate.status = cycleStatuses(entryToUpdate.status);
-		entries = [...entries, entryToUpdate];
+	function updateEntry(habitPath: Habit["path"], entry: Entry) {
+		habitRepository.updateEntry(habitPath, entry);
 
 		return undefined;
 	}
 </script>
 
-{#snippet habitGroupHeader(value: string)}
+{#snippet habitsHeader(value: string)}
 	{#if value}
-		<th>{value}</th>
+		<th>
+			{value}
+		</th>
 	{:else}
-		<th>-</th>
+		<th> Missing Habit Header </th>
 	{/if}
 {/snippet}
 
-{#snippet dayHeader(value: Day)}
-	{#if value}
-		<th>{value}</th>
+{#snippet dateHeader(date: DateValue)}
+	<th>{date.format()}</th>
+{/snippet}
+
+{#snippet habitCell({ name, path }: Partial<Habit>)}
+	{#if name}
+		<td>
+			<a aria-label={path} href={path} class="internal-link">
+				{name}
+			</a>
+		</td>
 	{:else}
-		<th>-</th>
+		<td>Missing Habit Name</td>
 	{/if}
 {/snippet}
 
-{#snippet habitGroupCell(value: string)}
-	{#if value}
-		<td>{value}</td>
-	{:else}
-		<td>-</td>
-	{/if}
-{/snippet}
-
-{#snippet habitEntryCell(entry: HabitEntry | null, day: Day, groupId: number)}
+{#snippet entryCell(
+	entry: Entry | null,
+	date: DateValue,
+	habitPath: Habit["path"],
+)}
 	{#if entry}
-		<td onclick={toggleHabit(entry)}>
-			{STATUS_DISPLAY[entry.status]}
+		<td
+			onclick={updateEntry(habitPath, entry)}
+			class="disable-text-selection"
+		>
+			{entry.display()}
 		</td>
 	{:else if entry === null}
-		<td onclick={addEntry(day, groupId)}>
-			{STATUS_DISPLAY[STATUS.unstarted]}
+		<td onclick={addEntry(habitPath, date)} class="disable-text-selection">
+			{Entry.STATUS_DISPLAY.unstarted}
 		</td>
 	{:else}
 		<td>Invalid</td>
 	{/if}
 {/snippet}
 
-<table class="blueTable">
+<table class="purpleTheme">
 	<thead>
 		<tr>
-			{@render habitGroupHeader(title)}
-			{#each days as day}
-				{@render dayHeader(day)}
-			{/each}
+			{@render habitsHeader(title)}
+			{#each dateRange as day}{@render dateHeader(day)}{/each}
 		</tr>
 	</thead>
 	<tbody>
-		{#each habitGroups as habitGroup}
+		{#each $habitStore as habit}
 			<tr>
-				{@render habitGroupCell(habitGroup.name)}
-				{#each days as day}
-					{@render habitEntryCell(
-						getEntry(habitGroup.id, day),
-						day,
-						habitGroup.id,
+				{@render habitCell({ name: habit.name, path: habit.path })}
+				{#each dateRange as date}
+					{@render entryCell(
+						getEntryByDate(habit.id, date),
+						date,
+						habit.path,
 					)}
 				{/each}
 			</tr>
@@ -163,7 +117,7 @@
 </table>
 
 <style>
-	table.blueTable {
+	table.purpleTheme {
 		width: 100%;
 		text-align: center;
 		border-collapse: separate;
@@ -172,8 +126,8 @@
 		border-radius: 6px;
 	}
 
-	table.blueTable td,
-	table.blueTable th {
+	table.purpleTheme td,
+	table.purpleTheme th {
 		text-align: center;
 		width: 32px;
 		height: 32px;
@@ -181,32 +135,35 @@
 		border-radius: 6px;
 	}
 
-	table.blueTable tbody td {
+	table.purpleTheme tbody td {
 		color: var(--text-normal);
 		background-color: rgba(74, 43, 112, 0.05);
 		border: 1px solid rgba(74, 43, 112, 0.2);
 	}
 
-	table.blueTable thead th {
+	table.purpleTheme thead th {
 		background: #722aca;
 		color: #ffffff;
 	}
 
-	table.blueTable tbody tr:hover td {
+	table.purpleTheme tbody tr:hover td {
 		background-color: rgba(74, 43, 112, 0.15);
 		transform: translateY(-0.5px);
 		transition: all 0.4s ease;
 	}
 
-	table.blueTable td:hover {
+	table.purpleTheme td:hover {
 		background-color: rgba(76, 24, 141, 0.3) !important;
 		cursor: pointer;
 		transform: scale(1.05);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
 
-	table.blueTable td:active {
+	table.purpleTheme td:active {
 		transform: scale(0.95);
 		transition: transform 0.1s;
+	}
+	.disable-text-selection {
+		user-select: none;
 	}
 </style>

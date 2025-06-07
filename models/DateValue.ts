@@ -11,7 +11,7 @@ export class DateValue {
   }
 
   // TODO: Verify that is either a isoDate string or a string in "YYYY-MM-DD" format, otherwise new Date will give invalid date
-  // TODO: I already know the object would be invalid yeah, but wouldnt hurt to have some better error feedback: expect x format got y
+  // TODO: I already know the object would be invalid yeah, but wouldn't hurt to have some better error feedback: expect x format got y
   static validate(input: Date | string): boolean {
     if (typeof input === "string") {
       input = new Date(input);

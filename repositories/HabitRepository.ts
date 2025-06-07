@@ -56,6 +56,7 @@ class HabitRepository implements THabitRepository {
       return Habit.fromFile(file, entries)
     }
 
+    // TODO: Use Array.fromAsync instead
     const habits = await Promise.all(
       files.map(file => buildHabits(file))
     );
@@ -79,6 +80,20 @@ class HabitRepository implements THabitRepository {
     });
   }
 
+  updateEntry(habitPath: Habit['path'], entry: Entry) {
+    const file = this.vault.getFileByPath(habitPath)
+
+    if (!file || !(file instanceof TFile)) {
+      new Notice("Couldn't update the habit entry!")
+      return
+    }
+
+    entry.cycleStatus()
+    const isoDate = entry.date.toISODateString()
+    this.fileManager.processFrontMatter(file, (frontmatter) => {
+      frontmatter[isoDate] = entry.status;
+    });
+  }
 }
 
 export default HabitRepository

@@ -46,6 +46,9 @@ export default class MyPlugin extends Plugin {
 			this.app.vault.on("create", () => this.loadHabits())
 		);
 		this.registerEvent(
+			this.app.vault.on("rename", () => this.loadHabits())
+		);
+		this.registerEvent(
 			this.app.vault.on("delete", () => this.loadHabits())
 		);
 		this.registerEvent(

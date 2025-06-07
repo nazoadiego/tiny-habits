@@ -39,9 +39,8 @@
 		return undefined;
 	}
 
-	function toggleHabit(entry: Entry) {
-		const entryToUpdate = entry.cycleStatus();
-		// Should update the entry in the obsidian file
+	function updateEntry(habitPath: Habit["path"], entry: Entry) {
+		habitRepository.updateEntry(habitPath, entry);
 
 		return undefined;
 	}
@@ -79,7 +78,10 @@
 	habitPath: Habit["path"],
 )}
 	{#if entry}
-		<td onclick={toggleHabit(entry)} class="disable-text-selection">
+		<td
+			onclick={updateEntry(habitPath, entry)}
+			class="disable-text-selection"
+		>
 			{entry.display()}
 		</td>
 	{:else if entry === null}

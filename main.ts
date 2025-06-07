@@ -57,7 +57,7 @@ export default class MyPlugin extends Plugin {
 	}
 
 
-	onunload() { }
+	onunload() {}
 
 	mountCommands(app: App, plugin: MyPlugin) {
 		// This adds a simple command that can be triggered anywhere

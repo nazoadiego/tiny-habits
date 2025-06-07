@@ -3,13 +3,13 @@
     startCount: number;
   }
 
-  let {
-    startCount
-  }: Props = $props();
+  let { startCount }: Props = $props();
 
   let count = $state(startCount);
 
-  export function increment() { count += 1 }
+  export function increment() {
+    count += 1;
+  }
 </script>
 
 <div class="number">

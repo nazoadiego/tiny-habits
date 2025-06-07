@@ -23,7 +23,7 @@ class Habit implements THabit {
 
   static fromFile(file: TFile, entries: Entry[]): Habit {
     const id = file.basename;
-    const name = file.basename.replace(/-/g, " ");
+    const name = file.basename.replaceAll('-', " ");
     const path = file.path;
     return new Habit({ id, name, path, entries });
   }

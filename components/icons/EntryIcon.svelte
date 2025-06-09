@@ -1,8 +1,7 @@
 <script lang="ts">
   import type Entry from "models/Entry";
-  import { getIcon, getIconIds } from "obsidian";
+  import { getIcon } from "obsidian";
 
-  console.log(getIconIds());
   // keys should match the possible status of an entry and a default
   // Entry.STATUS
   // values should be among lucide options, IconName

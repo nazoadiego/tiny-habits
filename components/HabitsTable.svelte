@@ -77,7 +77,11 @@
 	habitPath: Habit["path"],
 )}
 	{#if entry}
-		<td onclick={updateEntry(habitPath, entry)} class="disable-text-selection">
+		<td
+			onclick={updateEntry(habitPath, entry)}
+			class="disable-text-selection entry-cell"
+			data-status={entry.status}
+		>
 			<EntryIcon status={entry.status} />
 		</td>
 	{:else if entry === undefined}
@@ -90,7 +94,7 @@
 	{/if}
 {/snippet}
 
-<table class="purpleTheme">
+<table class="purple-theme">
 	<thead>
 		<tr>
 			{@render habitsHeader(title)}
@@ -112,51 +116,66 @@
 </table>
 
 <style>
-	table.purpleTheme {
+	:root {
+		--success-green: #4caf50;
+		--failure-red: #f44336;
+		--skip-blue: #64b5f6;
+	}
+
+	table.purple-theme {
 		width: 100%;
-		text-align: center;
 		border-collapse: separate;
 		border-spacing: 6px;
 		background-color: rgba(0, 0, 0, 0.2);
 		border-radius: 6px;
 	}
 
-	table.purpleTheme td,
-	table.purpleTheme th {
+	table.purple-theme td[data-status="skip"] {
+		background-color: var(--skip-blue);
+	}
+	table.purple-theme td[data-status="completed"] {
+		background-color: var(--success-green);
+	}
+
+	table.purple-theme td[data-status="failed"] {
+		background-color: var(--failure-red);
+	}
+
+	table.purple-theme td,
+	table.purple-theme th {
 		text-align: center;
-		width: 32px;
-		height: 32px;
 		padding: 18px 12px;
 		border-radius: 6px;
 	}
 
-	table.purpleTheme tbody td {
+	table.purple-theme tbody td {
+		cursor: pointer;
 		color: var(--text-normal);
 		border: 1px solid rgba(74, 43, 112, 0.2);
 	}
 
-	table.purpleTheme thead th {
+	table.purple-theme thead th {
 		border: 1px solid rgba(74, 43, 112, 0.2);
 		background: #722aca;
 	}
 
-	table.purpleTheme tbody tr:hover td {
-		background-color: rgba(74, 43, 112, 0.15);
+	table.purple-theme tr:hover td.entry-cell {
+		opacity: 0.7;
 		transform: translateY(-0.5px);
 		transition: all 0.4s ease;
 	}
 
-	table.purpleTheme td:hover {
-		background-color: rgba(76, 24, 141, 0.3) !important;
+	table.purple-theme tr:hover td.entry-cell:hover {
+		opacity: 1;
 		cursor: pointer;
-		transform: scale(1.05);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
 
-	table.purpleTheme td:active {
+	table.purple-theme td:active {
 		transform: scale(0.95);
-		transition: transform 0.1s;
+		transition: transform 0.02s;
 	}
+
 	.disable-text-selection {
 		user-select: none;
 	}

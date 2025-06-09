@@ -24,6 +24,8 @@ class HabitRepository implements THabitRepository {
     return files.sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  // TODO: probably not the right place for this function
+  // TODO: worth it to split the functions inside?
   // get it? haha build habits
   async buildHabits(file: TFile) {
     // TODO: handle reading file errors
@@ -39,6 +41,7 @@ class HabitRepository implements THabitRepository {
     const rawEntryData = parseYaml(frontmatter);
     const entries: Entry[] = [];
 
+    // TODO: maybe I can just use a map, or also do an Array.fromAsync
     for (const [date, status] of Object.entries(rawEntryData)) {
       if (!DateValue.validate(date)) {
         console.warn(`Invalid date format for habit ${file.basename}: ${date}`);

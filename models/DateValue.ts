@@ -30,6 +30,7 @@ export class DateValue {
     return valueObject;
   }
 
+  // TODO: Change this to only show day and month, or make a separate method
   format(): string {
     if (!this.value) return "-";
     const formatter = new Intl.DateTimeFormat("en-GB", {
@@ -40,6 +41,13 @@ export class DateValue {
     return formatter.format(this.value);
   }
 
+  toDayString(): string {
+    if(!this.value) return "-"
+    
+    return this.value.getDate().toString()
+  }
+
+  // ? was this the date i use to save to a markdown frontmatter? maybe make an alias so you dont think about it
   toISODateString() {
     if (!this.value) return "-";
     return this.value.toISOString().split('T')[0];

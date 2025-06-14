@@ -6,7 +6,6 @@ import { DateValue } from "models/DateValue";
 import type { Status } from "types/TEntry";
 
 class HabitRepository implements THabitRepository {
-  private readonly HABITS_FOLDER_PATH = 'Tiny Habits';
   private readonly vault
   private readonly fileManager
 
@@ -15,8 +14,8 @@ class HabitRepository implements THabitRepository {
     this.fileManager = fileManager
   }
 
-  async allHabitFiles() {
-    const folder = this.vault.getFolderByPath(this.HABITS_FOLDER_PATH)
+  async allHabitFiles(folderPath: string) {
+    const folder = this.vault.getFolderByPath(folderPath)
 
     if (folder == undefined) return []
 
@@ -56,8 +55,8 @@ class HabitRepository implements THabitRepository {
     return Habit.fromFile(file, entries)
   }
 
-  async allHabits() {
-    const files = await this.allHabitFiles()
+  async allHabits(folderPath: string) {
+    const files = await this.allHabitFiles(folderPath)
 
     // TODO: Use Array.fromAsync instead
     const habits = await Promise.all(
@@ -77,9 +76,9 @@ class HabitRepository implements THabitRepository {
 
     const entry = new Entry(date, Entry.STATUS.unstarted);
     entry.cycleStatus()
-    const isoDate = entry.date.toISODateString()
+    const formattedDate = entry.date.toFrontmatterProperty()
     this.fileManager.processFrontMatter(file, (frontmatter) => {
-      frontmatter[isoDate] = entry.status;
+      frontmatter[formattedDate] = entry.status;
     });
   }
 
@@ -92,9 +91,9 @@ class HabitRepository implements THabitRepository {
     }
 
     entry.cycleStatus()
-    const isoDate = entry.date.toISODateString()
+    const formattedDate = entry.date.toFrontmatterProperty()
     this.fileManager.processFrontMatter(file, (frontmatter) => {
-      frontmatter[isoDate] = entry.status;
+      frontmatter[formattedDate] = entry.status;
     });
   }
 }

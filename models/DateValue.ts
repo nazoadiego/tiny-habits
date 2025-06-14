@@ -47,10 +47,15 @@ export class DateValue {
     return this.value.getDate().toString()
   }
 
-  // ? was this the date i use to save to a markdown frontmatter? maybe make an alias so you dont think about it
-  toISODateString() {
+  // * YYYY-MM-DD, otherwise obsidian gets a bit weird about it.
+  toFrontmatterProperty() {
     if (!this.value) return "-";
-    return this.value.toISOString().split('T')[0];
+
+    const year = this.value.getFullYear();
+    const month = String(this.value.getMonth() + 1).padStart(2, '0'); // JavaScript months are zero-based index lol, January is 0
+    const day = String(this.value.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
   toString(): string {

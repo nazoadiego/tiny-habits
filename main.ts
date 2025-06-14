@@ -1,58 +1,63 @@
-import { App, Modal, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Modal, Plugin, TAbstractFile, TFile  } from 'obsidian';
 import { mount, unmount } from 'svelte';
 import Counter from 'components/Counter.svelte';
 import TinyHabitsView from 'views/TinyHabitsView';
 import HabitRepository from 'repositories/HabitRepository';
 import { habitStore } from 'stores/store';
 
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
-	mySetting: string;
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
-
 export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
 	private habitRepository: HabitRepository
+	private settings: { folderPath: string }
 
 	async onload() {
-		await this.loadSettings();
 		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager)
 
 		this.mountCommands(this.app, this)
-		this.mountSettings(this.app, this)
-		this.registerHabitEvents()
-		this.loadHabits()
+
 
 		this.registerMarkdownCodeBlockProcessor(
 			'habits',
 			(source, element, context) => {
-				new TinyHabitsView(source, element, context, this.app, this.habitRepository)
+				this.settings = JSON.parse(source)
+				const folderPath = this.settings.folderPath
+				this.registerHabitEvents()
+				this.loadHabits(folderPath)
+
+				new TinyHabitsView(source, element, context, this.app, this.habitRepository, folderPath)
 			}
 		)
 	}
 
-	async loadHabits() {
-		const habits = await this.habitRepository.allHabits();
-		habitStore.set(habits);
+	async loadHabits(folderPath: string | undefined) {
+		if (folderPath == undefined) return
+
+		const habits = await this.habitRepository.allHabits(folderPath);
+
+    habitStore.update(currentStore => ({
+        ...currentStore,
+        [folderPath]: habits
+    }));
+	}
+
+	getFolderPath(file: TAbstractFile) {
+		if (!(file instanceof TFile)) return undefined
+		if (file.parent == undefined) return undefined
+
+		return file.parent.path
 	}
 
 	registerHabitEvents() {
 		this.registerEvent(
-			this.app.vault.on("create", () => this.loadHabits())
+			this.app.vault.on("create", (file) => this.loadHabits(this.getFolderPath(file)))
 		);
 		this.registerEvent(
-			this.app.vault.on("rename", () => this.loadHabits())
+			this.app.vault.on("rename", (file) => this.loadHabits(this.getFolderPath(file)))
 		);
 		this.registerEvent(
-			this.app.vault.on("delete", () => this.loadHabits())
+			this.app.vault.on("delete", (file) => this.loadHabits(this.getFolderPath(file)))
 		);
 		this.registerEvent(
-			this.app.vault.on("modify", () => this.loadHabits())
+			this.app.vault.on("modify", (file) => this.loadHabits(this.getFolderPath(file)))
 		);
 	}
 
@@ -68,19 +73,6 @@ export default class MyPlugin extends Plugin {
 				new SampleModal(app).open();
 			}
 		});
-	}
-
-	mountSettings(app: App, plugin: MyPlugin): void {
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		plugin.addSettingTab(new SampleSettingTab(app, plugin));
-	}
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
 	}
 }
 
@@ -111,30 +103,5 @@ class SampleModal extends Modal {
 			// Remove the Counter from the ItemView.
 			unmount(this.counter);
 		}
-	}
-}
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
 	}
 }

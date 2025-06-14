@@ -12,15 +12,15 @@
 
 	const { habitRepository }: $Props = $props();
 
-	// TODO: Move to DateValue class methods! why not
+	// TODO: Move to DateValue class methods! why not, or even better a DateRange
 	const dateRange: DateValue[] = Array.from(
 		{ length: 7 },
 		(_element, index) => {
 			const date = new Date();
-			date.setDate(date.getDate() + index);
+			date.setDate(date.getDate() - index);
 			return new DateValue(date);
 		},
-	);
+	).toReversed();
 
 	const title = "Habits";
 
@@ -162,18 +162,13 @@
 	table.purple-theme tr:hover td.entry-cell {
 		opacity: 0.7;
 		transform: translateY(-0.5px);
-		transition: all 0.4s ease;
+		transition: all 0.2s ease;
 	}
 
 	table.purple-theme tr:hover td.entry-cell:hover {
 		opacity: 1;
 		cursor: pointer;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-	}
-
-	table.purple-theme td:active {
-		transform: scale(0.95);
-		transition: transform 0.02s;
 	}
 
 	.disable-text-selection {

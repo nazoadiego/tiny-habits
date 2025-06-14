@@ -1,24 +1,32 @@
 <script lang="ts">
   import type Entry from "models/Entry";
-  import { getIcon } from "obsidian";
+  import { setIcon } from "obsidian";
 
-  // keys should match the possible status of an entry and a default
-  // Entry.STATUS
-  // values should be among lucide options, IconName
-  const iconMap = {
-    unstarted: getIcon("lucide-circle-dashed"),
-    completed: getIcon("lucide-check"),
-    skip: getIcon("lucide-circle-minus"),
-    failed: getIcon("lucide-circle-x"),
+  type $Props = {
+    status: Entry["status"];
   };
-  console.log(iconMap.failed);
 
-  export let status: Entry["status"];
+  const { status }: $Props = $props();
+
+  const iconMap = {
+    unstarted: undefined,
+    completed: "lucide-check",
+    skip: "lucide-circle-minus",
+    failed: "lucide-circle-x",
+  };
+
+  // TODO: maybe move this to a generic Icon component, just leave the iconMap here
+  let iconElement: HTMLDivElement | undefined = $state();
+
+  $effect(() =>
+    iconElement && iconMap[status]
+      ? setIcon(iconElement, iconMap[status])
+      : undefined,
+  );
 </script>
 
-{#if status}
-  <!-- <svg bind:this={icon}></svg> -->
-  {@html iconMap[status]?.outerHTML}
+{#if iconMap[status]}
+  <div bind:this={iconElement}></div>
 {:else}
-  <span>No Status, something is wrong</span>
+  <div></div>
 {/if}

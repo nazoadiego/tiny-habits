@@ -2,19 +2,24 @@
 	import { DateValue } from "models/DateValue";
 	import Entry from "models/Entry";
 	import Habit from "models/Habit";
-	import type HabitRepository from "repositories/HabitRepository";
-	import { habitStore } from "stores/store";
+	import HabitRepository from "repositories/HabitRepository";
 	import EntryIcon from "./icons/EntryIcon.svelte";
+	import { habitStore } from "stores/store";
 
 	interface $Props {
 		habitRepository: HabitRepository;
+		folderPath: string;
 	}
 
-	const { habitRepository }: $Props = $props();
+	const { habitRepository, folderPath }: $Props = $props();
+
+	const habits = $derived($habitStore[folderPath]);
+
+	const HEADER_NUMBER_OF_DAYS = 7;
 
 	// TODO: Move to DateValue class methods! why not, or even better a DateRange
 	const dateRange: DateValue[] = Array.from(
-		{ length: 7 },
+		{ length: HEADER_NUMBER_OF_DAYS },
 		(_element, index) => {
 			const date = new Date();
 			date.setDate(date.getDate() - index);
@@ -22,10 +27,10 @@
 		},
 	).toReversed();
 
-	const title = "Habits";
+	const title = folderPath;
 
 	function getEntryByDate(habitId: string, date: DateValue): Entry | undefined {
-		const habit = $habitStore.find((habit) => habit.id === habitId);
+		const habit = habits.find((habit) => habit.id === habitId);
 
 		if (!habit) return undefined;
 
@@ -104,7 +109,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		{#each $habitStore as habit (habit.id)}
+		{#each habits as habit (habit.id)}
 			<tr>
 				{@render habitCell({ name: habit.name, path: habit.path })}
 				{#each dateRange as date (date.toString())}

@@ -1,4 +1,6 @@
 import type Habit from "models/Habit";
 import { writable } from "svelte/store";
 
-export const habitStore = writable<Habit[]>([]);
+export type HabitStoreType = Record<string, Habit[]>;
+
+export const habitStore = writable<HabitStoreType>({});

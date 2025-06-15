@@ -1,5 +1,3 @@
-import { includeIgnoreFile } from '@eslint/compat';
-import { fileURLToPath } from 'node:url';
 import globals from 'globals';
 import svelteConfig from './svelte.config.js';
 import js from '@eslint/js';
@@ -8,15 +6,12 @@ import ts from 'typescript-eslint';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn'
 import { defineConfig, globalIgnores } from "eslint/config";
 
-const gitignorePath = fileURLToPath(new URL('.gitignore', import.meta.url));
-
 export default defineConfig(
-	includeIgnoreFile(gitignorePath),
-	globalIgnores(['version-bump.mjs', 'esbuild.config.mjs']),
+	globalIgnores(['main.js', 'version-bump.mjs', 'esbuild.config.mjs']),
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,
-  eslintPluginUnicorn.configs.recommended,
+	eslintPluginUnicorn.configs.recommended,
 	{
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node }
@@ -25,26 +20,35 @@ export default defineConfig(
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
 			"no-undef": 'off',
-      "unicorn/filename-case": 'off',
+			"indent": ["error", "tab"],
+			"array-bracket-newline": ["error", "consistent"],
+			"block-spacing": ["error", "always"],
+			"comma-dangle": ["error", "never"],
+			"brace-style": ["error", "stroustrup", { "allowSingleLine": true }],
+			"comma-spacing": ["error", { "before": false, "after": true }],
+			"arrow-spacing": ["error", { "before": true, "after": true }],
+			"max-statements-per-line": ["error", { "max": 1 }],
+			"no-mixed-operators": "error",
+			"object-curly-newline": ["error", { "consistent": true }],
+			"object-curly-spacing": ["error", "always"],
+			"unicorn/filename-case": 'off',
 			"unicorn/no-empty-file": 'warn',
-      "unicorn/no-useless-undefined": 'off',
-      "unicorn/prevent-abbreviations": [
-        "error",
-        {
-          "replacements": {
-            "props": {
-              "properties": false
-            },
-          }
-        }
-      ]
-    },
+			"unicorn/no-useless-undefined": 'off',
+			"unicorn/prevent-abbreviations": [
+				"error",
+				{
+					"replacements": {
+						"props": {
+							"properties": false
+						}
+					}
+				}
+			]
+		}
 	},
 	{
 		files: [
-			'**/*.svelte',
-			'**/*.svelte.ts',
-			'**/*.svelte.js'
+			'**/*.svelte'
 		],
 		languageOptions: {
 			parserOptions: {
@@ -54,4 +58,4 @@ export default defineConfig(
 				svelteConfig
 			}
 		}
-})
+	})

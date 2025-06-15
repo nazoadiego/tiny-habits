@@ -25,5 +25,8 @@
     "**/*.ts",
     "**/**/*.ts",
     "**/**/*.svelte"
+  ],
+  "exclude": [
+    "node_modules/*"
   ]
 }

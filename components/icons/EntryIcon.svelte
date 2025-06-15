@@ -7,10 +7,10 @@
   const { status }: $Props = $props();
 
   const iconMap = {
-    unstarted: undefined,
-    completed: "lucide-check",
-    skip: "lucide-circle-minus",
-    failed: "lucide-circle-x",
+  	unstarted: undefined,
+  	completed: "lucide-check",
+  	skip: "lucide-circle-minus",
+  	failed: "lucide-circle-x"
   } as const;
 
   const icon = $derived(iconMap[status]);

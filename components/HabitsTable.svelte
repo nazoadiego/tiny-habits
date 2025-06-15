@@ -6,6 +6,7 @@
 	import EntryIcon from "./icons/EntryIcon.svelte";
 	import { habitStore } from "stores/store";
 	import { DateRange } from "models/DateRange";
+	import HabitsTableHead from "./HabitsTableHead.svelte";
 
 	interface $Props {
 		habitRepository: HabitRepository;
@@ -17,13 +18,9 @@
 	const habits = $derived($habitStore[folderPath]);
 
 	const HEADER_NUMBER_OF_DAYS = 7;
-
-	const dateRange = DateRange.from(HEADER_NUMBER_OF_DAYS, "backwards")
+	const dates = DateRange.from(HEADER_NUMBER_OF_DAYS, "backwards")
 		.getDates()
 		.toReversed();
-
-	// TODO: Move when headers are a component
-	const title = folderPath;
 
 	// TODO: This could be simplified, and also done in parallel
 	function getEntryByDate(habitId: string, date: DateValue): Entry | undefined {
@@ -46,16 +43,6 @@
 		return undefined;
 	}
 </script>
-
-{#snippet habitsHeader(title: string)}
-	<th>
-		{title || "Missing Habit Header"}
-	</th>
-{/snippet}
-
-{#snippet dateHeader(date: DateValue)}
-	<th>{date.toDayString()}</th>
-{/snippet}
 
 {#snippet habitCell({ name, path }: Partial<Habit>)}
 	<td>
@@ -82,17 +69,14 @@
 <table class="purple-theme">
 	<thead>
 		<tr>
-			{@render habitsHeader(title)}
-			{#each dateRange as date (date.toString())}
-				{@render dateHeader(date)}
-			{/each}
+			<HabitsTableHead title={folderPath} {dates} />
 		</tr>
 	</thead>
 	<tbody>
 		{#each habits as habit (habit.id)}
 			<tr>
 				{@render habitCell({ name: habit.name, path: habit.path })}
-				{#each dateRange as date (date.toString())}
+				{#each dates as date (date.toString())}
 					{@render entryCell(getEntryByDate(habit.id, date), date, habit.path)}
 				{/each}
 			</tr>
@@ -126,8 +110,7 @@
 		background-color: var(--failure-red);
 	}
 
-	table.purple-theme td,
-	table.purple-theme th {
+	table.purple-theme td {
 		text-align: center;
 		padding: 18px 12px;
 		border-radius: 6px;
@@ -136,10 +119,6 @@
 	table.purple-theme tbody td {
 		cursor: pointer;
 		color: var(--text-normal);
-		border: 1px solid rgba(74, 43, 112, 0.2);
-	}
-
-	table.purple-theme thead th {
 		border: 1px solid rgba(74, 43, 112, 0.2);
 	}
 

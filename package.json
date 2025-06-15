@@ -1,6 +1,6 @@
 {
 	"name": "tiny-habits",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Habit tracker plugin for obsidian (https://github.com/nazoadiego/tiny-habits)",
 	"main": "main.js",
 	"type": "module",

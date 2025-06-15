@@ -22,6 +22,16 @@ Also a streak system.
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
 
 
+## Making a release
+
+Modify the version in package.json.
+
+```
+pnpm run version
+git tag -a 0.2.0 -m "0.2.0"
+git push origin 0.2.0
+```
+
 ## Funding URL
 
 You can include funding URLs where people who use your plugin can financially support it.

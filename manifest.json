@@ -1,7 +1,7 @@
 {
 	"id": "tiny-habits",
 	"name": "Tiny Habits",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"minAppVersion": "0.15.0",
 	"description": "Habits logging",
 	"author": "Obsidian",

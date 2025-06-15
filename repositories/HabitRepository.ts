@@ -58,10 +58,7 @@ class HabitRepository implements THabitRepository {
   async allHabits(folderPath: string) {
     const files = await this.allHabitFiles(folderPath)
 
-    // TODO: Use Array.fromAsync instead
-    const habits = await Promise.all(
-      files.map(file => this.buildHabits(file))
-    );
+    const habits = Array.fromAsync(files, (file) => this.buildHabits(file))
 
     return habits
   }

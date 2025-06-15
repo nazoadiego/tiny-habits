@@ -5,6 +5,7 @@
 	import HabitRepository from "repositories/HabitRepository";
 	import EntryIcon from "./icons/EntryIcon.svelte";
 	import { habitStore } from "stores/store";
+	import { DateRange } from "models/DateRange";
 
 	interface $Props {
 		habitRepository: HabitRepository;
@@ -17,15 +18,9 @@
 
 	const HEADER_NUMBER_OF_DAYS = 7;
 
-	// TODO: Move to DateValue class methods! why not, or even better a DateRange
-	const dateRange: DateValue[] = Array.from(
-		{ length: HEADER_NUMBER_OF_DAYS },
-		(_element, index) => {
-			const date = new Date();
-			date.setDate(date.getDate() - index);
-			return new DateValue(date);
-		},
-	).toReversed();
+	const dateRange = DateRange.from(HEADER_NUMBER_OF_DAYS, "backwards")
+		.getDates()
+		.toReversed();
 
 	// TODO: Move when headers are a component
 	const title = folderPath;

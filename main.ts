@@ -5,7 +5,7 @@ import { habitStore } from 'stores/store';
 
 // * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time 
 
-export default class MyPlugin extends Plugin {
+export default class TinyHabitsPlugin extends Plugin {
 	private habitRepository: HabitRepository
 	private settings: { folderPath: string }
 

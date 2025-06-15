@@ -45,7 +45,6 @@
 		width: 100%;
 		border-collapse: separate;
 		border-spacing: 6px;
-		background-color: rgba(0, 0, 0, 0.2);
 		border-radius: 6px;
 	}
 </style>

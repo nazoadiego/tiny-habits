@@ -32,7 +32,7 @@
 </script>
 
 {#snippet habitCell({ name, path }: Partial<Habit>)}
-  <td>
+  <td class="habit-cell">
     <a aria-label={path} href={path} class="internal-link">
       {name}
     </a>
@@ -71,17 +71,6 @@
     --skip-blue: #64b5f6;
   }
 
-  td.entry-cell[data-status="skip"] {
-    background-color: var(--skip-blue);
-  }
-  td.entry-cell[data-status="completed"] {
-    background-color: var(--success-green);
-  }
-
-  td.entry-cell[data-status="failed"] {
-    background-color: var(--failure-red);
-  }
-
   td {
     text-align: center;
     padding: 18px 12px;
@@ -95,6 +84,17 @@
     color: var(--text-normal);
   }
 
+  td.entry-cell[data-status="skip"] {
+    background-color: var(--skip-blue);
+  }
+  td.entry-cell[data-status="completed"] {
+    background-color: var(--success-green);
+  }
+
+  td.entry-cell[data-status="failed"] {
+    background-color: var(--failure-red);
+  }
+
   tr:hover td.entry-cell {
     opacity: 0.7;
     transform: translateY(-0.5px);
@@ -105,6 +105,10 @@
     opacity: 1;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  td.habit-cell {
+    background-color: rgba(0, 0, 0, 0.2);
   }
 
   .disable-text-selection {

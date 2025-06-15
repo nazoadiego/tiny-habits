@@ -15,12 +15,19 @@
       {title || "Missing Habit Header"}
     </th>
     {#each dates as date (date.toString())}
-      <th>{date.toDayString() || "Missing Date"}</th>
+      <th class="date-cell">{date.toDayString() || "Missing Date"}</th>
     {/each}
   </tr>
 </thead>
 
 <style>
+  @media screen and (max-width: 768px) {
+    /* Hide all date columns except the last one */
+    th.date-cell:not(:last-of-type) {
+      display: none;
+    }
+  }
+
   th {
     width: 100%;
     padding: 18px 12px;

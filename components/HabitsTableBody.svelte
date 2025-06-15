@@ -71,6 +71,13 @@
     --skip-blue: #64b5f6;
   }
 
+  @media screen and (max-width: 768px) {
+    /* Hide all date columns except the last one */
+    td.entry-cell:not(:last-of-type) {
+      display: none;
+    }
+  }
+
   td {
     text-align: center;
     padding: 18px 12px;

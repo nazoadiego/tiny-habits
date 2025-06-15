@@ -23,10 +23,9 @@ jobs:
         with:
           run_install: true
           version: latest
-      - name: Install step
-        run: "pnpm install"
-      - name: Lint files
-        run: "pnpm run lint"
+      - name: Build plugin
+        run: |
+          pnpm run build
 
       - name: Create release
         env:

@@ -29,6 +29,7 @@
   }
 
   th {
+    font-size: 16px;
     width: 100%;
     padding: 18px 12px;
     border-radius: 6px;

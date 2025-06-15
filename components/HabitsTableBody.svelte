@@ -23,11 +23,11 @@
   // ? Can habit repository be moved to a store?
   // TODO: This could be simplified, and also done in parallel
   function getEntryByDate(habitId: string, date: DateValue): Entry | undefined {
-  	const habit = habits.find((habit) => habit.id === habitId);
+    const habit = habits.find((habit) => habit.id === habitId);
 
-  	if (!habit) return undefined;
+    if (!habit) return undefined;
 
-  	return habit.entries.find((entry) => entry.date.isSameDay(date));
+    return habit.entries.find((entry) => entry.date.isSameDay(date));
   }
 </script>
 
@@ -79,6 +79,7 @@
   }
 
   td {
+    font-size: 16px;
     text-align: center;
     padding: 18px 12px;
     border-collapse: separate;

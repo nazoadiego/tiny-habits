@@ -1,6 +1,5 @@
 import { Vault, type App, type MarkdownPostProcessorContext } from 'obsidian'
 import { mount } from "svelte";
-// import NoResultsPlaceholder from 'components/NoResultsPlaceholder.svelte';
 import HabitsTable from 'components/HabitsTable.svelte';
 import HabitRepository from 'repositories/HabitRepository';
 

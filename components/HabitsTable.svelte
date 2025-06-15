@@ -27,8 +27,10 @@
 		},
 	).toReversed();
 
+	// TODO: Move when headers are a component
 	const title = folderPath;
 
+	// TODO: This could be simplified, and also done in parallel
 	function getEntryByDate(habitId: string, date: DateValue): Entry | undefined {
 		const habit = habits.find((habit) => habit.id === habitId);
 
@@ -50,14 +52,10 @@
 	}
 </script>
 
-{#snippet habitsHeader(value: string)}
-	{#if value}
-		<th>
-			{value}
-		</th>
-	{:else}
-		<th> Missing Habit Header </th>
-	{/if}
+{#snippet habitsHeader(title: string)}
+	<th>
+		{title || "Missing Habit Header"}
+	</th>
 {/snippet}
 
 {#snippet dateHeader(date: DateValue)}
@@ -65,15 +63,11 @@
 {/snippet}
 
 {#snippet habitCell({ name, path }: Partial<Habit>)}
-	{#if name}
-		<td>
-			<a aria-label={path} href={path} class="internal-link">
-				{name}
-			</a>
-		</td>
-	{:else}
-		<td>Missing Habit Name</td>
-	{/if}
+	<td>
+		<a aria-label={path} href={path} class="internal-link">
+			{name}
+		</a>
+	</td>
 {/snippet}
 
 {#snippet entryCell(
@@ -81,22 +75,13 @@
 	date: DateValue,
 	habitPath: Habit["path"],
 )}
-	{#if entry}
-		<td
-			onclick={updateEntry(habitPath, entry)}
-			class="disable-text-selection entry-cell"
-			data-status={entry.status}
-		>
-			<EntryIcon status={entry.status} />
-		</td>
-	{:else if entry === undefined}
-		<td onclick={addEntry(habitPath, date)} class="disable-text-selection">
-			<!-- TODO: Handle this with EntryIcon ? -->
-			{Entry.STATUS_DISPLAY.unstarted}
-		</td>
-	{:else}
-		<td>Invalid</td>
-	{/if}
+	<td
+		onclick={entry ? updateEntry(habitPath, entry) : addEntry(habitPath, date)}
+		class="disable-text-selection entry-cell"
+		data-status={entry ? entry.status : Entry.STATUS.unstarted}
+	>
+		<EntryIcon status={entry ? entry.status : Entry.STATUS.unstarted} />
+	</td>
 {/snippet}
 
 <table class="purple-theme">
@@ -161,7 +146,6 @@
 
 	table.purple-theme thead th {
 		border: 1px solid rgba(74, 43, 112, 0.2);
-		background: #722aca;
 	}
 
 	table.purple-theme tr:hover td.entry-cell {

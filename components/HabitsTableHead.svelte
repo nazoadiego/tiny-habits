@@ -9,12 +9,16 @@
   const { title, dates }: $Props = $props();
 </script>
 
-<th>
-  {title || "Missing Habit Header"}
-</th>
-{#each dates as date (date.toString())}
-  <th>{date.toDayString() || "Missing Date"}</th>
-{/each}
+<thead>
+  <tr>
+    <th>
+      {title || "Missing Habit Header"}
+    </th>
+    {#each dates as date (date.toString())}
+      <th>{date.toDayString() || "Missing Date"}</th>
+    {/each}
+  </tr>
+</thead>
 
 <style>
   th {

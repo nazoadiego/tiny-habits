@@ -1,10 +1,8 @@
 <script lang="ts">
   import type Entry from "models/Entry";
-  import { setIcon } from "obsidian";
+  import Icon from "./Icon.svelte";
 
-  type $Props = {
-    status: Entry["status"];
-  };
+  type $Props = { status: Entry["status"] };
 
   const { status }: $Props = $props();
 
@@ -13,20 +11,9 @@
     completed: "lucide-check",
     skip: "lucide-circle-minus",
     failed: "lucide-circle-x",
-  };
+  } as const;
 
-  // TODO: maybe move this to a generic Icon component, just leave the iconMap here
-  let iconElement: HTMLDivElement | undefined = $state();
-
-  $effect(() =>
-    iconElement && iconMap[status]
-      ? setIcon(iconElement, iconMap[status])
-      : undefined,
-  );
+  const icon = $derived(iconMap[status]);
 </script>
 
-{#if iconMap[status]}
-  <div bind:this={iconElement}></div>
-{:else}
-  <div></div>
-{/if}
+<Icon {icon} />

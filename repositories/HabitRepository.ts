@@ -72,7 +72,9 @@ class HabitRepository implements THabitRepository {
 		}
 
 		const entry = new Entry(date, Entry.STATUS.unstarted);
+
 		entry.cycleStatus()
+
 		const formattedDate = entry.date.toFrontmatterProperty()
 		this.fileManager.processFrontMatter(file, (frontmatter) => {
 			frontmatter[formattedDate] = entry.status;
@@ -88,6 +90,7 @@ class HabitRepository implements THabitRepository {
 		}
 
 		entry.cycleStatus()
+
 		const formattedDate = entry.date.toFrontmatterProperty()
 		this.fileManager.processFrontMatter(file, (frontmatter) => {
 			frontmatter[formattedDate] = entry.status;

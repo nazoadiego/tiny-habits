@@ -1,6 +1,6 @@
 import Entry from "models/Entry";
 import type { Status } from 'types/TEntry';
-import { entryFactory } from "./factories/EntryFactory";
+import { entryFactory } from "../factories/EntryFactory";
 
 const statuses = Object.keys(Entry.STATUS) as Status[]
 

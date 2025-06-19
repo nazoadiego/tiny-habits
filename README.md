@@ -22,6 +22,16 @@ Also a streak system.
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
 
 
+# Tests
+![Tests](https://github.com/nazoadiego/tiny-habits/workflows/Tests/badge.svg)
+
+Run with `pnpm run test`
+
+# Linting
+![Lint](https://github.com/nazoadiego/tiny-habits/workflows/Lint/badge.svg)
+
+Run with `pnpm run lint`
+
 ## Making a release
 
 Modify the version in package.json.

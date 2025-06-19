@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { DateValue } from "models/DateValue";
+  import type DateValue from "models/DateValue";
 
   interface $Props {
     title: string;

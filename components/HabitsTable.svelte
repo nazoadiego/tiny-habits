@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { DateValue } from "models/DateValue";
+	import DateValue from "models/DateValue";
 	import Entry from "models/Entry";
 	import Habit from "models/Habit";
+	import DateRange from "models/DateRange";
 	import HabitRepository from "repositories/HabitRepository";
 	import { habitStore } from "stores/store";
-	import { DateRange } from "models/DateRange";
 	import HabitsTableHead from "./HabitsTableHead.svelte";
 	import HabitsTableBody from "./HabitsTableBody.svelte";
 

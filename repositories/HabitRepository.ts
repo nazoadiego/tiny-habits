@@ -2,7 +2,7 @@ import { FileManager, Notice, parseYaml, TFile, type Vault } from "obsidian";
 import type { THabitRepository } from '../types/THabitRepository';
 import Habit from "models/Habit";
 import Entry from "models/Entry";
-import { DateValue } from "models/DateValue";
+import DateValue from "models/DateValue";
 import type { Status } from "types/TEntry";
 
 class HabitRepository implements THabitRepository {

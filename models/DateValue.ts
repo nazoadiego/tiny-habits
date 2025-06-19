@@ -1,4 +1,4 @@
-export class DateValue {
+class DateValue {
 	private value: Date | undefined;
 	isValid: boolean;
 
@@ -87,3 +87,5 @@ export class DateValue {
 		return this.value.getTime() === other.value.getTime();
 	}
 }
+
+export default DateValue

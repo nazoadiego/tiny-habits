@@ -25,4 +25,4 @@ jobs:
           run_install: true
           version: latest
       - name: Lint files
-        run: "pnpm run lint"
+        run: "pnpm run test"

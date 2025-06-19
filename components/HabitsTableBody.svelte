@@ -1,7 +1,7 @@
 <script lang="ts">
   import type Habit from "models/Habit";
   import Entry from "models/Entry";
-  import { DateValue } from "models/DateValue";
+  import DateValue from "models/DateValue";
   import EntryIcon from "./icons/EntryIcon.svelte";
   import type { MouseEventHandler } from "svelte/elements";
 

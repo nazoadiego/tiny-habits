@@ -1,4 +1,3 @@
-import { expect, test } from 'vitest'
 import DateValue from "models/DateValue";
 import Entry from "models/Entry";
 import type { Status } from 'types/TEntry';

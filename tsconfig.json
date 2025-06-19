@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+    "typeRoots": [
+      "node_modules"
+    ],
+    "types": [
+      "vitest/globals"
+    ],
     "baseUrl": ".",
     "inlineSourceMap": true,
     "inlineSources": true,

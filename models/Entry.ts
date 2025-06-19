@@ -1,8 +1,8 @@
 // Relations
 // An Entry belongs to a habit
 
-import type { TEntry, Status, StatusDisplay } from "types/TEntry";
-import type { DateValue } from "./DateValue";
+import type { TEntry, Status } from "types/TEntry";
+import type  DateValue from "./DateValue";
 
 class Entry implements TEntry {
 	id: number;
@@ -16,13 +16,6 @@ class Entry implements TEntry {
 		failed: "failed",
 		skip: "skip"
 	} as const;
-
-	static readonly STATUS_DISPLAY: Record<Status, StatusDisplay> = {
-		unstarted: "",
-		completed: "O",
-		failed: "X",
-		skip: "-"
-	};
 
 	constructor(date: DateValue, status: Status) {
 		this.status = status;
@@ -40,10 +33,6 @@ class Entry implements TEntry {
 		const currentIndex = STATUS_ORDER.indexOf(this.status);
 		const nextIndex = (currentIndex + 1) % STATUS_ORDER.length;
 		this.status = STATUS_ORDER[nextIndex];
-	}
-
-	display(): StatusDisplay {
-		return Entry.STATUS_DISPLAY[this.status];
 	}
 }
 export default Entry

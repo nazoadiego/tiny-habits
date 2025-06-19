@@ -1,8 +1,7 @@
-import { DateValue } from "./DateValue";
+import DateValue from "./DateValue";
 
 type DateRangeDirection = "forward" | "backwards"
-
-export class DateRange {
+class DateRange {
 	from: DateValue
 	to: DateValue
 	length: number
@@ -52,3 +51,5 @@ export class DateRange {
 		);
 	}
 }
+
+export default DateRange

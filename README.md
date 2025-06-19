@@ -23,12 +23,12 @@ Also a streak system.
 
 
 # Tests
-![Tests](https://github.com/nazoadiego/tiny-habits/workflows/Tests/badge.svg)
+[![Test](https://github.com/nazoadiego/tiny-habits/actions/workflows/test.yml/badge.svg)](https://github.com/nazoadiego/tiny-habits/actions/workflows/test.yml)
 
 Run with `pnpm run test`
 
 # Linting
-![Lint](https://github.com/nazoadiego/tiny-habits/workflows/Lint/badge.svg)
+[![Linting](https://github.com/nazoadiego/tiny-habits/actions/workflows/lint.yml/badge.svg)](https://github.com/nazoadiego/tiny-habits/actions/workflows/lint.yml)
 
 Run with `pnpm run lint`
 

@@ -1,19 +1,18 @@
 <script lang="ts">
-	import Entry from "models/Entry";
-	import Habit from "models/Habit";
 	import DateRange from "models/DateRange";
-	import HabitRepository from "repositories/HabitRepository";
 	import { habitStore } from "stores/store";
 	import HabitsTableHead from "./HabitsTableHead.svelte";
 	import HabitsTableBody from "./HabitsTableBody.svelte";
+    import type Entry from "models/Entry";
+    import type Habit from "models/Habit";
 
 	interface $Props {
-		habitRepository: HabitRepository;
+		updateEntry: (habitPath: Habit['path'], entry: Entry) => void;
 		folderPath: string;
 		displayName: string | undefined;
 	}
 
-	const { habitRepository, folderPath, displayName }: $Props = $props();
+	const { updateEntry, folderPath, displayName }: $Props = $props();
 
 	const habits = $derived($habitStore[folderPath]);
 
@@ -21,12 +20,6 @@
 	const dates = DateRange.from(HEADER_NUMBER_OF_DAYS, "backwards")
 		.getDates()
 		.toReversed();
-
-	function updateEntry(habitPath: Habit["path"], entry: Entry) {
-		habitRepository.updateEntry(habitPath, entry);
-
-		return undefined;
-	}
 </script>
 
 <table class="purple-theme">

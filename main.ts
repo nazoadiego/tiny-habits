@@ -12,6 +12,7 @@ export default class TinyHabitsPlugin extends Plugin {
 
 	async onload() {
 		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager)
+		this.registerHabitEvents()
 
 		this.registerMarkdownCodeBlockProcessor(
 			'habits',
@@ -20,7 +21,6 @@ export default class TinyHabitsPlugin extends Plugin {
 					this.settings = JSON.parse(source) // TODO: Should check if they exists, undefined would break here, maybe get some errors to display to the user
 					const folderPath = this.settings.folderPath
 					const displayName = this.settings.displayName
-					this.registerHabitEvents()
 					await this.loadHabits(folderPath)
 
 					new TinyHabitsView(source, element, context, this.app, this.habitRepository, folderPath, displayName)

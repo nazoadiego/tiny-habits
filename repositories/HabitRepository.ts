@@ -1,9 +1,9 @@
-import { FileManager, Notice, parseYaml, TFile, type Vault } from "obsidian";
+import { FileManager, Notice, TFile, type Vault } from "obsidian";
 import type { THabitRepository } from '../types/THabitRepository';
 import Habit from "models/Habit";
 import Entry from "models/Entry";
 import DateValue from "models/DateValue";
-import type { Status } from "types/TEntry";
+import { HabitBuilder }  from "builders/HabitBuilder";
 
 class HabitRepository implements THabitRepository {
 	private readonly vault
@@ -12,6 +12,14 @@ class HabitRepository implements THabitRepository {
 	constructor(vault: Vault, fileManager: FileManager) {
 		this.vault = vault
 		this.fileManager = fileManager
+	}
+
+	async allHabits(folderPath: string) {
+		const files = await this.allHabitFiles(folderPath)
+
+		const habits = Array.fromAsync(files, (file) => this.buildHabits(file))
+
+		return habits
 	}
 
 	async allHabitFiles(folderPath: string) {
@@ -23,44 +31,15 @@ class HabitRepository implements THabitRepository {
 		return files.sort((a, b) => a.name.localeCompare(b.name));
 	}
 
-	// TODO: probably not the right place for this function
-	// TODO: worth it to split the functions inside?
-	// get it? haha build habits
 	async buildHabits(file: TFile) {
-		// TODO: handle reading file errors
-		const data = await this.vault.read(file);
-
-		// TODO: Extract Frontmatter to an object
-		const frontmatter = data.split('---')[1]
-
-		// * If the Habit file has no frontmatter, we return an empty entries array 
-		if (!frontmatter) return Habit.fromFile(file, [])
-
-		// TODO: handle parsing yaml errors
-		const rawEntryData = parseYaml(frontmatter);
-		const entries: Entry[] = [];
-
-		// TODO: maybe I can just use a map, or also do an Array.fromAsync
-		for (const [date, status] of Object.entries(rawEntryData)) {
-			if (!DateValue.validate(date)) {
-				console.warn(`Invalid date format for habit ${file.basename}: ${date}`);
-				continue;
-			}
-
-			const dateValue = new DateValue(date);
-			const entry = new Entry(dateValue, status as Status);
-			entries.push(entry);
+		try {
+			const data = await this.vault.read(file);
+			return HabitBuilder.fromFile(file, data);
 		}
-
-		return Habit.fromFile(file, entries)
-	}
-
-	async allHabits(folderPath: string) {
-		const files = await this.allHabitFiles(folderPath)
-
-		const habits = Array.fromAsync(files, (file) => this.buildHabits(file))
-
-		return habits
+		catch (error) {
+			console.warn(`Failed to build habits for ${file.basename}:`, error);
+			return Habit.fromFile(file, []);
+		}
 	}
 
 	addEntry(habitPath: Habit['path'], date: DateValue) {

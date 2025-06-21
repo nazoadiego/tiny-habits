@@ -7,7 +7,7 @@ import eslintPluginUnicorn from 'eslint-plugin-unicorn'
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig(
-	globalIgnores(['main.js', 'version-bump.mjs', 'esbuild.config.mjs']),
+	globalIgnores(['main.js', 'version-bump.mjs', 'esbuild.config.mjs', './coverage']),
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,

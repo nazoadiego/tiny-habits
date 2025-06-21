@@ -8,6 +8,7 @@ export default class TinyHabitsView {
 	habitRepository: HabitRepository
 	vault: Vault
 	folderPath: string
+	displayName: string | undefined
 
 	constructor(
 		source: string,
@@ -15,18 +16,24 @@ export default class TinyHabitsView {
 		context: MarkdownPostProcessorContext,
 		app: App,
 		habitRepository: HabitRepository,
-		folderPath: string
+		folderPath: string,
+		displayName: string | undefined
 	) {
 		this.habitRepository = habitRepository
 		this.markdownBlockElement = markdownBlockElement
 		this.folderPath = folderPath
+		this.displayName = displayName
 		this.renderView()
 	}
 
 	async mountHabits() {
 		mount(HabitsTable, {
 			target: this.markdownBlockElement,
-			props: { habitRepository: this.habitRepository, folderPath: this.folderPath }
+			props: {
+				habitRepository: this.habitRepository,
+				folderPath: this.folderPath,
+				displayName: this.displayName
+			}
 		});
 	}
 

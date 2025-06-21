@@ -8,7 +8,7 @@ import { get } from 'svelte/store';
 
 export default class TinyHabitsPlugin extends Plugin {
 	private habitRepository: HabitRepository
-	private settings: { folderPath: string }
+	private settings: { folderPath: string, displayName: string | undefined }
 
 	async onload() {
 		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager)
@@ -19,10 +19,11 @@ export default class TinyHabitsPlugin extends Plugin {
 				this.app.workspace.onLayoutReady(async () => {
 					this.settings = JSON.parse(source) // TODO: Should check if they exists
 					const folderPath = this.settings.folderPath
+					const displayName = this.settings.displayName
 					this.registerHabitEvents()
 					await this.loadHabits(folderPath)
 
-					new TinyHabitsView(source, element, context, this.app, this.habitRepository, folderPath)
+					new TinyHabitsView(source, element, context, this.app, this.habitRepository, folderPath, displayName)
 				});
 			}
 		)

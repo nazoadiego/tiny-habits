@@ -30,7 +30,6 @@ class DateValue {
 		return valueObject;
 	}
 
-	// TODO: Change this to only show day and month, or make a separate method
 	format(): string {
 		if (!this.value) return "-";
 		const formatter = new Intl.DateTimeFormat("en-GB", {
@@ -41,6 +40,7 @@ class DateValue {
 		return formatter.format(this.value);
 	}
 
+	// "1", "30"
 	toDayString(): string {
 		if(!this.value) return "-"
     

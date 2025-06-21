@@ -2,12 +2,20 @@
 // An Entry belongs to a habit
 
 import type { TEntry, Status } from "types/TEntry";
-import type  DateValue from "./DateValue";
+import  DateValue from "./DateValue";
+
+type EntryInit = {
+  habitPath: string;
+  status: Status;
+  date: DateValue;
+  isEmpty?: boolean;
+};
 
 class Entry implements TEntry {
-	habitId: string;
+	habitPath: string;
 	status: Status;
 	date: DateValue;
+	isEmpty: boolean;
 
 	static readonly STATUS = {
 		unstarted: "unstarted",
@@ -23,9 +31,15 @@ class Entry implements TEntry {
 		Entry.STATUS.skip
 	] as const
 
-	constructor(date: DateValue, status: Status) {
+	constructor({ habitPath, date, status, isEmpty = false }: EntryInit) {
+		this.habitPath = habitPath;
 		this.status = status;
 		this.date = date;
+		this.isEmpty = isEmpty
+	}
+
+	static empty({ habitPath, date = DateValue.empty() }: { date: DateValue, habitPath: string }): Entry {
+		return new Entry({ habitPath, date, status: Entry.STATUS.unstarted, isEmpty: true });
 	}
 
 	cycleStatus(): Status {

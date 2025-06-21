@@ -1,5 +1,4 @@
 <script lang="ts">
-	import DateValue from "models/DateValue";
 	import Entry from "models/Entry";
 	import Habit from "models/Habit";
 	import DateRange from "models/DateRange";
@@ -23,12 +22,6 @@
 		.getDates()
 		.toReversed();
 
-	function addEntry(habitPath: Habit["path"], date: DateValue) {
-		habitRepository.addEntry(habitPath, date);
-
-		return undefined;
-	}
-
 	function updateEntry(habitPath: Habit["path"], entry: Entry) {
 		habitRepository.updateEntry(habitPath, entry);
 
@@ -38,7 +31,7 @@
 
 <table class="purple-theme">
 	<HabitsTableHead title={displayName || folderPath} {dates} />
-	<HabitsTableBody {habits} {dates} {addEntry} {updateEntry} />
+	<HabitsTableBody {habits} {dates} {updateEntry} />
 </table>
 
 <style>

@@ -2,9 +2,9 @@
 // A habit has many entries
 // A habit belongs to one or more Habit Groups
 
-import type { TFile } from "obsidian";
 import type { THabit } from "types/THabit";
 import type Entry from "./Entry";
+import type { TFile } from "obsidian";
 
 class Habit implements THabit {
 	id: string;
@@ -20,12 +20,13 @@ class Habit implements THabit {
 	}
 
 	static validate(): boolean { return true }
-
-	static fromFile(file: TFile, entries: Entry[]): Habit {
+	 
+	static empty(file: TFile): Habit {
 		const id = file.basename;
-		const name = file.basename.replaceAll('-', " ");
+		const name = file.basename;
 		const path = file.path;
-		return new Habit({ id, name, path, entries });
+
+		return new Habit({ id, name, path, entries: [] });
 	}
 }
 

@@ -4,7 +4,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="http://arukeyo.vercel.app/">
+  <a href="">
     <img src="./tiny-habit.png" alt="Logo" width="60" height="60">
   </a>
 
@@ -52,6 +52,10 @@ All the entries will be stored inside your notes frontmatter. Everything stays l
 
 Support for habits that are skipped, failed and, of course, completed.
 
+Preview:
+
+<img src="./preview.png" alt="A preview of this plugin">
+
 ## Usage
 
 - Make a code block with `habits` in the first line
@@ -69,7 +73,8 @@ Support for habits that are skipped, failed and, of course, completed.
 
 ```habits
 {
-	"folderPath": "Areas/Habits/Tiny - Morning" // the absolute path to the folder containing your habits
+	"folderPath": "Areas/Habits/Tiny - Morning", // the absolute path to the folder containing your habits
+	"displayName": "Morning" // (optional) To customize the name that appears in the table
 }
 ```
 

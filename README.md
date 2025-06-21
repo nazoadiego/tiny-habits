@@ -24,7 +24,7 @@
   </p>
 </div>
 
-[![image](https://img.shields.io/github/release/nazoadiego/tiny-habits.svg)](https://github.com/zoreet/habit-tracker/releases)
+[![image](https://img.shields.io/github/release/nazoadiego/tiny-habits.svg)](https://github.com/nazoadiego/tiny-habits/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 [![Test](https://github.com/nazoadiego/tiny-habits/actions/workflows/test.yml/badge.svg)](https://github.com/nazoadiego/tiny-habits/actions/workflows/test.yml)
 [![Linting](https://github.com/nazoadiego/tiny-habits/actions/workflows/lint.yml/badge.svg)](https://github.com/nazoadiego/tiny-habits/actions/workflows/lint.yml)

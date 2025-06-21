@@ -2,6 +2,7 @@ import { Plugin, TAbstractFile, TFile } from 'obsidian';
 import TinyHabitsView from 'views/TinyHabitsView';
 import HabitRepository from 'repositories/HabitRepository';
 import { habitStore } from 'stores/store';
+import { get } from 'svelte/store';
 
 // * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time 
 
@@ -38,18 +39,34 @@ export default class TinyHabitsPlugin extends Plugin {
 		}));
 	}
 
+	async refreshHabits(folderPath: string | undefined) {
+		if (folderPath == undefined) return
+
+		const currentStore = get(habitStore)
+		const isHabitFolder = currentStore[folderPath] != undefined
+
+		if (!isHabitFolder) return
+
+		const habits = await this.habitRepository.allHabits(folderPath);
+
+		habitStore.update(currentStore => ({
+			...currentStore,
+			[folderPath]: habits
+		}));
+	}
+
 	registerHabitEvents() {
 		this.registerEvent(
-			this.app.vault.on("create", (file) => this.loadHabits(this.getFolderPath(file)))
+			this.app.vault.on("create", (file) => this.refreshHabits(this.getFolderPath(file)))
 		);
 		this.registerEvent(
-			this.app.vault.on("rename", (file) => this.loadHabits(this.getFolderPath(file)))
+			this.app.vault.on("rename", (file) => this.refreshHabits(this.getFolderPath(file)))
 		);
 		this.registerEvent(
-			this.app.vault.on("delete", (file) => this.loadHabits(this.getFolderPath(file)))
+			this.app.vault.on("delete", (file) => this.refreshHabits(this.getFolderPath(file)))
 		);
 		this.registerEvent(
-			this.app.vault.on("modify", (file) => this.loadHabits(this.getFolderPath(file)))
+			this.app.vault.on("modify", (file) => this.refreshHabits(this.getFolderPath(file)))
 		);
 	}
 

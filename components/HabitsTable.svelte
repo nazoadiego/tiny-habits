@@ -11,9 +11,10 @@
 	interface $Props {
 		habitRepository: HabitRepository;
 		folderPath: string;
+		displayName: string | undefined;
 	}
 
-	const { habitRepository, folderPath }: $Props = $props();
+	const { habitRepository, folderPath, displayName }: $Props = $props();
 
 	const habits = $derived($habitStore[folderPath]);
 
@@ -36,7 +37,7 @@
 </script>
 
 <table class="purple-theme">
-	<HabitsTableHead title={folderPath} {dates} />
+	<HabitsTableHead title={displayName || folderPath} {dates} />
 	<HabitsTableBody {habits} {dates} {addEntry} {updateEntry} />
 </table>
 

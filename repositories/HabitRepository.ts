@@ -17,7 +17,7 @@ class HabitRepository implements THabitRepository {
 	async allHabits(folderPath: string) {
 		const files = await this.allHabitFiles(folderPath)
 
-		const habits = Array.fromAsync(files, (file) => this.buildHabits(file))
+		const habits = await Array.fromAsync(files, (file) => this.buildHabits(file))
 
 		return habits
 	}
@@ -38,7 +38,7 @@ class HabitRepository implements THabitRepository {
 		}
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error);
-			return Habit.fromFile(file, []);
+			return Habit.empty(file)
 		}
 	}
 

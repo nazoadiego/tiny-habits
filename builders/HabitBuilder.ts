@@ -10,8 +10,12 @@ export const HabitBuilder = {
 		// Extract Frontmatter to a Value Object
 		const frontmatter = data.split('---')[1];
 
+		const id = file.basename;
+		const name = file.basename.replaceAll('-', " ");
+		const path = file.path;
+
 		// If the Habit file has no frontmatter, return empty Entries array 
-		if (!frontmatter) return Habit.fromFile(file, []);
+		if (!frontmatter) return new Habit({ id, name, path, entries: [] })
 
 		// TODO: Handle parsing yaml errors
 		const rawEntryData = parseYaml(frontmatter);
@@ -33,6 +37,6 @@ export const HabitBuilder = {
 			return true;
 		});
 
-		return Habit.fromFile(file, validEntries);
+		return new Habit({ id, name, path, entries: validEntries })
 	}
 };

@@ -2,7 +2,6 @@ import { FileManager, Notice, TFile, type Vault } from "obsidian";
 import type { THabitRepository } from '../types/THabitRepository';
 import Habit from "models/Habit";
 import Entry from "models/Entry";
-import DateValue from "models/DateValue";
 import { HabitBuilder }  from "builders/HabitBuilder";
 
 class HabitRepository implements THabitRepository {
@@ -40,24 +39,6 @@ class HabitRepository implements THabitRepository {
 			console.warn(`Failed to build habits for ${file.basename}:`, error);
 			return Habit.empty(file)
 		}
-	}
-
-	addEntry(habitPath: Habit['path'], date: DateValue) {
-		const file = this.vault.getFileByPath(habitPath)
-
-		if (!file || !(file instanceof TFile)) {
-			new Notice("Couldn't update the habit entry!")
-			return
-		}
-
-		const entry = new Entry(date, Entry.STATUS.unstarted);
-
-		entry.cycleStatus()
-
-		const formattedDate = entry.date.toFrontmatterProperty()
-		this.fileManager.processFrontMatter(file, (frontmatter) => {
-			frontmatter[formattedDate] = entry.status;
-		});
 	}
 
 	updateEntry(habitPath: Habit['path'], entry: Entry) {

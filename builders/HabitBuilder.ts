@@ -24,7 +24,7 @@ export const HabitBuilder = {
 			Object.entries(rawEntryData),
 			([date, status]) =>
 				DateValue.validate(date)
-					? new Entry(new DateValue(date), status as Status)
+					? new Entry({ habitPath: path, date: new DateValue(date), status: status as Status })
 					: undefined
 		)
 		

@@ -5,33 +5,21 @@
   import EntryIcon from "./icons/EntryIcon.svelte";
   import type { MouseEventHandler } from "svelte/elements";
 
+  // ? Can habit repository be moved to a store?
   interface $Props {
     habits: Habit[];
     dates: DateValue[];
-    addEntry: (
-      habitPath: string,
-      date: DateValue,
-    ) => MouseEventHandler<HTMLTableCellElement> | undefined;
-    updateEntry: (
-      habitPath: string,
-      entry: Entry,
-    ) => MouseEventHandler<HTMLTableCellElement> | undefined;
+    updateEntry: (habitPath: string, entry: Entry) => MouseEventHandler<HTMLTableCellElement> | undefined;
   }
 
-  const { habits, dates, addEntry, updateEntry }: $Props = $props();
+  const { habits, dates, updateEntry }: $Props = $props();
 
-  // ? Can habit repository be moved to a store?
-  // TODO: This could be simplified, and also done in parallel
-  function getEntryByDate(habitId: string, date: DateValue): Entry | undefined {
-  	const habit = habits.find((habit) => habit.id === habitId);
-
-  	if (!habit) return undefined;
-
-  	return habit.entries.find((entry) => entry.date.isSameDay(date));
+  function getEntryByDate(entries: Entry[], date: DateValue, habitPath: Habit['path']): Entry {
+  	return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath })
   }
 </script>
 
-{#snippet habitCell({ name, path }: Partial<Habit>)}
+{#snippet habitCell(name: Habit['name'], path: Habit['path'])}
   <td class="habit-cell">
     <a aria-label={path} href={path} class="internal-link">
       {name}
@@ -39,26 +27,22 @@
   </td>
 {/snippet}
 
-{#snippet entryCell(
-  entry: Entry | undefined,
-  date: DateValue,
-  habitPath: Habit["path"],
-)}
+{#snippet entryCell(entry: Entry)}
   <td
-    onclick={entry ? updateEntry(habitPath, entry) : addEntry(habitPath, date)}
+    onclick={() => updateEntry(entry.habitPath, entry)}
     class="disable-text-selection entry-cell"
-    data-status={entry ? entry.status : Entry.STATUS.unstarted}
+    data-status={entry.status}
   >
-    <EntryIcon status={entry ? entry.status : Entry.STATUS.unstarted} />
+    <EntryIcon status={entry.status} />
   </td>
 {/snippet}
 
 <tbody>
   {#each habits as habit (habit.id)}
     <tr>
-      {@render habitCell({ name: habit.name, path: habit.path })}
+      {@render habitCell(habit.name, habit.path)}
       {#each dates as date (date.toString())}
-        {@render entryCell(getEntryByDate(habit.id, date), date, habit.path)}
+        {@render entryCell(getEntryByDate(habit.entries, date, habit.path))}
       {/each}
     </tr>
   {/each}

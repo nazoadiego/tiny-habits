@@ -41,6 +41,7 @@ class DateValue {
 		return formatter.format(this.value);
 	}
 
+	// "1", "30"
 	toDayString(): string {
 		if(!this.value) return "-"
     

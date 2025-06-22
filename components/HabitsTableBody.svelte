@@ -3,13 +3,12 @@
   import Entry from "models/Entry";
   import DateValue from "models/DateValue";
   import EntryIcon from "./icons/EntryIcon.svelte";
-  import type { MouseEventHandler } from "svelte/elements";
 
   // ? Can habit repository be moved to a store?
   interface $Props {
     habits: Habit[];
     dates: DateValue[];
-    updateEntry: (habitPath: string, entry: Entry) => MouseEventHandler<HTMLTableCellElement> | undefined;
+    updateEntry: (habitPath: string, entry: Entry) => void;
   }
 
   const { habits, dates, updateEntry }: $Props = $props();
@@ -18,6 +17,17 @@
   	return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath })
   }
 </script>
+
+<tbody>
+  {#each habits as habit (habit.id)}
+    <tr>
+      {@render habitCell(habit.name, habit.path)}
+      {#each dates as date (date.toString())}
+        {@render entryCell(getEntryByDate(habit.entries, date, habit.path))}
+      {/each}
+    </tr>
+  {/each}
+</tbody>
 
 {#snippet habitCell(name: Habit['name'], path: Habit['path'])}
   <td class="habit-cell">
@@ -36,17 +46,6 @@
     <EntryIcon status={entry.status} />
   </td>
 {/snippet}
-
-<tbody>
-  {#each habits as habit (habit.id)}
-    <tr>
-      {@render habitCell(habit.name, habit.path)}
-      {#each dates as date (date.toString())}
-        {@render entryCell(getEntryByDate(habit.entries, date, habit.path))}
-      {/each}
-    </tr>
-  {/each}
-</tbody>
 
 <style>
   :root {

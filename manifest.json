@@ -3,9 +3,9 @@
 	"name": "Tiny Habits",
 	"version": "0.2.3",
 	"minAppVersion": "0.15.0",
-	"description": "Habits logging",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Habits for the lazy",
+	"author": "nazoadiego",
+	"authorUrl": "https://github.com/nazoadiego",
+	"fundingUrl": "https://buymeacoffee.com/nzoadiego",
 	"isDesktopOnly": false
 }

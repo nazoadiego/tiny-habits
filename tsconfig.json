@@ -31,7 +31,7 @@
     "**/*.ts",
     "**/**/*.ts",
     "**/**/*.svelte"
-  ],
+, "version-bump.mjs"  ],
   "exclude": [
     "node_modules/*"
   ]

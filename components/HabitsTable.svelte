@@ -32,6 +32,6 @@
 		width: 100%;
 		border-collapse: separate;
 		border-spacing: 6px;
-		border-radius: 6px;
+		border-radius: var(--radius-m)
 	}
 </style>

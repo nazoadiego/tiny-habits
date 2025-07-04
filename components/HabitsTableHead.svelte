@@ -29,13 +29,11 @@
   }
 
   th {
-    font-size: 16px;
+    font-size: var(--tiny-table-font-size);
     width: 100%;
     padding: 18px 12px;
-    border-radius: 6px;
-    border-spacing: 6px;
-    border: 1px solid rgba(74, 43, 112, 0.2);
-    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-m);
+    background-color: rgba(var(--mono-rgb-0), 0.2);
     text-align: center;
   }
 </style>

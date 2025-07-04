@@ -13,11 +13,11 @@
 
   const { habits, dates, updateEntry }: $Props = $props();
 
+  const noHabits = $derived(habits.length === 0);
+
   function getEntryByDate(entries: Entry[], date: DateValue, habitPath: Habit['path']): Entry {
   	return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath })
   }
-
-  const noHabits = habits.length === 0
 </script>
 
 

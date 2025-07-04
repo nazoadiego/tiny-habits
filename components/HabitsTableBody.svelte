@@ -78,7 +78,7 @@
   }
 
   td.entry-cell.failed {
-    background-color: var(--color-red);
+    background-color: var(--failure-red);
   }
 
   tr:hover td.entry-cell {

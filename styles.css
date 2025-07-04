@@ -1,6 +1,7 @@
 :root {
   /* Colors */
   --success-green: #4caf50;
+  --failure-red: #f44336;
   --skip-blue: #64b5f6;
   /* Font */
   --tiny-table-font-size: 16px;

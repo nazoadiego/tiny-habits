@@ -26,7 +26,8 @@ class HabitRepository implements THabitRepository {
 
 		if (folder == undefined) return []
 
-		const files = folder.children as TFile[]
+		const files = folder.children.filter((child): child is TFile => child instanceof TFile)
+	
 		return files.sort((a, b) => a.name.localeCompare(b.name));
 	}
 

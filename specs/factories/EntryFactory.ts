@@ -6,5 +6,5 @@ import { dateValueFactory } from './DateValueFactory';
 export const entryFactory = Factory.define<Entry>(({ params }) => {
 	const dateValue = dateValueFactory.build()
 
-	return new Entry({ habitPath: "a-path", date: dateValue, status: params.status || Entry.STATUS.unstarted })
+	return new Entry({ habitId: "a-file-name", habitPath: "folder/a-file-name.md", date: dateValue, status: params.status || Entry.STATUS.unstarted })
 });

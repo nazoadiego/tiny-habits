@@ -28,7 +28,7 @@ class HabitRepository implements THabitRepository {
 
 		const files = folder.children.filter((child): child is TFile => child instanceof TFile)
 	
-		return files.sort((a, b) => a.name.localeCompare(b.name));
+		return files.sort((firstFile, secondFile) => firstFile.name.localeCompare(secondFile.name));
 	}
 
 	async buildHabits(file: TFile) {

@@ -10,12 +10,12 @@ export const HabitBuilder = {
 		// Extract Frontmatter to a Value Object
 		const frontmatter = data.split('---')[1];
 
-		const id = file.basename;
+		const habitId = file.basename;
 		const name = file.basename.replaceAll('-', " ");
-		const path = file.path;
+		const habitPath = file.path;
 
 		// If the Habit file has no frontmatter, return empty Entries array 
-		if (!frontmatter) return new Habit({ id, name, path, entries: [] })
+		if (!frontmatter) return new Habit({ id: habitId, name, path: habitPath, entries: [] })
 
 		// TODO: Handle parsing yaml errors
 		const rawEntryData = parseYaml(frontmatter);
@@ -24,7 +24,7 @@ export const HabitBuilder = {
 			Object.entries(rawEntryData),
 			([date, status]) =>
 				DateValue.validate(date)
-					? new Entry({ habitPath: path, date: new DateValue(date), status: status as Status })
+					? new Entry({ habitId, habitPath, date: new DateValue(date), status: status as Status })
 					: undefined
 		)
 		
@@ -37,6 +37,6 @@ export const HabitBuilder = {
 			return true;
 		});
 
-		return new Habit({ id, name, path, entries: validEntries })
+		return new Habit({ id: habitId, name, path: habitPath, entries: validEntries })
 	}
 };

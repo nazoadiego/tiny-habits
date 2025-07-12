@@ -3,8 +3,9 @@
 // A habit belongs to one or more Habit Groups
 
 import type { THabit } from "types/THabit";
-import type Entry from "./Entry";
+import Entry from "./Entry";
 import type { TFile } from "obsidian";
+import DateValue from "./DateValue";
 
 class Habit implements THabit {
 	id: string;
@@ -27,6 +28,11 @@ class Habit implements THabit {
 		const path = file.path;
 
 		return new Habit({ id, name, path, entries: [] });
+	}
+
+	getTodayEntry(): Entry {
+		const today = new DateValue(new Date())
+		return this.entries?.find(entry =>  today.isSameDay(entry.date)) || Entry.empty({ habitId: this.id, habitPath: this.path })
 	}
 }
 

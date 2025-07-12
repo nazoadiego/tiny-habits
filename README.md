@@ -48,13 +48,13 @@
 
 An Obsidian Plugin built with Svelte to track different habits. 
 
-All the entries will be stored inside your notes frontmatter. Everything stays local and within your markdown notes.
+All the entries are stored inside your notes frontmatter. Everything stays local and within your markdown notes.
 
 Features:
 - Mark habits as completed, failed, skipped, or not started.
 - A table of your habit entries, in the beloved format of a heatmap we see in Github or Anki.
 - <a href="#keyboard-support">Keyboard navigation support</a>
-- Navigation both to future and past to see habit entries.
+- Navigation both to future and past entries.
 
 Preview:
 
@@ -73,7 +73,7 @@ Preview:
 }
 ```
 
-You can use as many markdown block as you like on the same file. And if they get too big, you can collapse the by clicking the table header.
+You can use as many markdown blocks as you like in the same file. And if they get too big, you can collapse them by clicking the table header.
 
 ## Keyboard support
 

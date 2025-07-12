@@ -30,13 +30,9 @@ class DateValue {
 		return valueObject;
 	}
 
-	format(): string {
+	toFullDateWithWeekday(): string {
 		if (!this.value) return "-";
-		const formatter = new Intl.DateTimeFormat("en-GB", {
-			day: "2-digit",
-			month: "2-digit",
-			year: "numeric"
-		});
+		const formatter = new Intl.DateTimeFormat("en-US", { dateStyle: "full" });
 		return formatter.format(this.value);
 	}
 
@@ -45,6 +41,12 @@ class DateValue {
 		if(!this.value) return "-"
     
 		return this.value.getDate().toString()
+	}
+
+	toDate(): Date | undefined {
+		if (this.value === undefined) return undefined
+
+		return new Date(this.value);
 	}
 
 	// * YYYY-MM-DD, otherwise obsidian gets a bit weird about it.
@@ -58,7 +60,7 @@ class DateValue {
 		return `${year}-${month}-${day}`;
 	}
 
-	toString(): string {
+	toISOString(): string {
 		return this.value?.toISOString() || "-";
 	}
 

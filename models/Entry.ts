@@ -42,12 +42,16 @@ class Entry implements TEntry {
 		return new Entry({ habitPath, date, status: Entry.STATUS.unstarted, isEmpty: true });
 	}
 
-	cycleStatus(): Status {
+	nextStatus(): Status {
 		const STATUS_ORDER = Entry.STATUS_ORDER
-
 		const currentIndex = STATUS_ORDER.indexOf(this.status);
 		const nextIndex = (currentIndex + 1) % STATUS_ORDER.length;
-		this.status = STATUS_ORDER[nextIndex];
+
+		return STATUS_ORDER[nextIndex];
+	}
+
+	cycleStatus(): Status {
+		this.status = this.nextStatus()
 		return this.status
 	}
 }

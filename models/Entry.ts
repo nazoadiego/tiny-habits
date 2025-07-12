@@ -41,7 +41,7 @@ class Entry implements TEntry {
 		this.isEmpty = isEmpty
 	}
 
-	static empty({ habitId, habitPath, date = DateValue.empty() }: { date: DateValue, habitPath: string, habitId: string }): Entry {
+	static empty({ habitId, habitPath, date = DateValue.empty() }: { date?: DateValue, habitPath: string, habitId: string }): Entry {
 		return new Entry({ habitId, habitPath, date, status: Entry.STATUS.unstarted, isEmpty: true });
 	}
 
@@ -56,6 +56,14 @@ class Entry implements TEntry {
 	cycleStatus(): Status {
 		this.status = this.nextStatus()
 		return this.status
+	}
+
+	isCompleted(): boolean {
+		return this.status === Entry.STATUS.completed
+	}
+
+	isPending(): boolean {
+		return this.status !== Entry.STATUS.completed && this.status !== Entry.STATUS.skip
 	}
 }
 export default Entry

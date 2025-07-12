@@ -6,6 +6,7 @@
 	import type Entry from "models/Entry";
 	import type Habit from "models/Habit";
 	import type { collapseStatuses } from "types";
+	import Icon from "./icons/Icon.svelte";
 
 	interface $Props {
 		updateEntry: (habitPath: Habit["path"], entry: Entry) => void;
@@ -32,6 +33,10 @@
 
 	function moveForward() {
 		currentOffset += 1;
+	}
+
+	function moveToToday() {
+		currentOffset = 0;
 	}
 
 	let collapseStatus: collapseStatuses = $state("init")
@@ -61,8 +66,16 @@
 	/>
 </table>
 <div class="date-controls-container">
-	<button class="date-control" onclick={moveBack}>Back</button>
-	<button class="date-control" onclick={moveForward}>Next</button>
+	<div class="habits-info-section"></div>
+	<button class="date-control" onclick={moveToToday}>
+		<Icon icon="lucide-timer-reset" />
+	</button>
+	<button class="date-control" onclick={moveBack}>
+		<Icon icon="lucide-chevron-left" />
+	</button>
+	<button class="date-control" onclick={moveForward}>
+		<Icon icon="lucide-chevron-right" />
+	</button>
 </div>
 
 <style>
@@ -71,12 +84,38 @@
 		border-collapse: separate;
 		border-spacing: 6px;
 		border-radius: var(--radius-m);
+		margin-bottom: 0;
 	}
 
 	div.date-controls-container {
 		display: flex;
 		justify-content: end;
-		gap: 0.5rem;
+		gap: 6px;
+		padding-left: 6px;
 		padding-right: 6px;
+	}
+
+	div.habits-info-section {
+		width: 100%;
+		height: 48px;
+		display: flex;
+		align-items: center;
+		padding-left: 18px;
+		background-color: rgba(var(--mono-rgb-0), 0.4);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: var(--radius-m);
+	}
+
+	button.date-control {
+		width: 48px;
+		height: 48px;
+		background-color: rgba(var(--mono-rgb-0), 0.4);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: var(--radius-m);
+	}
+
+	button.date-control:hover {
+		background-color: rgba(var(--mono-rgb-0), 0.1);
+		transition: all 0.3s ease-in-out;
 	}
 </style>

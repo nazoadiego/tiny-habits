@@ -39,9 +39,10 @@
 		width: 100%;
 		padding: 18px 12px;
 		border-radius: var(--radius-m);
-		background-color: rgba(var(--mono-rgb-0), 0.2);
+		background-color: rgba(var(--mono-rgb-0), 0.4);
 		text-align: center;
 	}
+
 	.group-title {
 		cursor: pointer;
 	}

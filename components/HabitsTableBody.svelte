@@ -168,7 +168,7 @@
 	}
 
 	td.entry-cell:focus {
-		outline: 2px solid var(--interactive-accent);
+		outline: 3px solid var(--background-modifier-border);
 		outline-offset: -2px;
 	}
 
@@ -180,7 +180,7 @@
 		opacity: 1;
 		transform: translateY(0);
 		transform-origin: top;
-		animation: expand 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+		animation: expandRow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
 	tbody.collapsed {
@@ -188,10 +188,10 @@
 		transform: translateY(-20px);
 		transform-origin: top;
 		display: none;
-		animation: collapse 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+		animation: collapseRow 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 	}
 
-	@keyframes collapse {
+	@keyframes collapseRow {
 		0% {
 			opacity: 1;
 			transform: translateY(0);
@@ -209,7 +209,7 @@
 		}
 	}
 
-	@keyframes expand {
+	@keyframes expandRow {
 		0% {
 			opacity: 0;
 			transform: translateY(-10px);

@@ -1,7 +1,6 @@
 import Habit from "models/Habit";
-import Entry from "models/Entry";
+import Entry, { type Status } from "models/Entry";
 import DateValue from "models/DateValue";
-import type { Status } from "types/TEntry";
 import { parseYaml, TFile } from "obsidian";
 
 // * haha get it? habit builder, cool!
@@ -25,7 +24,7 @@ export const HabitBuilder = {
 			([date, status]) =>
 				DateValue.validate(date)
 					? new Entry({ habitId, habitPath, date: new DateValue(date), status: status as Status })
-					: undefined
+					: undefined // TODO: return an invalid (not empty) Entry instead? that way don't need to filter after.
 		)
 		
 		const validEntries = entries.filter((entry): entry is Entry => {

@@ -5,6 +5,7 @@
 	import EntryIcon from "./icons/EntryIcon.svelte";
 	import NoHabitsMessage from "./NoHabitsMessage.svelte";
 	import type { collapseStatuses } from "types";
+  import { Cursor, keyboardMap } from "UI/Cursor";
 
 	interface $Props {
 		habits: Habit[];
@@ -21,55 +22,28 @@
 		return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath, habitId })
 	}
 
-	type Direction = 'up' | 'down' | 'left' | 'right';
-	type KeyboardMapping = Record<string, Direction>;
-	const keyboardMap: KeyboardMapping = {
-		'ArrowUp': 'up', 'k': 'up',
-		'ArrowDown': 'down', 'j': 'down',
-		'ArrowLeft': 'left', 'h': 'left',
-		'ArrowRight': 'right', 'l': 'right'
-	};
-
-	function getNextIndex(currentIndex: number, total: number, direction: 'up' | 'down' | 'left' | 'right'): number {
-		const increment = direction === 'down' || direction === 'right' ? 1 : -1;
-		return (currentIndex + increment + total) % total;
-	}
-
-	function buildNextCellSelector(entryDay: string, habitId: string): string {
-		return `td[data-entry-day="${entryDay}"][data-habit-id="${habitId}"]`;
-	}
-
 	function handleKeyboardNavigation(event: KeyboardEvent, target: HTMLTableCellElement): void {
-		const direction = keyboardMap[event.key];
-		if (!direction) return;
+	 	const direction = keyboardMap[event.key];
+	 	if (!direction) return;
 
-		event.preventDefault();
-		const entryDay = target.dataset.entryDay;
-		const currentHabitId = target.dataset.habitId;
-		if (!entryDay || !currentHabitId) return;
+	 	event.preventDefault();
 
-		const habitIds = habits.map(habit => habit.id);
-		const currentHabitIndex = habitIds.indexOf(currentHabitId);
-		const currentDateIndex = dates.findIndex(date => date.toDayString() === entryDay);
+	 	const entryDay = target.dataset.entryDay;
+	 	const currentHabitId = target.dataset.habitId;
+	 	if (!entryDay || !currentHabitId) return;
 
-		if (direction === 'up' || direction === 'down') {
-			const nextHabitId = habitIds[getNextIndex(currentHabitIndex, habitIds.length, direction)];
-			const nextSelector = buildNextCellSelector(entryDay, nextHabitId);
-			const nextCell = document.querySelector(nextSelector) as HTMLTableCellElement;
+	 	const habitIds = habits.map(habit => habit.id);
+	 	const dayStrings = dates.map(date => date.toDayString());
 
-			nextCell?.focus();
-			return
-		}
-		if (direction === 'left' || direction === 'right') {
-			const nextDate = dates[getNextIndex(currentDateIndex, dates.length, direction)].toDayString();
-			const nextSelector = buildNextCellSelector(nextDate, currentHabitId);
-			const nextCell = document.querySelector(nextSelector) as HTMLTableCellElement;
+	 	const cursor = new Cursor({ 
+	 		verticalPosition: habitIds.indexOf(currentHabitId),
+	 		horizontalPosition: dayStrings.indexOf(entryDay),
+	 		verticalOptions: habitIds,
+	 		horizontalOptions: dayStrings
+	 	})
 
-			nextCell?.focus();
-			return
-		}
-		console.warn("something went wrong! We are moving in strange directions partner!")
-	}
+	 	cursor.move(direction)
+	 }
 </script>
 
 

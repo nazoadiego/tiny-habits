@@ -5,7 +5,7 @@
 	import EntryIcon from "./icons/EntryIcon.svelte";
 	import NoHabitsMessage from "./NoHabitsMessage.svelte";
 	import type { collapseStatuses } from "types";
-  import { Cursor, keyboardMap } from "UI/Cursor";
+  import { TableAction } from "UI/TableAction";
 
 	interface $Props {
 		habits: Habit[];
@@ -21,29 +21,6 @@
 	function getEntryByDate(entries: Entry[], date: DateValue, habitPath: Habit['path'], habitId: Habit['id']): Entry {
 		return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath, habitId })
 	}
-
-	function handleKeyboardNavigation(event: KeyboardEvent, target: HTMLTableCellElement): void {
-	 	const direction = keyboardMap[event.key];
-	 	if (!direction) return;
-
-	 	event.preventDefault();
-
-	 	const entryDay = target.dataset.entryDay;
-	 	const currentHabitId = target.dataset.habitId;
-	 	if (!entryDay || !currentHabitId) return;
-
-	 	const habitIds = habits.map(habit => habit.id);
-	 	const dayStrings = dates.map(date => date.toDayString());
-
-	 	const cursor = new Cursor({ 
-	 		verticalPosition: habitIds.indexOf(currentHabitId),
-	 		horizontalPosition: dayStrings.indexOf(entryDay),
-	 		verticalOptions: habitIds,
-	 		horizontalOptions: dayStrings
-	 	})
-
-	 	cursor.move(direction)
-	 }
 </script>
 
 
@@ -78,17 +55,7 @@
 		data-habit-id={entry.habitId}
 		data-entry-day={entry.date.toDayString()}
 		onclick={() => updateEntry(entry.habitPath, entry)}
-		onkeydown={(event) => {
-			if (event.key === 'Enter' || event.key === ' ') {
-				event.preventDefault();
-				updateEntry(entry.habitPath, entry);
-			}
-
-			const target = event.target as HTMLTableCellElement
-			if (target == undefined) return
-
-			handleKeyboardNavigation(event, target);
-		}}
+		onkeydown={(event) => new TableAction(event).call(habits, dates, () => updateEntry(entry.habitPath, entry))}
 		class="disable-text-selection entry-cell {entry.status}"
 	>
 		<EntryIcon status={entry.status} />

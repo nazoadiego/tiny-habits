@@ -1,72 +1,52 @@
-type Direction = 'up' | 'down' | 'left' | 'right';
+import type { Direction } from "./Direction"
 
 export class Cursor {
 	verticalPosition: number
 	horizontalPosition: number
-	verticalOptions: string[]
-	horizontalOptions: string[]
+	verticalTotal: number
+	horizontalTotal: number
 
-	constructor({ verticalPosition, horizontalPosition, verticalOptions, horizontalOptions }: { 
+	constructor({ verticalPosition, horizontalPosition, verticalTotal, horizontalTotal }: { 
     verticalPosition: number, 
     horizontalPosition: number, 
-    verticalOptions: string[], 
-    horizontalOptions: string[]
+    verticalTotal: number, 
+    horizontalTotal: number
   }) {
 		this.verticalPosition = verticalPosition 
 		this.horizontalPosition = horizontalPosition
-		this.verticalOptions = verticalOptions
-		this.horizontalOptions = horizontalOptions 
+		this.verticalTotal = verticalTotal
+		this.horizontalTotal = horizontalTotal 
 	}
 
 	move(direction: Direction) {
-		if (direction === 'up') this.up()
-		if (direction === 'down') this.down()
-		if (direction === 'left') this.left()
-		if (direction === 'right') this.right()
+		if (direction === 'up') return this.up()
+		if (direction === 'down') return this.down()
+		if (direction === 'left') return this.left()
+		if (direction === 'right') return this.right()
 
-		this.focus()
+		console.warn('We are moving in strange directions, partner!')
 	}
 
 	up() {
-		this.verticalPosition = this.getPreviousPosition(this.verticalPosition, this.verticalOptions.length)
+		this.verticalPosition = this.getPreviousPosition(this.verticalPosition, this.verticalTotal)
 	}
 	down() {
-		this.verticalPosition = this.getNextPosition(this.verticalPosition, this.verticalOptions.length)
+		this.verticalPosition = this.getNextPosition(this.verticalPosition, this.verticalTotal)
 	}
 	left() {
-		this.horizontalPosition = this.getPreviousPosition(this.horizontalPosition, this.horizontalOptions.length)
+		this.horizontalPosition = this.getPreviousPosition(this.horizontalPosition, this.horizontalTotal)
 	}
 	right() {
-		this.horizontalPosition = this.getNextPosition(this.horizontalPosition, this.horizontalOptions.length)
-	}
-
-	focus() {
-		const selector = buildSelector(this.horizontalOptions[this.horizontalPosition], this.verticalOptions[this.verticalPosition]);
-		const cell = document.querySelector(selector) as HTMLTableCellElement;
-
-		cell.focus();
+		this.horizontalPosition = this.getNextPosition(this.horizontalPosition, this.horizontalTotal)
 	}
 
 	// direction: 'down' | 'right'
-	getNextPosition(currentIndex: number, total: number): number {
+	private getNextPosition(currentIndex: number, total: number): number {
 		return (currentIndex + 1 + total) % total;
 	}
 
 	//  direction: 'up' | 'left'
-	getPreviousPosition(currentIndex: number, total: number): number {
+	private getPreviousPosition(currentIndex: number, total: number): number {
 		return (currentIndex - 1 + total) % total;
 	}
 }
-
-function buildSelector(entryDay: string, habitId: string): string {
-	return `td[data-entry-day="${entryDay}"][data-habit-id="${habitId}"]`;
-}
-
-type KeyboardMapping = Record<string, Direction>;
-
-export const keyboardMap: KeyboardMapping = {
-	'ArrowUp': 'up', 'k': 'up',
-	'ArrowDown': 'down', 'j': 'down',
-	'ArrowLeft': 'left', 'h': 'left',
-	'ArrowRight': 'right', 'l': 'right'
-};

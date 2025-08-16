@@ -76,7 +76,8 @@
 		padding: 18px 12px;
 		border-collapse: separate;
 		border-spacing: 6px;
-		border-radius: var(--radius-m)
+		border-radius: var(--radius-m);
+		transition: all 0.3s ease;
 	}
 
 	td.entry-cell.skip {
@@ -92,7 +93,6 @@
 
 	tr:hover td.entry-cell {
 		opacity: 0.7;
-		transition: all 0.2s ease;
 	}
 
 	tr:hover td.entry-cell:hover {

@@ -77,6 +77,11 @@ export class TableAction {
 		const selector = `td[data-entry-day="${targetDay}"][data-habit-id="${targetHabit}"]`
 		const cell = document.querySelector(selector)
 	 
-		if ((cell instanceof HTMLTableCellElement)) return cell.focus();
+		if ((cell	instanceof HTMLTableCellElement)) {
+		 cell.focus();
 	 }
+		else {
+		 console.warn(`TableAction.navigateToEntry: cell not found for selector "${selector}" (direction: ${direction})`);
+	 } 
+	}
 }

@@ -8,10 +8,10 @@ type TEntry = {
   status: Status;
   date: DateValue;
   isEmpty: boolean;
-  frontMatterDate: () => string;
-  isComplete: () => boolean;
-  isPending: () => boolean;
-	nextStatus: () => Status;
+  frontMatterDate(): string;
+  isComplete(): boolean;
+  isPending(): boolean;
+	nextStatus(): Status;
 };
 
 type EntryInit = {
@@ -48,12 +48,12 @@ class Entry implements TEntry {
 		this.isEmpty = isEmpty
 	}
 
-	static readonly STATUS: Record<Status, Status> = {
+	static readonly STATUS = {
 		unstarted: "unstarted",
 		completed: "completed",
 		failed: "failed",
 		skip: "skip"
-	}
+	} as const
 
 	/**
 		@description The default order in which an entry changes of status.

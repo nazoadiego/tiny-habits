@@ -5,6 +5,7 @@
 	import EntryIcon from "./icons/EntryIcon.svelte";
 	import NoHabitsMessage from "./NoHabitsMessage.svelte";
 	import type { collapseStatuses } from "types";
+  import { TableAction } from "UI/TableAction";
 
 	interface $Props {
 		habits: Habit[];
@@ -19,56 +20,6 @@
 
 	function getEntryByDate(entries: Entry[], date: DateValue, habitPath: Habit['path'], habitId: Habit['id']): Entry {
 		return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath, habitId })
-	}
-
-	type Direction = 'up' | 'down' | 'left' | 'right';
-	type KeyboardMapping = Record<string, Direction>;
-	const keyboardMap: KeyboardMapping = {
-		'ArrowUp': 'up', 'k': 'up',
-		'ArrowDown': 'down', 'j': 'down',
-		'ArrowLeft': 'left', 'h': 'left',
-		'ArrowRight': 'right', 'l': 'right'
-	};
-
-	function getNextIndex(currentIndex: number, total: number, direction: 'up' | 'down' | 'left' | 'right'): number {
-		const increment = direction === 'down' || direction === 'right' ? 1 : -1;
-		return (currentIndex + increment + total) % total;
-	}
-
-	function buildNextCellSelector(entryDay: string, habitId: string): string {
-		return `td[data-entry-day="${entryDay}"][data-habit-id="${habitId}"]`;
-	}
-
-	function handleKeyboardNavigation(event: KeyboardEvent, target: HTMLTableCellElement): void {
-		const direction = keyboardMap[event.key];
-		if (!direction) return;
-
-		event.preventDefault();
-		const entryDay = target.dataset.entryDay;
-		const currentHabitId = target.dataset.habitId;
-		if (!entryDay || !currentHabitId) return;
-
-		const habitIds = habits.map(habit => habit.id);
-		const currentHabitIndex = habitIds.indexOf(currentHabitId);
-		const currentDateIndex = dates.findIndex(date => date.toDayString() === entryDay);
-
-		if (direction === 'up' || direction === 'down') {
-			const nextHabitId = habitIds[getNextIndex(currentHabitIndex, habitIds.length, direction)];
-			const nextSelector = buildNextCellSelector(entryDay, nextHabitId);
-			const nextCell = document.querySelector(nextSelector) as HTMLTableCellElement;
-
-			nextCell?.focus();
-			return
-		}
-		if (direction === 'left' || direction === 'right') {
-			const nextDate = dates[getNextIndex(currentDateIndex, dates.length, direction)].toDayString();
-			const nextSelector = buildNextCellSelector(nextDate, currentHabitId);
-			const nextCell = document.querySelector(nextSelector) as HTMLTableCellElement;
-
-			nextCell?.focus();
-			return
-		}
-		console.warn("something went wrong! We are moving in strange directions partner!")
 	}
 </script>
 
@@ -104,17 +55,7 @@
 		data-habit-id={entry.habitId}
 		data-entry-day={entry.date.toDayString()}
 		onclick={() => updateEntry(entry.habitPath, entry)}
-		onkeydown={(event) => {
-			if (event.key === 'Enter' || event.key === ' ') {
-				event.preventDefault();
-				updateEntry(entry.habitPath, entry);
-			}
-
-			const target = event.target as HTMLTableCellElement
-			if (target == undefined) return
-
-			handleKeyboardNavigation(event, target);
-		}}
+		onkeydown={(event) => new TableAction(event).call(habits, dates, () => updateEntry(entry.habitPath, entry))}
 		class="disable-text-selection entry-cell {entry.status}"
 	>
 		<EntryIcon status={entry.status} />
@@ -135,7 +76,8 @@
 		padding: 18px 12px;
 		border-collapse: separate;
 		border-spacing: 6px;
-		border-radius: var(--radius-m)
+		border-radius: var(--radius-m);
+		transition: all 0.3s ease;
 	}
 
 	td.entry-cell.skip {
@@ -151,7 +93,6 @@
 
 	tr:hover td.entry-cell {
 		opacity: 0.7;
-		transition: all 0.2s ease;
 	}
 
 	tr:hover td.entry-cell:hover {

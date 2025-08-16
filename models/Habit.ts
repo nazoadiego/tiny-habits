@@ -5,7 +5,6 @@
 import type { THabit } from "types/THabit";
 import Entry from "./Entry";
 import type { TFile } from "obsidian";
-import DateValue from "./DateValue";
 
 class Habit implements THabit {
 	id: string;
@@ -30,10 +29,10 @@ class Habit implements THabit {
 		return new Habit({ id, name, path, entries: [] });
 	}
 
-	getTodayEntry(): Entry {
-		const today = new DateValue(new Date())
-		return this.entries?.find(entry =>  today.isSameDay(entry.date)) || Entry.empty({ habitId: this.id, habitPath: this.path })
-	}
+	// getTodayEntry(): Entry {
+	// 	const today = new DateValue(new Date())
+	// 	return this.entries?.find(entry =>  today.isSameDay(entry.date)) || Entry.empty({ habitId: this.id, habitPath: this.path, date: DateValue.empty() }) // TODO: This is a bit wrong, DateValue.empty should be DateValue.today(), empty is more like invalid. Notice how we are using "empty" differently in Entry and in DateValue. In one, it is a placeholder and it is valid. In the other, it's an invalid DateValue.
+	// }
 }
 
 export default Habit

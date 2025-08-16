@@ -49,8 +49,11 @@ class DateValue {
 		return new Date(this.value);
 	}
 
-	// * YYYY-MM-DD, otherwise obsidian gets a bit weird about it.
-	toFrontmatterProperty() {
+	/**
+	 @description
+		A string in "YYYY-MM-DD" format
+	*/
+	toYearMonthDayString() {
 		if (!this.value) return "-";
 
 		const year = this.value.getFullYear();

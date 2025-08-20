@@ -10,10 +10,10 @@
 
   	return {
   		update(newIcon: typeof icon) {
-  			node.innerHTML = "";
+  			node.empty();
   			if (newIcon) setIcon(node, newIcon);
   		},
-  		destroy() { node.innerHTML = "" }
+  		destroy() { node.empty() }
   	};
   }
 </script>

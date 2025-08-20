@@ -1,16 +1,18 @@
-import { FileManager, Notice, TFile, type Vault } from "obsidian";
+import { type FileManager, type MetadataCache, Notice, TFile, type Vault } from "obsidian";
 import type { THabitRepository } from '../types/THabitRepository';
 import Habit from "models/Habit";
 import Entry from "models/Entry";
 import { HabitBuilder }  from "builders/HabitBuilder";
 
 class HabitRepository implements THabitRepository {
+	private readonly metadataCache
 	private readonly vault
 	private readonly fileManager
 
-	constructor(vault: Vault, fileManager: FileManager) {
+	constructor(vault: Vault, fileManager: FileManager, metadataCache: MetadataCache) {
 		this.vault = vault
 		this.fileManager = fileManager
+		this.metadataCache = metadataCache
 	}
 
 	async allHabits(folderPath: string) {
@@ -33,8 +35,8 @@ class HabitRepository implements THabitRepository {
 
 	async buildHabits(file: TFile) {
 		try {
-			const data = await this.vault.read(file);
-			return HabitBuilder.fromFile(file, data);
+			const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter;
+			return HabitBuilder.fromFile(file, frontmatter);
 		}
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error);

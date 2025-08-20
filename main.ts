@@ -11,7 +11,7 @@ export default class TinyHabitsPlugin extends Plugin {
 	private settings: { folderPath: string, displayName: string | undefined }
 
 	async onload() {
-		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager)
+		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager, this.app.metadataCache)
 
 		this.registerMarkdownCodeBlockProcessor(
 			'habits',
@@ -70,6 +70,9 @@ export default class TinyHabitsPlugin extends Plugin {
 		);
 		this.registerEvent(
 			this.app.vault.on("modify", (file) => this.refreshHabits(this.getFolderPath(file)))
+		);
+		this.registerEvent(
+			this.app.metadataCache.on('changed', (file) => this.refreshHabits(this.getFolderPath(file)))
 		);
 	}
 

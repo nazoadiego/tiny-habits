@@ -1,14 +1,11 @@
 import Habit from "models/Habit";
 import Entry, { type Status } from "models/Entry";
 import DateValue from "models/DateValue";
-import { parseYaml, TFile } from "obsidian";
+import { TFile, type FrontMatterCache } from "obsidian";
 
 // * haha get it? habit builder, cool!
 export const HabitBuilder = {
-	fromFile(file: TFile, data: string): Habit {
-		// Extract Frontmatter to a Value Object
-		const frontmatter = data.split('---')[1];
-
+	fromFile(file: TFile, frontmatter: FrontMatterCache | undefined): Habit {
 		const habitId = file.basename;
 		const name = file.basename.replaceAll('-', " ");
 		const habitPath = file.path;
@@ -16,11 +13,8 @@ export const HabitBuilder = {
 		// If the Habit file has no frontmatter, return empty Entries array 
 		if (!frontmatter) return new Habit({ id: habitId, name, path: habitPath, entries: [] })
 
-		// TODO: Handle parsing yaml errors
-		const rawEntryData = parseYaml(frontmatter);
-
 		const entries = Array.from(
-			Object.entries(rawEntryData),
+			Object.entries(frontmatter),
 			([date, status]) =>
 				DateValue.validate(date)
 					? new Entry({ habitId, habitPath, date: new DateValue(date), status: status as Status })

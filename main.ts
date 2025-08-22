@@ -1,4 +1,4 @@
-import { Plugin, TAbstractFile, TFile } from 'obsidian';
+import { Notice, Plugin, TAbstractFile, TFile } from 'obsidian';
 import TinyHabitsView from 'views/TinyHabitsView';
 import HabitRepository from 'repositories/HabitRepository';
 import { habitStore } from 'stores/store';
@@ -19,7 +19,13 @@ export default class TinyHabitsPlugin extends Plugin {
 				this.app.workspace.onLayoutReady(async () => {
 					this.registerHabitEvents()
 
-					this.settings = JSON.parse(source) // TODO: handle error if the json is malformed
+					try {
+						this.settings = JSON.parse(source)
+					} 
+					catch {
+						new Notice("Something went wrong when parsing the markdown block configuration. Check for closing brackets, commas, or missing double quotes")
+					}
+
 					const folderPath = this.settings.folderPath
 					const displayName = this.settings.displayName
 

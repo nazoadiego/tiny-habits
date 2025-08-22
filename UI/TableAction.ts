@@ -3,6 +3,8 @@ import type DateValue from "models/DateValue";
 import type Habit from "models/Habit";
 import type { Direction } from "./Direction";
 
+type EntrySelector = `td[data-entry-day="${string}"][data-habit-id="${string}"]`;
+
 export const NAVIGATION_MAP: Record<string, Direction> = {
 	'ArrowUp': 'up', 'k': 'up',
 	'ArrowDown': 'down', 'j': 'down',
@@ -74,7 +76,7 @@ export class TableAction {
 		const nextTargetDay = dayStrings[cursor.horizontalPosition]
 		const nextTargetHabit = habitIds[cursor.verticalPosition]
 
-		const selector = `td[data-entry-day="${nextTargetDay}"][data-habit-id="${nextTargetHabit}"]`
+		const selector: EntrySelector = `td[data-entry-day="${nextTargetDay}"][data-habit-id="${nextTargetHabit}"]`
 		const cell = document.querySelector(selector)
 	 
 		if ((cell	instanceof HTMLTableCellElement)) {

@@ -22,13 +22,12 @@ class DateValue implements TDateValue {
 		this.value = this.isValid ? new Date(input) : undefined;
 	}
 
-	// TODO: Verify that is either a isoDate string or a string in "YYYY-MM-DD" format, otherwise new Date will give invalid date
 	static validate(input: Date | string) {
 		if (typeof input === "string") {
-			input = new Date(input);
+			const date = new Date(input);
+			return !Number.isNaN(date.getTime());
 		}
-	
-		return input instanceof Date
+		return input instanceof Date && !Number.isNaN(input.getTime());
 	}
 
 	toFullDateWithWeekday() {
@@ -51,7 +50,7 @@ class DateValue implements TDateValue {
 	}
 
 	/**
-	 @description
+	 @return
 		A string in "YYYY-MM-DD" format
 	*/
 	toYearMonthDayString() {
@@ -64,10 +63,15 @@ class DateValue implements TDateValue {
 		return `${year}-${month}-${day}`;
 	}
 
+	/**
+	 @return
+		A string in ISO format
+	 @example
+		2011-10-05T14:48:00.000Z
+	*/
 	toISOString() {
 		return this.value?.toISOString() || "-";
 	}
-
 
 	isSameDay(other: DateValue) {
 		if (!this.value || !other.value) return false;

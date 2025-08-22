@@ -1,17 +1,26 @@
 import type { Direction } from "./Direction"
 
-export class Cursor {
+type TCursor = {
 	verticalPosition: number
 	horizontalPosition: number
 	verticalTotal: number
 	horizontalTotal: number
+	move(direction: Direction): void
+	up(): void
+	down(): void
+	left(): void
+	right(): void
+}
 
-	constructor({ verticalPosition, horizontalPosition, verticalTotal, horizontalTotal }: { 
-    verticalPosition: number, 
-    horizontalPosition: number, 
-    verticalTotal: number, 
-    horizontalTotal: number
-  }) {
+type TCursorInit = Pick<TCursor, 'verticalPosition' | 'horizontalPosition' | 'verticalTotal' | 'horizontalTotal'>
+
+export class Cursor implements TCursor {
+	verticalPosition
+	horizontalPosition
+	verticalTotal
+	horizontalTotal
+
+	constructor({ verticalPosition, horizontalPosition, verticalTotal, horizontalTotal }: TCursorInit) {
 		this.verticalPosition = verticalPosition 
 		this.horizontalPosition = horizontalPosition
 		this.verticalTotal = verticalTotal

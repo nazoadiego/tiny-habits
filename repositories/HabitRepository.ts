@@ -2,7 +2,6 @@ import { type FileManager, type MetadataCache, Notice, TFile, type Vault } from 
 import type { THabitRepository } from '../types/THabitRepository';
 import Habit from "models/Habit";
 import Entry from "models/Entry";
-import { HabitBuilder }  from "builders/HabitBuilder";
 
 class HabitRepository implements THabitRepository {
 	private readonly metadataCache
@@ -35,8 +34,7 @@ class HabitRepository implements THabitRepository {
 
 	async buildHabits(file: TFile) {
 		try {
-			const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter;
-			return HabitBuilder.fromFile(file, frontmatter);
+			return Habit.fromFile(file, this.metadataCache.getFileCache(file)?.frontmatter);
 		}
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error);

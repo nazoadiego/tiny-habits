@@ -4,13 +4,14 @@
 
 import type { THabit } from "types/THabit";
 import Entry from "./Entry";
-import type { TFile } from "obsidian";
+import type { FrontMatterCache, TFile } from "obsidian";
+import DateValue from "./DateValue";
 
 class Habit implements THabit {
-	id: string;
-	name: string;
-	path: string
-	entries: Entry[]
+	id
+	name
+	path
+	entries
 
 	constructor({ id, name, path, entries }: THabit) {
 		this.id = id
@@ -19,14 +20,30 @@ class Habit implements THabit {
 		this.entries = entries
 	}
 
-	static validate(): boolean { return true }
+	private static parseFile(file: TFile) {
+		return { id: file.basename, name: file.basename, path: file.path }
+	}
 	 
 	static empty(file: TFile): Habit {
-		const id = file.basename;
-		const name = file.basename;
-		const path = file.path;
-
+		const { id, name, path } = this.parseFile(file)
 		return new Habit({ id, name, path, entries: [] });
+	}
+
+	static fromFile(file: TFile, frontmatter: FrontMatterCache | undefined): Habit {
+		if (!frontmatter) return this.empty(file)
+
+		const { id: habitId, name, path: habitPath } = this.parseFile(file)
+
+		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
+			if (!Entry.validateFrontmatter({ date, status })) {
+				console.warn(`Invalid date format or status for entry in habit ${file.basename}. Date: ${date}. Status: ${status}`);
+				return []
+			}
+
+			return new Entry({ habitId, habitPath, date: new DateValue(date), status })
+		})
+				
+		return new Habit({ id: habitId, name, path: habitPath, entries })
 	}
 
 	// getTodayEntry(): Entry {

@@ -7,31 +7,26 @@ type TEntry = {
   habitPath: string;
   status: Status;
   date: DateValue;
-  isEmpty: boolean;
+  isEmpty?: boolean;
   frontMatterDate(): string;
   isComplete(): boolean;
   isPending(): boolean;
 	nextStatus(): Status;
 };
 
-type EntryInit = {
-  habitId: string;
-  habitPath: string;
-  status: Status;
-  date: DateValue;
-  isEmpty?: boolean;
-};
+type TEntryInit = Pick<TEntry, 'habitId' | 'habitPath' | 'date' | 'status' | 'isEmpty'>
+type TEmptyEntryInit = Pick<TEntry, 'habitId' | 'habitPath' | 'date'>
 
 /**
 @class Entry
 @description Represents the register of a habit on a particular day.
 **/
 class Entry implements TEntry {
-	habitId: string;
-	habitPath: string;
-	status: Status;
-	date: DateValue;
-	isEmpty: boolean;
+	habitId;
+	habitPath;
+	status;
+	date;
+	isEmpty;
 
 	/**
 		@param habitId - The unique identifier for the habit, it's the name of the file, just the name. Not the complete path.
@@ -40,9 +35,9 @@ class Entry implements TEntry {
 		@param status - The current status of the entry.
 		@param isEmpty - Whether this is an empty placeholder entry, for when there is no entry yet. Null object pattern.
 	*/
-	constructor({ habitId, habitPath, date, status, isEmpty = false }: EntryInit) {
+	constructor({ habitId, habitPath, date, status, isEmpty = false }: TEntryInit) {
 		this.habitId = habitId;
-		this.habitPath = habitPath; // @description the path
+		this.habitPath = habitPath;
 		this.status = status;
 		this.date = date;
 		this.isEmpty = isEmpty
@@ -71,8 +66,16 @@ class Entry implements TEntry {
 		Think Null Object pattern. Useful for when there is no entry registered yet.
 		Its status is always unstarted.
 	*/
-	static empty({ habitId, habitPath, date }: { habitId: EntryInit['habitId'], habitPath: EntryInit['habitPath'], date: DateValue }) {
+	static empty({ habitId, habitPath, date }: TEmptyEntryInit) {
 		return new Entry({ habitId, habitPath, date, status: Entry.STATUS.unstarted, isEmpty: true });
+	}
+		
+	private static isValidStatus = (string: string): string is Status => string in Entry.STATUS 
+
+	static validateFrontmatter({ date, status }: { status: unknown, date: string}): boolean {
+		if (typeof status !== "string") return false
+		
+		return this.isValidStatus(status) && DateValue.validate(date)
 	}
 
 	/**

@@ -55,26 +55,26 @@ export class TableAction {
 
 		if (!(this.target instanceof HTMLTableCellElement)) return
 
-	 	const entryDay = this.target.dataset.entryDay;
-	 	const currentHabitId = this.target.dataset.habitId;
-	 	if (!entryDay || !currentHabitId) return;
+	 	const targetEntryDay = this.target.dataset.entryDay;
+	 	const targetHabitId = this.target.dataset.habitId;
+	 	if (!targetEntryDay || !targetHabitId) return;
 
 	 	const habitIds = habits.map(habit => habit.id);
 	 	const dayStrings = dates.map(date => date.toDayString());
 
 	 	const cursor = new Cursor({ 
-	 		verticalPosition: habitIds.indexOf(currentHabitId),
-	 		horizontalPosition: dayStrings.indexOf(entryDay),
+	 		verticalPosition: habitIds.indexOf(targetHabitId),
+	 		horizontalPosition: dayStrings.indexOf(targetEntryDay),
 	 		verticalTotal: habitIds.length,
 	 		horizontalTotal: dayStrings.length
 	 	})
 
 	 	cursor.move(direction)
 
-		const targetDay = dayStrings[cursor.horizontalPosition]
-		const targetHabit = habitIds[cursor.verticalPosition]
+		const nextTargetDay = dayStrings[cursor.horizontalPosition]
+		const nextTargetHabit = habitIds[cursor.verticalPosition]
 
-		const selector = `td[data-entry-day="${targetDay}"][data-habit-id="${targetHabit}"]`
+		const selector = `td[data-entry-day="${nextTargetDay}"][data-habit-id="${nextTargetHabit}"]`
 		const cell = document.querySelector(selector)
 	 
 		if ((cell	instanceof HTMLTableCellElement)) {

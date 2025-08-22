@@ -2,10 +2,16 @@
 // A habit has many entries
 // A habit belongs to one or more Habit Groups
 
-import type { THabit } from "types/THabit";
 import Entry from "./Entry";
-import type { FrontMatterCache, TFile } from "obsidian";
+import { Notice, type FrontMatterCache, type TFile } from "obsidian";
 import DateValue from "./DateValue";
+
+export type THabit = {
+  id: string,
+  name: string,
+  path: string,
+  entries: Entry[]
+}
 
 class Habit implements THabit {
 	id
@@ -36,7 +42,7 @@ class Habit implements THabit {
 
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
 			if (!Entry.validateFrontmatter({ date, status })) {
-				console.warn(`Invalid date format or status for entry in habit ${file.basename}. Date: ${date}. Status: ${status}`);
+				new Notice(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`);
 				return []
 			}
 

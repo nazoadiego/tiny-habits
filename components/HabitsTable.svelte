@@ -5,7 +5,7 @@
 	import HabitsTableBody from "./HabitsTableBody.svelte";
 	import type Entry from "models/Entry";
 	import type Habit from "models/Habit";
-	import type { collapseStatuses } from "types";
+	import type { collapseStatuses } from "types/ui";
 	import Icon from "./icons/Icon.svelte";
 
 	interface $Props {

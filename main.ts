@@ -19,7 +19,7 @@ export default class TinyHabitsPlugin extends Plugin {
 				this.app.workspace.onLayoutReady(async () => {
 					this.registerHabitEvents()
 
-					this.settings = JSON.parse(source) // TODO: Should check if they exists, undefined would break here, maybe get some errors to display to the user
+					this.settings = JSON.parse(source) // TODO: handle error if the json is malformed
 					const folderPath = this.settings.folderPath
 					const displayName = this.settings.displayName
 

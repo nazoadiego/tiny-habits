@@ -4,7 +4,7 @@
 	import DateValue from "models/DateValue";
 	import EntryIcon from "./icons/EntryIcon.svelte";
 	import NoHabitsMessage from "./NoHabitsMessage.svelte";
-	import type { collapseStatuses } from "types";
+	import type { collapseStatuses } from "types/ui";
   import { TableAction } from "UI/TableAction";
 
 	interface $Props {

@@ -6,6 +6,7 @@ import ts from 'typescript-eslint'
 import eslintPluginUnicorn from 'eslint-plugin-unicorn'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import stylistic from '@stylistic/eslint-plugin'
+import jsdoc from 'eslint-plugin-jsdoc'
 
 export default defineConfig(
 
@@ -13,18 +14,24 @@ export default defineConfig(
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,
+	jsdoc.configs['flat/recommended-typescript'],
+	jsdoc.configs['flat/stylistic-typescript'],
 	eslintPluginUnicorn.configs.recommended,
 	{
 		plugins: {
-			'@stylistic': stylistic
+			'@stylistic': stylistic,
+			jsdoc
 		},
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node }
 		},
 		rules: {
-			/* typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
-			   see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors */
+			/*
+			 typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
+			 see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
+			*/
 			'no-undef': 'off',
+
 			'array-bracket-newline': ['error', 'consistent'],
 			'block-spacing': ['error', 'always'],
 			'comma-dangle': ['error', 'never'],
@@ -47,6 +54,14 @@ export default defineConfig(
 			'@stylistic/quotes': ['error', 'single'],
 			'@stylistic/semi': ['error', 'never'],
 			'@stylistic/quote-props': ['error', 'as-needed'],
+
+
+			// JSDoc
+			'jsdoc/require-jsdoc': 'off',
+			'jsdoc/require-param': 'off',
+			'jsdoc/require-returns': 'off',
+			'jsdoc/require-asterisk-prefix': ['error', 'never'],
+			'jsdoc/check-alignment': 'off',
 
 			// Linting
 			'unicorn/filename-case': 'off',

@@ -18,9 +18,8 @@ type TEntryInit = Pick<TEntry, 'habitId' | 'habitPath' | 'date' | 'status' | 'is
 type TEmptyEntryInit = Pick<TEntry, 'habitId' | 'habitPath' | 'date'>
 
 /**
-@class Entry
 @description Represents the register of a habit on a particular day.
-*/
+ */
 class Entry implements TEntry {
 	habitId
 	habitPath
@@ -29,12 +28,13 @@ class Entry implements TEntry {
 	isEmpty
 
 	/**
-		@param habitId - The unique identifier for the habit, it's the name of the file, just the name. Not the complete path.
-		@param habitPath - The file path where the habit is stored, it's the absolute path with the extension file format.
-		@param date - The date when this entry was recorded.
-		@param status - The current status of the entry.
-		@param isEmpty - Whether this is an empty placeholder entry, for when there is no entry yet. Null object pattern.
-	*/
+	  @param init The initialization object
+		@param init.habitId The unique identifier for the habit, it's the name of the file, just the name. Not the complete path.
+		@param init.habitPath The file path where the habit is stored, it's the absolute path with the extension file format.
+		@param init.date The date when this entry was recorded.
+		@param init.status The current status of the entry.
+		@param init.isEmpty Whether this is an empty placeholder entry, for when there is no entry yet. Null object pattern.
+	 */
 	constructor({ habitId, habitPath, date, status, isEmpty = false }: TEntryInit) {
 		this.habitId = habitId
 		this.habitPath = habitPath
@@ -52,7 +52,7 @@ class Entry implements TEntry {
 
 	/**
 		@description The default order in which an entry changes of status.
-	*/
+	 */
 	static readonly STATUS_ORDER: Status[] = [
 		Entry.STATUS.unstarted,
 		Entry.STATUS.completed,
@@ -65,7 +65,7 @@ class Entry implements TEntry {
 		A constructor method for an empty entry placeholder.
 		Think Null Object pattern. Useful for when there is no entry registered yet.
 		Its status is always unstarted.
-	*/
+	 */
 	static empty({ habitId, habitPath, date }: TEmptyEntryInit) {
 		return new Entry({ habitId, habitPath, date, status: Entry.STATUS.unstarted, isEmpty: true })
 	}
@@ -85,7 +85,7 @@ class Entry implements TEntry {
 		It does not mutate the status state.
 	 @returns
 	 	An entry status
-	*/
+	 */
 	nextStatus() {
 		const STATUS_ORDER = Entry.STATUS_ORDER
 		const currentIndex = STATUS_ORDER.indexOf(this.status)

@@ -1,11 +1,11 @@
 <script lang="ts">
-  interface $Props { numberOfDates: number }
-  const { numberOfDates }: $Props = $props();
+	interface $Props { numberOfDates: number }
+	const { numberOfDates }: $Props = $props()
 </script>
 <tr>
-  <td class="no-habits-message" colspan={numberOfDates + 1}>
-    No habits found, add a new note!
-  </td>
+	<td class="no-habits-message" colspan={numberOfDates + 1}>
+		No habits found, add a new note!
+	</td>
 </tr>
 
 <style>

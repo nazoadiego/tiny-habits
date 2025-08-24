@@ -10,10 +10,10 @@ export default defineConfig({
 			provider: 'v8',
 			enabled: true,
 			exclude: [
-				...configDefaults.exclude, 
+				...configDefaults.exclude,
 				'main.js',
 				'version-bump.mjs',
-				"**/*.config.*"
+				'**/*.config.*'
 			]
 		}
 	}

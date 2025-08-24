@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type Habit from "models/Habit";
-	import Entry from "models/Entry";
-	import DateValue from "models/DateValue";
-	import EntryIcon from "./icons/EntryIcon.svelte";
-	import NoHabitsMessage from "./NoHabitsMessage.svelte";
-	import type { collapseStatuses } from "types/ui";
-  import { TableAction } from "UI/TableAction";
+	import type Habit from 'models/Habit'
+	import Entry from 'models/Entry'
+	import DateValue from 'models/DateValue'
+	import EntryIcon from './icons/EntryIcon.svelte'
+	import NoHabitsMessage from './NoHabitsMessage.svelte'
+	import type { collapseStatuses } from 'types/ui'
+	import { KeyboardAction } from 'UI/KeyboardAction'
 
 	interface $Props {
 		habits: Habit[];
@@ -14,9 +14,9 @@
 		collapseStatus: collapseStatuses;
 	}
 
-	const { habits, dates, updateEntry, collapseStatus }: $Props = $props();
+	const { habits, dates, updateEntry, collapseStatus }: $Props = $props()
 
-	const noHabits = $derived(habits.length === 0);
+	const noHabits = $derived(habits.length === 0)
 
 	function getEntryByDate(entries: Entry[], date: DateValue, habitPath: Habit['path'], habitId: Habit['id']): Entry {
 		return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath, habitId })
@@ -55,7 +55,7 @@
 		data-habit-id={entry.habitId}
 		data-entry-day={entry.date.toDayString()}
 		onclick={() => updateEntry(entry.habitPath, entry)}
-		onkeydown={(event) => new TableAction(event).call(habits, dates, () => updateEntry(entry.habitPath, entry))}
+		onkeydown={(event) => new KeyboardAction(event).call(habits, dates, () => updateEntry(entry.habitPath, entry))}
 		class="disable-text-selection entry-cell {entry.status}"
 	>
 		<EntryIcon status={entry.status} />

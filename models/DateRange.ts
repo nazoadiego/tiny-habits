@@ -1,6 +1,6 @@
-import DateValue from "./DateValue";
+import DateValue from './DateValue'
 
-type DateRangeDirection = "forward" | "backwards"
+type DateRangeDirection = 'forward' | 'backwards'
 class DateRange {
 	from: DateValue
 	to: DateValue
@@ -15,40 +15,40 @@ class DateRange {
 	}
 
 	static from(length: number = 7, direction: DateRangeDirection = 'backwards', offset: number = 0): DateRange {
-		const today = new Date();
-		const endDate = new Date();
+		const today = new Date()
+		const endDate = new Date()
 		const numberOfDays = length - 1
 
-		today.setDate(today.getDate() + offset);
-		endDate.setDate(today.getDate() + (direction === 'backwards' ? -(numberOfDays) : numberOfDays));
+		today.setDate(today.getDate() + offset)
+		endDate.setDate(today.getDate() + (direction === 'backwards' ? -(numberOfDays) : numberOfDays))
 
 		return new DateRange(
 			new DateValue(direction === 'backwards' ? endDate : today),
 			new DateValue(direction === 'backwards' ? today : endDate),
 			length,
 			direction
-		);
+		)
 	}
 
 	getDates(): DateValue[] {
 		return Array.from(
 			{ length: this.length },
 			(_element, index) => {
-				const baseDate = this.direction === 'backwards' 
-					? this.to.toDate()    
-					: this.from.toDate();
-                
+				const baseDate = this.direction === 'backwards'
+					? this.to.toDate()
+					: this.from.toDate()
+
 				if (!baseDate) {
-					throw new Error('Invalid date range');
+					throw new Error('Invalid date range')
 				}
 
-				const newDate = new Date(baseDate);
-				const offset = this.direction === 'backwards' ? -index : index;
-				newDate.setDate(newDate.getDate() + offset);
-                
-				return new DateValue(newDate);
+				const newDate = new Date(baseDate)
+				const offset = this.direction === 'backwards' ? -index : index
+				newDate.setDate(newDate.getDate() + offset)
+
+				return new DateValue(newDate)
 			}
-		);
+		)
 	}
 }
 

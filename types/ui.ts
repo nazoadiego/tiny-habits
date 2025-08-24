@@ -1,1 +1,1 @@
-export type collapseStatuses = "init" | "collapsed" | "expanded"
+export type collapseStatuses = 'init' | 'collapsed' | 'expanded'

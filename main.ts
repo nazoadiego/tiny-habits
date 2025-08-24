@@ -1,10 +1,10 @@
-import { Notice, Plugin, TAbstractFile, TFile } from 'obsidian';
-import TinyHabitsView from 'views/TinyHabitsView';
-import HabitRepository from 'repositories/HabitRepository';
-import { habitStore } from 'stores/store';
-import { get } from 'svelte/store';
+import { Notice, Plugin, TAbstractFile, TFile } from 'obsidian'
+import TinyHabitsView from 'views/TinyHabitsView'
+import HabitRepository from 'repositories/HabitRepository'
+import { habitStore } from 'stores/store'
+import { get } from 'svelte/store'
 
-// * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time 
+// * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
 
 export default class TinyHabitsPlugin extends Plugin {
 	private habitRepository: HabitRepository
@@ -21,9 +21,9 @@ export default class TinyHabitsPlugin extends Plugin {
 
 					try {
 						this.settings = JSON.parse(source)
-					} 
+					}
 					catch {
-						new Notice("Something went wrong when parsing the markdown block configuration. Check for closing brackets, commas, or missing double quotes")
+						new Notice('Something went wrong when parsing the markdown block configuration. Check for closing brackets, commas, or missing double quotes')
 					}
 
 					const folderPath = this.settings.folderPath
@@ -32,7 +32,7 @@ export default class TinyHabitsPlugin extends Plugin {
 					await this.loadHabits(folderPath)
 
 					new TinyHabitsView(source, element, context, this.app, this.habitRepository, folderPath, displayName)
-				});
+				})
 			}
 		)
 	}
@@ -40,12 +40,12 @@ export default class TinyHabitsPlugin extends Plugin {
 	async loadHabits(folderPath: string | undefined) {
 		if (folderPath == undefined) return
 
-		const habits = await this.habitRepository.allHabits(folderPath);
+		const habits = await this.habitRepository.allHabits(folderPath)
 
 		habitStore.update(currentStore => ({
 			...currentStore,
 			[folderPath]: habits
-		}));
+		}))
 	}
 
 	async refreshHabits(folderPath: string | undefined) {
@@ -56,30 +56,30 @@ export default class TinyHabitsPlugin extends Plugin {
 
 		if (!isHabitFolder) return
 
-		const habits = await this.habitRepository.allHabits(folderPath);
+		const habits = await this.habitRepository.allHabits(folderPath)
 
 		habitStore.update(currentStore => ({
 			...currentStore,
 			[folderPath]: habits
-		}));
+		}))
 	}
 
 	registerHabitEvents() {
 		this.registerEvent(
-			this.app.vault.on("create", (file) => this.refreshHabits(this.getFolderPath(file)))
-		);
+			this.app.vault.on('create', (file) => this.refreshHabits(this.getFolderPath(file)))
+		)
 		this.registerEvent(
-			this.app.vault.on("rename", (file) => this.refreshHabits(this.getFolderPath(file)))
-		);
+			this.app.vault.on('rename', (file) => this.refreshHabits(this.getFolderPath(file)))
+		)
 		this.registerEvent(
-			this.app.vault.on("delete", (file) => this.refreshHabits(this.getFolderPath(file)))
-		);
+			this.app.vault.on('delete', (file) => this.refreshHabits(this.getFolderPath(file)))
+		)
 		this.registerEvent(
-			this.app.vault.on("modify", (file) => this.refreshHabits(this.getFolderPath(file)))
-		);
+			this.app.vault.on('modify', (file) => this.refreshHabits(this.getFolderPath(file)))
+		)
 		this.registerEvent(
 			this.app.metadataCache.on('changed', (file) => this.refreshHabits(this.getFolderPath(file)))
-		);
+		)
 	}
 
 	getFolderPath(file: TAbstractFile) {

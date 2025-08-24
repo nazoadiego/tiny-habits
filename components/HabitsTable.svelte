@@ -1,54 +1,54 @@
 <script lang="ts">
-	import DateRange from "models/DateRange";
-	import { habitStore } from "stores/store";
-	import HabitsTableHead from "./HabitsTableHead.svelte";
-	import HabitsTableBody from "./HabitsTableBody.svelte";
-	import type Entry from "models/Entry";
-	import type Habit from "models/Habit";
-	import type { collapseStatuses } from "types/ui";
-	import Icon from "./icons/Icon.svelte";
+	import DateRange from 'models/DateRange'
+	import { habitStore } from 'stores/store'
+	import HabitsTableHead from './HabitsTableHead.svelte'
+	import HabitsTableBody from './HabitsTableBody.svelte'
+	import type Entry from 'models/Entry'
+	import type Habit from 'models/Habit'
+	import type { collapseStatuses } from 'types/ui'
+	import Icon from './icons/Icon.svelte'
 
 	interface $Props {
-		updateEntry: (habitPath: Habit["path"], entry: Entry) => void;
+		updateEntry: (habitPath: Habit['path'], entry: Entry) => void;
 		folderPath: string;
 		displayName: string | undefined;
 	}
 
-	const { updateEntry, folderPath, displayName }: $Props = $props();
+	const { updateEntry, folderPath, displayName }: $Props = $props()
 
-	const habits = $derived($habitStore[folderPath]);
+	const habits = $derived($habitStore[folderPath])
 
-	const HEADER_NUMBER_OF_DAYS = 7;
-	let currentOffset = $state(0);
+	const HEADER_NUMBER_OF_DAYS = 7
+	let currentOffset = $state(0)
 
 	const dates = $derived(
-		DateRange.from(HEADER_NUMBER_OF_DAYS, "backwards", currentOffset)
+		DateRange.from(HEADER_NUMBER_OF_DAYS, 'backwards', currentOffset)
 			.getDates()
 			.toReversed()
-	);
+	)
 
 	function moveBack() {
-		currentOffset -= 1;
+		currentOffset -= 1
 	}
 
 	function moveForward() {
-		currentOffset += 1;
+		currentOffset += 1
 	}
 
 	function moveToToday() {
-		currentOffset = 0;
+		currentOffset = 0
 	}
 
-	let collapseStatus: collapseStatuses = $state("init")
+	let collapseStatus: collapseStatuses = $state('init')
 
 	const toggleCollapse = () => {
-		if(collapseStatus === "init") {
-			collapseStatus = "collapsed"
+		if(collapseStatus === 'init') {
+			collapseStatus = 'collapsed'
 			return
 		}
 
-		collapseStatus = collapseStatus === "collapsed" ? "expanded" : "collapsed"
-	};
+		collapseStatus = collapseStatus === 'collapsed' ? 'expanded' : 'collapsed'
+	}
 </script>
 
 <table class="purple-theme">

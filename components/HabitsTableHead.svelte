@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type DateValue from "models/DateValue";
+	import type DateValue from 'models/DateValue'
 
 	interface $Props {
 		title: string;
@@ -7,20 +7,20 @@
 		toggleCollapse: () => void;
 	}
 
-	const { title, dates, toggleCollapse }: $Props = $props();
+	const { title, dates, toggleCollapse }: $Props = $props()
 </script>
 
 <thead>
 	<tr>
 		<th onclick={toggleCollapse} class="group-title">
-			{title || "Missing Habit Group Header"}
+			{title || 'Missing Habit Group Header'}
 		</th>
 		{#each dates as date (date.toISOString())}
-			<th 
+			<th
 				class="date-cell"
 				aria-label={date.toFullDateWithWeekday()}
 			>
-			{date.toDayString() || "Missing Date"}
+				{date.toDayString() || 'Missing Date'}
 			</th>
 		{/each}
 	</tr>

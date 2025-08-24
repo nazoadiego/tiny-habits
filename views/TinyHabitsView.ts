@@ -1,9 +1,9 @@
 import { Vault, type App, type MarkdownPostProcessorContext } from 'obsidian'
-import { mount } from "svelte";
-import HabitsTable from 'components/HabitsTable.svelte';
-import HabitRepository from 'repositories/HabitRepository';
-import type Entry from 'models/Entry';
-import type Habit from 'models/Habit';
+import { mount } from 'svelte'
+import HabitsTable from 'components/HabitsTable.svelte'
+import HabitRepository from 'repositories/HabitRepository'
+import type Entry from 'models/Entry'
+import type Habit from 'models/Habit'
 
 export default class TinyHabitsView {
 	markdownBlockElement: HTMLElement
@@ -36,10 +36,10 @@ export default class TinyHabitsView {
 				folderPath: this.folderPath,
 				displayName: this.displayName
 			}
-		});
+		})
 	}
 
 	async renderView() {
-		await this.mountHabits();
+		await this.mountHabits()
 	}
 }

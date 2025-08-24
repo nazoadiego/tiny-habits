@@ -1,8 +1,12 @@
-import { type FileManager, type MetadataCache, Notice, TFile, type Vault } from "obsidian";
-import type { THabitRepository } from '../types/THabitRepository';
-import Habit from "models/Habit";
-import Entry from "models/Entry";
-import { HabitBuilder }  from "builders/HabitBuilder";
+import { type FileManager, type MetadataCache, Notice, TFile, TFolder, type Vault } from 'obsidian'
+import Habit from 'models/Habit'
+import Entry from 'models/Entry'
+
+type THabitRepository = {
+	allHabits(path: string): Promise<Habit[]>
+	buildHabit(path: TFile): Promise<Habit>
+	updateEntry(habitPath: Habit['path'], entry: Entry): void
+}
 
 class HabitRepository implements THabitRepository {
 	private readonly metadataCache
@@ -16,30 +20,26 @@ class HabitRepository implements THabitRepository {
 	}
 
 	async allHabits(folderPath: string) {
-		const files = await this.allHabitFiles(folderPath)
-
-		const habits = await Array.fromAsync(files, (file) => this.buildHabits(file))
-
-		return habits
-	}
-
-	async allHabitFiles(folderPath: string) {
 		const folder = this.vault.getFolderByPath(folderPath)
 
-		if (folder == undefined) return []
+		if (!(folder instanceof TFolder)) {
+			new Notice(`Couldn't find the folder in ${folderPath}`)
+			return []
+		}
 
-		const files = folder.children.filter((child): child is TFile => child instanceof TFile)
-	
-		return files.sort((firstFile, secondFile) => firstFile.name.localeCompare(secondFile.name));
+		const files = folder.children
+			.filter((child): child is TFile => child instanceof TFile)
+			.sort((firstFile, secondFile) => firstFile.name.localeCompare(secondFile.name))
+
+		return Array.fromAsync(files, (file) => this.buildHabit(file))
 	}
 
-	async buildHabits(file: TFile) {
+	async buildHabit(file: TFile) {
 		try {
-			const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter;
-			return HabitBuilder.fromFile(file, frontmatter);
+			return Habit.fromFile(file, this.metadataCache.getFileCache(file)?.frontmatter)
 		}
 		catch (error) {
-			console.warn(`Failed to build habits for ${file.basename}:`, error);
+			console.warn(`Failed to build habits for ${file.basename}:`, error)
 			return Habit.empty(file)
 		}
 	}
@@ -47,14 +47,14 @@ class HabitRepository implements THabitRepository {
 	updateEntry(habitPath: Habit['path'], entry: Entry) {
 		const file = this.vault.getFileByPath(habitPath)
 
-		if (!file || !(file instanceof TFile)) {
-			new Notice("Couldn't update the habit entry!")
+		if (!(file instanceof TFile)) {
+			new Notice('Couldn\'t update the habit entry!')
 			return
 		}
 
 		this.fileManager.processFrontMatter(file, (frontmatter) => {
 			frontmatter[entry.frontMatterDate()] = entry.nextStatus()
-		});
+		})
 	}
 }
 

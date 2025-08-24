@@ -1,2 +1,2 @@
-// Relations
-// A Streak has many entries
+/* Relations
+   A Streak has many entries */

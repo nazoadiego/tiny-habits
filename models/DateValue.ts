@@ -1,95 +1,101 @@
-class DateValue {
-	private value: Date | undefined;
+
+type TDateValue = {
 	isValid: boolean;
+	toFullDateWithWeekday(): string;
+	toDayString(): string;
+	toDate(): Date | undefined;
+	toYearMonthDayString(): string;
+	toISOString(): string;
+	isSameDay(other: DateValue): boolean;
+	isBefore(other: DateValue): boolean;
+	isAfter(other: DateValue): boolean;
+	equals(other: DateValue): boolean;
+}
+
+// Type assertion at the end of the file to ensure static implementation
+class DateValue implements TDateValue {
+	private value
+	readonly isValid
 
 	constructor(input: Date | string) {
-		if (!DateValue.validate(input)) {
-			return DateValue.empty();
+		this.isValid = DateValue.validate(input)
+		this.value = this.isValid ? new Date(input) : undefined
+	}
+
+	static validate(input: Date | string) {
+		if (typeof input === 'string') {
+			const date = new Date(input)
+			return !Number.isNaN(date.getTime())
 		}
-		this.value = new Date(input);
-		this.isValid = true;
+		return input instanceof Date && !Number.isNaN(input.getTime())
 	}
 
-	// TODO: Verify that is either a isoDate string or a string in "YYYY-MM-DD" format, otherwise new Date will give invalid date
-	// TODO: I already know the object would be invalid yeah, but wouldn't hurt to have some better error feedback: expect x format got y
-	static validate(input: Date | string): boolean {
-		if (typeof input === "string") {
-			input = new Date(input);
-		}
-		return input instanceof Date && !Number.isNaN(input.getTime());
-	}
-
-	static from(input: Date | string): DateValue {
-		return new DateValue(input);
-	}
-
-	static empty(): DateValue {
-		const valueObject = new DateValue(new Date());
-		valueObject.value = undefined;
-		valueObject.isValid = false;
-		return valueObject;
-	}
-
-	toFullDateWithWeekday(): string {
-		if (!this.value) return "-";
-		const formatter = new Intl.DateTimeFormat("en-US", { dateStyle: "full" });
-		return formatter.format(this.value);
+	toFullDateWithWeekday() {
+		if (!this.value) return '-'
+		const formatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' })
+		return formatter.format(this.value)
 	}
 
 	// "1", "30"
-	toDayString(): string {
-		if(!this.value) return "-"
-    
+	toDayString() {
+		if(!this.value) return '-'
+
 		return this.value.getDate().toString()
 	}
 
-	toDate(): Date | undefined {
+	toDate() {
 		if (this.value === undefined) return undefined
 
-		return new Date(this.value);
+		return new Date(this.value)
 	}
 
 	/**
-	 @description
+	 @return
 		A string in "YYYY-MM-DD" format
 	*/
 	toYearMonthDayString() {
-		if (!this.value) return "-";
+		if (!this.value) return '-'
 
-		const year = this.value.getFullYear();
-		const month = String(this.value.getMonth() + 1).padStart(2, '0'); // JavaScript months are zero-based index lol, January is 0
-		const day = String(this.value.getDate()).padStart(2, '0');
+		const year = this.value.getFullYear()
+		const month = String(this.value.getMonth() + 1).padStart(2, '0') // JavaScript months are zero-based index lol, January is 0
+		const day = String(this.value.getDate()).padStart(2, '0')
 
-		return `${year}-${month}-${day}`;
+		return `${year}-${month}-${day}`
 	}
 
-	toISOString(): string {
-		return this.value?.toISOString() || "-";
+	/**
+	 @return
+		A string in ISO format
+	 @example
+		2011-10-05T14:48:00.000Z
+	*/
+	toISOString() {
+		return this.value?.toISOString() || '-'
 	}
 
-	isSameDay(other: DateValue): boolean {
-		if (!this.value || !other.value) return false;
+	isSameDay(other: DateValue) {
+		if (!this.value || !other.value) return false
 
 		return (
 			this.value.getFullYear() === other.value.getFullYear() &&
       this.value.getMonth() === other.value.getMonth() &&
       this.value.getDate() === other.value.getDate()
-		);
+		)
 	}
 
-	isBefore(other: DateValue): boolean {
-		if (!this.value || !other.value) return false;
-		return this.value < other.value;
+	isBefore(other: DateValue) {
+		if (!this.value || !other.value) return false
+		return this.value < other.value
 	}
 
-	isAfter(other: DateValue): boolean {
-		if (!this.value || !other.value) return false;
-		return this.value > other.value;
+	isAfter(other: DateValue) {
+		if (!this.value || !other.value) return false
+		return this.value > other.value
 	}
 
-	equals(other: DateValue): boolean {
-		if (!this.value || !other.value) return false;
-		return this.value.getTime() === other.value.getTime();
+	equals(other: DateValue) {
+		if (!this.value || !other.value) return false
+		return this.value.getTime() === other.value.getTime()
 	}
 }
 

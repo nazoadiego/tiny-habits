@@ -67,13 +67,13 @@
 </table>
 <div class="date-controls-container">
 	<div class="habits-info-section"></div>
-	<button class="date-control" onclick={moveToToday}>
+	<button class="date-control" onclick={moveToToday} aria-label="Return to today">
 		<Icon icon="lucide-timer-reset" />
 	</button>
-	<button class="date-control" onclick={moveBack}>
+	<button class="date-control" onclick={moveBack} aria-label="Previous day">
 		<Icon icon="lucide-chevron-left" />
 	</button>
-	<button class="date-control" onclick={moveForward}>
+	<button class="date-control" onclick={moveForward} aria-label="Next day">
 		<Icon icon="lucide-chevron-right" />
 	</button>
 </div>

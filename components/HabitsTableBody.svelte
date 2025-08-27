@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type Habit from 'models/Habit'
-	import Entry from 'models/Entry'
+	import Entry, { type Status } from 'models/Entry'
 	import DateValue from 'models/DateValue'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
@@ -10,7 +10,7 @@
 	interface $Props {
 		habits: Habit[];
 		dates: DateValue[];
-		updateEntry: (habitPath: string, entry: Entry) => void;
+		updateEntry: (entry: Entry, status: Status) => void;
 		collapseStatus: collapseStatuses;
 	}
 
@@ -54,8 +54,8 @@
 		aria-label="Mark habit as {entry.nextStatus()}"
 		data-habit-id={entry.habitId}
 		data-entry-day={entry.date.toDayString()}
-		onclick={() => updateEntry(entry.habitPath, entry)}
-		onkeydown={(event) => new KeyboardAction(event).call(habits, dates, () => updateEntry(entry.habitPath, entry))}
+		onclick={() => updateEntry(entry, entry.nextStatus())}
+		onkeydown={(event) => new KeyboardAction(event).call(habits, dates, (status) => updateEntry(entry, status || entry.nextStatus()))}
 		class="disable-text-selection entry-cell {entry.status}"
 	>
 		<EntryIcon status={entry.status} />

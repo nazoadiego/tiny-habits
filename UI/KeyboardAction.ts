@@ -2,6 +2,8 @@ import { Cursor } from './Cursor'
 import type DateValue from 'models/DateValue'
 import type Habit from 'models/Habit'
 import type { Direction } from './Direction'
+import type { Status } from 'models/Entry'
+import Entry from 'models/Entry'
 
 type EntrySelector = `td[data-entry-day="${string}"][data-habit-id="${string}"]`
 
@@ -10,6 +12,13 @@ const NAVIGATION_MAP: Record<string, Direction> = {
 	ArrowDown: 'down', j: 'down',
 	ArrowLeft: 'left', h: 'left',
 	ArrowRight: 'right', l: 'right'
+}
+
+const STATUS_CHANGE_MAP: Record<string, Status> = {
+	0: Entry.STATUS.unstarted,
+	1: Entry.STATUS.completed,
+	2: Entry.STATUS.failed,
+	3: Entry.STATUS.skip
 }
 
 export class KeyboardAction {
@@ -23,10 +32,15 @@ export class KeyboardAction {
 		this.key = event.key
 	}
 
-	call(habits: Habit[], dates: DateValue[], updateEntry: () => void) {
+	call(habits: Habit[], dates: DateValue[], updateEntry: (status?: Status) => void) {
 		if (!this.isValid()) return
 
 		this.event.preventDefault()
+
+		if (this.isChangeEntryKey()) {
+			updateEntry(STATUS_CHANGE_MAP[this.key])
+			return
+		}
 
 		if (this.isToggleKey()) {
 			updateEntry()
@@ -40,11 +54,15 @@ export class KeyboardAction {
 	}
 
 	private isValid() {
-		return this.isToggleKey() || this.isNavigationKey()
+		return this.isToggleKey() || this.isNavigationKey() || this.isChangeEntryKey()
 	}
 
 	private isToggleKey() {
 		return this.key === 'Enter' || this.key === ' '
+	}
+
+	private isChangeEntryKey() {
+		return this.key === '0' || this.key === '1' || this.key === '2' || this.key === '3'
 	}
 
 	private isNavigationKey() {

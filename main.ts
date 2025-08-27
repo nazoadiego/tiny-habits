@@ -3,11 +3,10 @@ import HabitRepository from 'repositories/HabitRepository'
 import { habitStore } from 'stores/store'
 import { get } from 'svelte/store'
 import HabitsTable from 'components/HabitsTable.svelte'
-import type Habit from 'models/Habit'
-import type Entry from 'models/Entry'
 import { mount } from 'svelte'
 import SourceSettings from 'models/SourceSettings'
 import SomethingWentWrongMessage from 'components/SomethingWentWrongMessage.svelte'
+import type { Status } from 'models/Entry'
 
 // * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
 
@@ -30,7 +29,7 @@ export default class TinyHabitsPlugin extends Plugin {
 				mount(HabitsTable, {
 					target: element,
 					props: {
-						updateEntry: (habitPath: Habit['path'], entry: Entry) => this.habitRepository.updateEntry(habitPath, entry),
+						updateEntry: (entry, status: Status) => this.habitRepository.updateEntry(entry, status),
 						settings
 					}
 				})

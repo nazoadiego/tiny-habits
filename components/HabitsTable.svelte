@@ -7,16 +7,16 @@
 	import type Habit from 'models/Habit'
 	import type { collapseStatuses } from 'types/ui'
 	import Icon from './icons/Icon.svelte'
+	import type SourceSettings from 'models/SourceSettings'
 
 	interface $Props {
+		settings: SourceSettings;
 		updateEntry: (habitPath: Habit['path'], entry: Entry) => void;
-		folderPath: string;
-		displayName: string | undefined;
 	}
 
-	const { updateEntry, folderPath, displayName }: $Props = $props()
+	const { updateEntry, settings }: $Props = $props()
 
-	const habits = $derived($habitStore[folderPath])
+	const habits = $derived($habitStore[settings.folderPath])
 
 	const HEADER_NUMBER_OF_DAYS = 7
 	let currentOffset = $state(0)
@@ -53,7 +53,7 @@
 
 <table class="purple-theme">
 	<HabitsTableHead
-		title={displayName || folderPath}
+		title={settings.displayName || settings.folderPath}
 		{dates}
 		{toggleCollapse}
 	/>

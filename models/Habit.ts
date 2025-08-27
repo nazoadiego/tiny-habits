@@ -8,7 +8,7 @@ import Entry from './Entry'
 import { Notice, type FrontMatterCache, type TFile } from 'obsidian'
 import DateValue from './DateValue'
 
-export type THabit = {
+type THabit = {
 	id: string,
 	name: string,
 	path: string,

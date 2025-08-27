@@ -50,7 +50,7 @@ class DateValue implements TDateValue {
 	}
 
 	/**
-	 @return
+	 @returns
 		A string in "YYYY-MM-DD" format
 	*/
 	toYearMonthDayString() {
@@ -64,7 +64,7 @@ class DateValue implements TDateValue {
 	}
 
 	/**
-	 @return
+	 @returns
 		A string in ISO format
 	 @example
 		2011-10-05T14:48:00.000Z

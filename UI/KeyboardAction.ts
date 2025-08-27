@@ -5,7 +5,7 @@ import type { Direction } from './Direction'
 
 type EntrySelector = `td[data-entry-day="${string}"][data-habit-id="${string}"]`
 
-export const NAVIGATION_MAP: Record<string, Direction> = {
+const NAVIGATION_MAP: Record<string, Direction> = {
 	ArrowUp: 'up', k: 'up',
 	ArrowDown: 'down', j: 'down',
 	ArrowLeft: 'left', h: 'left',

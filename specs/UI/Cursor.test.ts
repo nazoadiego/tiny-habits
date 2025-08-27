@@ -73,5 +73,4 @@ describe(('When changing the cursor'), () => {
 
 		expect(cursor.horizontalPosition).toBe(0)
 	})
-
 })

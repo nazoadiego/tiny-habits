@@ -3,15 +3,15 @@
 	import { habitStore } from 'stores/store'
 	import HabitsTableHead from './HabitsTableHead.svelte'
 	import HabitsTableBody from './HabitsTableBody.svelte'
-	import type Entry from 'models/Entry'
-	import type Habit from 'models/Habit'
 	import type { collapseStatuses } from 'types/ui'
 	import Icon from './icons/Icon.svelte'
 	import type SourceSettings from 'models/SourceSettings'
+	import type { Status } from 'models/Entry'
+	import type Entry from 'models/Entry'
 
 	interface $Props {
 		settings: SourceSettings;
-		updateEntry: (habitPath: Habit['path'], entry: Entry) => void;
+		updateEntry: (entry: Entry, status: Status) => void;
 	}
 
 	const { updateEntry, settings }: $Props = $props()

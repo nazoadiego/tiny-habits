@@ -1,11 +1,11 @@
 import { type FileManager, type MetadataCache, Notice, TFile, TFolder, type Vault } from 'obsidian'
 import Habit from 'models/Habit'
-import Entry from 'models/Entry'
+import Entry, { type Status } from 'models/Entry'
 
 type THabitRepository = {
 	allHabits(path: string): Promise<Habit[]>
 	buildHabit(path: TFile): Promise<Habit>
-	updateEntry(habitPath: Habit['path'], entry: Entry): void
+	updateEntry(entry: Entry, status: Status): void
 }
 
 class HabitRepository implements THabitRepository {
@@ -44,8 +44,8 @@ class HabitRepository implements THabitRepository {
 		}
 	}
 
-	updateEntry(habitPath: Habit['path'], entry: Entry) {
-		const file = this.vault.getFileByPath(habitPath)
+	updateEntry(entry: Entry, status: Status) {
+		const file = this.vault.getFileByPath(entry.habitPath)
 
 		if (!(file instanceof TFile)) {
 			new Notice('Couldn\'t update the habit entry!')
@@ -53,7 +53,7 @@ class HabitRepository implements THabitRepository {
 		}
 
 		this.fileManager.processFrontMatter(file, (frontmatter) => {
-			frontmatter[entry.frontMatterDate()] = entry.nextStatus()
+			frontmatter[entry.frontMatterDate()] = status
 		})
 	}
 }

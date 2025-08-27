@@ -102,12 +102,12 @@ class Entry implements TEntry {
 		return this.status === Entry.STATUS.completed
 	}
 
-	isSkipped() {
+	isSkip() {
 		return this.status === Entry.STATUS.skip
 	}
 
 	isPending() {
-		if (this.isComplete() || this.isSkipped()) return false
+		if (this.isComplete() || this.isSkip()) return false
 
 		return true
 	}

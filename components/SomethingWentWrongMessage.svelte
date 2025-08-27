@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Notice } from 'obsidian'
-
-	const exampleCode = '{\n"folderPath": "habits",\n"displayName": "My Habits"\n}'
+	const exampleCode = '{\n\t"folderPath": "habits",\n\t"displayName": "My Habits"\n}'
 
 	async function copyToClipboard() {
-		new Notice('Copied to clipboard!')
+		clicked = true
 		await navigator.clipboard.writeText(exampleCode)
 	}
+
+	let clicked = $state(false)
 </script>
 
 <div class="error-container">
@@ -14,8 +14,8 @@
 
 	<div class="code-block">
 		<pre>{exampleCode}</pre>
-		<button on:click={copyToClipboard} class="copy-button">
-			Copy
+		<button onclick={copyToClipboard} class="copy-button">
+			{clicked ?  'Copied!' : 'Copy'}
 		</button>
 	</div>
 </div>
@@ -44,6 +44,7 @@
     }
 
     .copy-button {
+        cursor: pointer;
         background-color: rgba(var(--mono-rgb-0), 0.4);
         position: absolute;
         top: 0.5em;

@@ -23,6 +23,7 @@ class SourceSettings implements TSourceSettings {
 			return new SourceSettings(settings.folderPath, settings.displayName)
 		}
 		catch {
+			new Notice('Failed to parse the settings')
 			return undefined
 		}
 	}
@@ -40,6 +41,17 @@ class SourceSettings implements TSourceSettings {
 		const allowedKeys = new Set(['folderPath', 'displayName'])
 		const objectKeys = Object.keys(object)
 		const hasUnknownKeys = objectKeys.some(key => !allowedKeys.has(key))
+
+		const { folderPath } = object
+
+		if (typeof folderPath !== 'string') {
+			new Notice('folderPath must be a string')
+			return false
+		}
+
+		if (folderPath.includes('.') || folderPath.includes('..')) {
+			new Notice('Relative paths are not supported. Please write the full path to your folder')
+		}
 
 		if (hasUnknownKeys) {
 			new Notice('Unknown fields in configuration')

@@ -17,30 +17,25 @@ export default class TinyHabitsPlugin extends Plugin {
 	async onload() {
 		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager, this.app.metadataCache)
 
-		this.registerMarkdownCodeBlockProcessor(
-			'habits',
-			(source, element) => {
-				this.app.workspace.onLayoutReady(async () => {
-					this.registerHabitEvents()
+		this.registerMarkdownCodeBlockProcessor('habits', (source, element) => {
+			this.app.workspace.onLayoutReady(async () => {
+				this.registerHabitEvents()
 
-					const settings = SourceSettings.fromSource(source)
+				const settings = SourceSettings.fromSource(source)
 
-					if (settings == undefined) {
-						return mount(SomethingWentWrongMessage, { target: element })
+				if (settings == undefined) return mount(SomethingWentWrongMessage, { target: element })
+
+				await this.loadHabitStore(settings.folderPath)
+
+				mount(HabitsTable, {
+					target: element,
+					props: {
+						updateEntry: (habitPath: Habit['path'], entry: Entry) => this.habitRepository.updateEntry(habitPath, entry),
+						settings
 					}
-
-					await this.loadHabitStore(settings.folderPath)
-
-					mount(HabitsTable, {
-						target: element,
-						props: {
-							updateEntry: (habitPath: Habit['path'], entry: Entry) => this.habitRepository.updateEntry(habitPath, entry),
-							settings
-						}
-					})
 				})
-			}
-		)
+			})
+		})
 	}
 
 	async loadHabitStore(folderPath: string | undefined) {

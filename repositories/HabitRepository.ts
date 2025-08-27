@@ -23,7 +23,7 @@ class HabitRepository implements THabitRepository {
 		const folder = this.vault.getFolderByPath(folderPath)
 
 		if (!(folder instanceof TFolder)) {
-			new Notice(`Couldn't find the folder in ${folderPath}`)
+			new Notice(`Couldn't find the folder "${folderPath}"`)
 			return []
 		}
 

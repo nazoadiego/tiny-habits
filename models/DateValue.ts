@@ -43,6 +43,12 @@ class DateValue implements TDateValue {
 		return this.value.getDate().toString()
 	}
 
+	toDayOfTheWeek() {
+		if(!this.value) return '-'
+
+		return this.value.toLocaleDateString('en-US', { weekday: 'short' })
+	}
+
 	toDate() {
 		if (this.value === undefined) return undefined
 

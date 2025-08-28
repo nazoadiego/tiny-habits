@@ -20,7 +20,9 @@
 				class="date-cell"
 				aria-label={date.toFullDateWithWeekday()}
 			>
-				{date.toDayString() || 'Missing Date'}
+				{date.toDayOfTheWeek()}
+
+				<small>{date.toDayString()}</small>
 			</th>
 		{/each}
 	</tr>
@@ -34,16 +36,24 @@
 		}
 	}
 
+	th.date-cell {
+		width:18px;
+		height:18px;
+	}
+
 	th {
+		padding: 12px;
 		font-size: var(--tiny-table-font-size);
-		width: 100%;
-		padding: 18px 12px;
 		border-radius: var(--radius-m);
 		background-color: rgba(var(--mono-rgb-0), 0.4);
 		text-align: center;
 	}
 
 	.group-title {
+		max-width: 18px;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		align-content: center;
 		cursor: pointer;
 	}
 </style>

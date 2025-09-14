@@ -72,10 +72,10 @@ class Entry implements TEntry {
 
 	private static isValidStatus = (string: string): string is Status => string in Entry.STATUS
 
-	static validateFrontmatter({ date, status }: { status: unknown, date: string}): boolean {
+	static validateFrontmatter({ YMDDate, status }: { status: unknown, YMDDate: string}): boolean {
 		if (typeof status !== 'string') return false
 
-		return this.isValidStatus(status) && DateValue.validate(date)
+		return this.isValidStatus(status) && new DateValue(YMDDate).isValid
 	}
 
 	/**

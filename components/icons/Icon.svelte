@@ -20,4 +20,4 @@
 	}
 </script>
 
-<div use:iconAction={icon}></div>
+<div use:iconAction={icon} class="icon-container"></div>

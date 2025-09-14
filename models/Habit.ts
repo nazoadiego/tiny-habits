@@ -43,7 +43,7 @@ class Habit implements THabit {
 		const { id: habitId, name, path: habitPath } = this.parseFile(file)
 
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
-			if (!Entry.validateFrontmatter({ date, status })) {
+			if (!Entry.validateFrontmatter({ YMDDate: date, status })) {
 				new Notice(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
 				return []
 			}

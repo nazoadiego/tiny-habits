@@ -22,6 +22,6 @@
 
 <style>
 	.icon-container {
-		color: white
+		color: var(--text-on-accent)
 	}
 </style>

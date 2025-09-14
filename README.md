@@ -129,7 +129,7 @@ Hope this extension makes your life a little easier.
 
 ## Credits
 
-Special thanks to zincplusplus https://github.com/zincplusplus/habit-tracker for the original idea, and an extension that I found so useful it made me wanna build one just like that.
+Special thanks to zincplusplus https://github.com/zincplusplus/habit-tracker for the original idea, and an extension that I found so useful it motivated me to build my own.
 
 ## API Documentation
 

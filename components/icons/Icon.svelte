@@ -20,4 +20,10 @@
 	}
 </script>
 
-<div use:iconAction={icon}></div>
+<div use:iconAction={icon} class="icon-container"></div>
+
+<style>
+	.icon-container {
+		color: var(--text-on-accent)
+	}
+</style>

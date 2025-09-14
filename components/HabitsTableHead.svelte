@@ -20,8 +20,9 @@
 				class="date-cell"
 				aria-label={date.toFullDateWithWeekday()}
 			>
-				{date.toDayOfTheWeek()}
-
+				<div>
+					{date.toDayOfTheWeek()}
+				</div>
 				<small>{date.toDayString()}</small>
 			</th>
 		{/each}

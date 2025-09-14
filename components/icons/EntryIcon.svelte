@@ -16,4 +16,12 @@
 	const icon = $derived(iconMap[status])
 </script>
 
-<Icon {icon} />
+<div class="icon-container">
+	<Icon {icon} />
+</div>
+
+<style>
+	.icon-container {
+		color: white
+	}
+</style>

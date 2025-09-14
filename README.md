@@ -67,11 +67,11 @@ Preview:
 - Create a note in that folder to see the new habit in your habits table.
 - Voila!
 
-```habits
-{
-	"folderPath": "Areas/Habits/Tiny - Morning"
-}
-```
+      ```habits
+      {
+        "folderPath": "Areas/Habits/Tiny - Morning"
+      }
+      ```
 
 You can use as many markdown blocks as you like in the same file. And if they get too big, you can collapse them by clicking the table header.
 
@@ -81,12 +81,12 @@ You can navigate both with arrows and the hjkl keys. To mark a habit entry, you 
 
 ## Options
 
-```habits
-{
-	"folderPath": "Areas/Habits/Tiny - Morning", // the absolute path to the folder containing your habits
-	"displayName": "Morning" // (optional) To customize the name that appears in the table
-}
-```
+    ```habits
+    {
+      "folderPath": "Areas/Habits/Tiny - Morning", // the absolute path to the folder containing your habits
+      "displayName": "Morning" // (optional) To customize the name that appears in the table
+    }
+    ```
 
 ## How to run it locally
 

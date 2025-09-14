@@ -19,7 +19,6 @@
 	const noHabits = $derived(habits.length === 0)
 
 	function getEntryByDate(entries: Entry[], date: DateValue, habitPath: Habit['path'], habitId: Habit['id']): Entry {
-		console.log(entries, date)
 		// ? Can we find a way to only find the relevant entries? from the 7 days displayed. Right now we iterate over all the entries.
 		return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath, habitId })
 	}

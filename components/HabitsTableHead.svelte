@@ -15,7 +15,7 @@
 		<th onclick={toggleCollapse} class="group-title">
 			{title || 'Missing Habit Group Header'}
 		</th>
-		{#each dates as date (date.toISOString())}
+		{#each dates as date (date.toDayString())}
 			<th
 				class="date-cell"
 				aria-label={date.toFullDateWithWeekday()}

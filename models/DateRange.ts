@@ -23,8 +23,8 @@ class DateRange {
 		endDate.setDate(today.getDate() + (direction === 'backwards' ? -(numberOfDays) : numberOfDays))
 
 		return new DateRange(
-			new DateValue(direction === 'backwards' ? endDate : today),
-			new DateValue(direction === 'backwards' ? today : endDate),
+			new DateValue(direction === 'backwards' ? endDate.toISOString() : today.toISOString()),
+			new DateValue(direction === 'backwards' ? today.toISOString() : endDate.toISOString()),
 			length,
 			direction
 		)
@@ -46,7 +46,7 @@ class DateRange {
 				const offset = this.direction === 'backwards' ? -index : index
 				newDate.setDate(newDate.getDate() + offset)
 
-				return new DateValue(newDate)
+				return new DateValue(newDate.toISOString())
 			}
 		)
 	}

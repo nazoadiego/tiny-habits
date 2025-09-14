@@ -12,22 +12,34 @@ type TDateValue = {
 	equals(other: DateValue): boolean;
 }
 
-// Type assertion at the end of the file to ensure static implementation
 class DateValue implements TDateValue {
 	private value
 	readonly isValid
 
-	constructor(input: Date | string) {
-		this.isValid = DateValue.validate(input)
-		this.value = this.isValid ? new Date(input) : undefined
+	constructor(input: string) {
+		const isYMD = input.length === 10 && input[4] === '-' && input[7] === '-'
+		const isUTC = input.includes('T') && input.endsWith('Z')
+
+		if(isUTC) {
+			const date = new Date(input)
+			this.isValid = DateValue.validate(date)
+			this.value = this.isValid ? new Date(date) : undefined
+			return
+		}
+		if(isYMD) {
+			const [year, month, day] = input.split('-').map(Number)
+			const monthIndex = month - 1
+			const date = new Date(year, monthIndex, day) // * We do it like this, because passing the YYYY-MM-DD string here will give you the wrong day, example: 2025-09-01
+			this.isValid = DateValue.validate(date)
+			this.value = this.isValid ? new Date(date) : undefined
+			return
+		}
+
+		this.isValid = false
 	}
 
-	static validate(input: Date | string) {
-		if (typeof input === 'string') {
-			const date = new Date(input)
-			return !Number.isNaN(date.getTime())
-		}
-		return input instanceof Date && !Number.isNaN(input.getTime())
+	static validate(date: Date) {
+		return date instanceof Date && !Number.isNaN(date.getTime())
 	}
 
 	toFullDateWithWeekday() {

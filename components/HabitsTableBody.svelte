@@ -4,17 +4,16 @@
 	import DateValue from 'models/DateValue'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
-	import type { collapseStatuses } from 'types/ui'
 	import { KeyboardAction } from 'UI/KeyboardAction'
 
 	interface $Props {
 		habits: Habit[];
 		dates: DateValue[];
 		updateEntry: (entry: Entry, status: Status) => void;
-		collapseStatus: collapseStatuses;
+		collapseState: string;
 	}
 
-	const { habits, dates, updateEntry, collapseStatus }: $Props = $props()
+	const { habits, dates, updateEntry, collapseState }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
@@ -25,7 +24,7 @@
 </script>
 
 
-<tbody class={collapseStatus}>
+<tbody class={collapseState}>
 	{#if noHabits}
 		<NoHabitsMessage numberOfDates={dates.length}/>
 	{:else}

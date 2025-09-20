@@ -15,10 +15,10 @@ const NAVIGATION_MAP: Record<string, Direction> = {
 }
 
 const STATUS_CHANGE_MAP: Record<string, Status> = {
-	0: Entry.STATUS.unstarted,
 	1: Entry.STATUS.completed,
 	2: Entry.STATUS.failed,
-	3: Entry.STATUS.skip
+	3: Entry.STATUS.skip,
+	4: Entry.STATUS.unstarted
 }
 
 export class KeyboardAction {
@@ -62,7 +62,7 @@ export class KeyboardAction {
 	}
 
 	private isChangeEntryKey() {
-		return this.key === '0' || this.key === '1' || this.key === '2' || this.key === '3'
+		return this.key === '4' || this.key === '1' || this.key === '2' || this.key === '3'
 	}
 
 	private isNavigationKey() {

@@ -3,11 +3,11 @@
 	import { habitStore } from 'stores/store'
 	import HabitsTableHead from './HabitsTableHead.svelte'
 	import HabitsTableBody from './HabitsTableBody.svelte'
-	import type { collapseStatuses } from 'types/ui'
 	import Icon from './icons/Icon.svelte'
 	import type SourceSettings from 'models/SourceSettings'
 	import type { Status } from 'models/Entry'
 	import type Entry from 'models/Entry'
+	import { CollapseStatus } from 'UI/CollapseStatus'
 
 	interface $Props {
 		settings: SourceSettings;
@@ -39,16 +39,9 @@
 		currentOffset = 0
 	}
 
-	let collapseStatus: collapseStatuses = $state('init')
-
-	const toggleCollapse = () => {
-		if(collapseStatus === 'init') {
-			collapseStatus = 'collapsed'
-			return
-		}
-
-		collapseStatus = collapseStatus === 'collapsed' ? 'expanded' : 'collapsed'
-	}
+	const collapseStatus = new CollapseStatus(settings.folderPath)
+	let collapseState = $state(collapseStatus.state)
+	const toggleCollapse = () => collapseState = collapseStatus.toggle()
 </script>
 
 <table class="purple-theme">
@@ -62,7 +55,7 @@
 		{habits}
 		{dates}
 		{updateEntry}
-		{collapseStatus}
+		{collapseState}
 	/>
 </table>
 <div class="date-controls-container">

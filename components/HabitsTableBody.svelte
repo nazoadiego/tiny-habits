@@ -1,15 +1,16 @@
 <script lang="ts">
 	import type Habit from 'models/Habit'
-	import Entry, { type Status } from 'models/Entry'
+	import Entry from 'models/Entry'
 	import DateValue from 'models/DateValue'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
 	import { KeyboardAction } from 'UI/KeyboardAction'
+	import type { THabitRepository } from 'repositories/HabitRepository'
 
 	interface $Props {
 		habits: Habit[];
 		dates: DateValue[];
-		updateEntry: (entry: Entry, status: Status) => void;
+		updateEntry: THabitRepository['updateEntry'];
 		collapseState: string;
 	}
 
@@ -21,6 +22,26 @@
 		// ? Can we find a way to only find the relevant entries? from the 7 days displayed. Right now we iterate over all the entries.
 		return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath, habitId })
 	}
+
+	let activeEntry: Entry | undefined = $state(undefined)
+
+	function handleHover(target: EventTarget | null, entry: Entry) {
+		if (!(target instanceof HTMLElement)) return
+
+		target.focus()
+		activeEntry = entry
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		new KeyboardAction(event).call(habits, dates, (status) => {
+			if (activeEntry == undefined) return
+
+			const updatedEntry = updateEntry(activeEntry, status || activeEntry.nextStatus())
+
+			activeEntry = updatedEntry
+		})
+	}
+
 </script>
 
 
@@ -55,8 +76,9 @@
 		data-habit-id={entry.habitId}
 		data-entry-day={entry.date.toDayString()}
 		onclick={() => updateEntry(entry, entry.nextStatus())}
-		onkeydown={(event) => new KeyboardAction(event).call(habits, dates, (status) => updateEntry(entry, status || entry.nextStatus()))}
-		class="disable-text-selection entry-cell {entry.status}"
+		onmouseenter={(event) => handleHover(event.target, entry)}
+		onkeydown={handleKeydown}
+		class="disable-text-selection entry-cell {entry.status} {activeEntry === entry ? 'active' : ''}"
 	>
 		<EntryIcon status={entry.status} />
 	</td>

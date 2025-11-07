@@ -2,10 +2,10 @@ import { type FileManager, type MetadataCache, Notice, TFile, TFolder, type Vaul
 import Habit from 'models/Habit'
 import Entry, { type Status } from 'models/Entry'
 
-type THabitRepository = {
+export type THabitRepository = {
 	allHabits(path: string): Promise<Habit[]>
 	buildHabit(path: TFile): Promise<Habit>
-	updateEntry(entry: Entry, status: Status): void
+	updateEntry(entry: Entry, status: Status): Entry
 }
 
 class HabitRepository implements THabitRepository {
@@ -49,12 +49,16 @@ class HabitRepository implements THabitRepository {
 
 		if (!(file instanceof TFile)) {
 			new Notice('Couldn\'t update the habit entry!')
-			return
+			return entry
 		}
 
+		const updatedEntry = new Entry({ ...entry, status })
+
 		this.fileManager.processFrontMatter(file, (frontmatter) => {
-			frontmatter[entry.frontMatterDate()] = status
+			frontmatter[entry.frontMatterDate()] = updatedEntry.status
 		})
+
+		return updatedEntry
 	}
 }
 

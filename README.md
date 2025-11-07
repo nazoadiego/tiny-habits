@@ -79,6 +79,12 @@ You can use as many markdown blocks as you like in the same file. And if they ge
 
 You can navigate both with arrows and the hjkl keys. To mark a habit entry, you can do so by focusing on the entry and pressing enter.
 
+To mark an entry with an specific status these are the shortcuts:
+- Completed - 1
+- Failed - 2
+- Skip - 3
+- Not started - 4
+
 ## Options
 
     ```habits

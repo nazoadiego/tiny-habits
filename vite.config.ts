@@ -6,6 +6,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import repl, { REPLServer } from 'node:repl'
 
+/*
+	TODO: Turn REPL into its own class
+	TODO: don't namespace models, do Object.assign
+	TODO: Extract the plugin as well into a class
+*/
+
 export default defineConfig({
 	test: {
 		globals: true,

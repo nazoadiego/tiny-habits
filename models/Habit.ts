@@ -5,7 +5,7 @@
 */
 
 import Entry from './Entry'
-import { Notice, type FrontMatterCache, type TFile } from 'obsidian'
+import { Notice, TFile, type FrontMatterCache } from 'obsidian'
 import DateValue from './DateValue'
 
 type THabit = {

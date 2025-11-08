@@ -32,7 +32,7 @@ export class KeyboardAction {
 		this.key = event.key
 	}
 
-	call(habits: Habit[], dates: DateValue[], updateEntry: (status?: Status) => void) {
+	call(habits: Habit[], dates: DateValue[], updateEntry: (status?: Status) => void, setActiveEntry: (entry: Entry) => void) {
 		if (!this.isValid()) return
 
 		this.event.preventDefault()
@@ -48,7 +48,7 @@ export class KeyboardAction {
 		}
 
 		if (this.isNavigationKey()) {
-			this.navigateToEntry(habits, dates)
+			this.navigateToEntry(habits, dates, setActiveEntry)
 			return
 		}
 	}
@@ -69,7 +69,7 @@ export class KeyboardAction {
 		return !!NAVIGATION_MAP[this.key]
 	}
 
-	private navigateToEntry(habits: Habit[], dates: DateValue[]) {
+	private navigateToEntry(habits: Habit[], dates: DateValue[], setActiveEntry: (entry: Entry) => void) {
 		const direction = NAVIGATION_MAP[this.key]
 		if (!direction) return
 
@@ -99,6 +99,14 @@ export class KeyboardAction {
 
 		if ((cell instanceof HTMLTableCellElement)) {
 			cell.focus()
+
+			const habit = habits.find((habit) => habit.id === nextTargetHabit)
+			const date = dates.find((date) => date.toDayString() === nextTargetDay)
+
+			if (habit && date) {
+				const entry = habit.entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath: habit.path, habitId: habit.id })
+				setActiveEntry(entry)
+			}
 		}
 		else {
 			console.warn(`KeyboardAction.navigateToEntry: cell not found for selector "${selector}" (direction: ${direction})`)

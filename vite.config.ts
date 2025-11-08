@@ -10,10 +10,6 @@ import type { ServerResponse } from 'node:http'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-/*
-	TODO: don't namespace models, do Object.assign
-*/
-
 export default defineConfig({
 	test: {
 		globals: true,
@@ -93,8 +89,12 @@ const startRepl = ({ models }: { models: Models}) => {
 			try {
 				if (replServer == undefined) return
 
-				replServer.context.models = models // Assign models under a namespace
-				console.log('Models loaded into REPL context. Access them via the "models" object.')
+				// Assign models to context
+				Object.assign(replServer.context, models)
+				// Assign models to a namespace
+				replServer.context.models = models
+
+				console.log('Models loaded into REPL context. Can also, access them via the "models" object.')
 			}
 			catch (error) {
 				console.error('Failed to load models into REPL context:', error.message)

@@ -1,4 +1,4 @@
-import { Notice } from 'obsidian'
+import { type Notice } from 'obsidian'
 
 type TSourceSettings = {
 	folderPath: string;
@@ -14,27 +14,27 @@ class SourceSettings implements TSourceSettings {
 		this.displayName = displayName
 	}
 
-	static fromSource(source: string): SourceSettings | undefined {
+	static fromSource(source: string, notify: (message: string) => Notice): SourceSettings | undefined {
 		try {
 			const settings = JSON.parse(source)
 
-			if (!this.validate(settings)) return undefined
+			if (!this.validate(settings, notify)) return undefined
 
 			return new SourceSettings(settings.folderPath, settings.displayName)
 		}
 		catch {
-			new Notice('Failed to parse the settings')
+			notify('Failed to parse the settings')
 			return undefined
 		}
 	}
 
-	static validate(object: unknown): object is SourceSettings {
+	static validate(object: unknown, notify: (message: string) => Notice): object is SourceSettings {
 		if (!object || typeof object !== 'object') return false
 
 		const isRequiredFieldPresent = 'folderPath' in object
 
 		if (!isRequiredFieldPresent) {
-			new Notice('Missing Required Field: folderPath')
+			notify('Missing Required Field: folderPath')
 			return false
 		}
 
@@ -45,16 +45,16 @@ class SourceSettings implements TSourceSettings {
 		const { folderPath } = object
 
 		if (typeof folderPath !== 'string') {
-			new Notice('folderPath must be a string')
+			notify('folderPath must be a string')
 			return false
 		}
 
 		if (folderPath.includes('.') || folderPath.includes('..')) {
-			new Notice('Relative paths are not supported. Please write the full path to your folder')
+			notify('Relative paths are not supported. Please write the full path to your folder')
 		}
 
 		if (hasUnknownKeys) {
-			new Notice('Unknown fields in configuration')
+			notify('Unknown fields in configuration')
 			return false
 		}
 

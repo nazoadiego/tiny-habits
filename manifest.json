@@ -1,7 +1,7 @@
 {
 	"id": "tiny-habits",
 	"name": "Tiny Habits",
-	"version": "1.1.6",
+	"version": "1.1.7",
 	"minAppVersion": "0.15.0",
 	"description": "Habit tracking table for your markdown notes",
 	"author": "nazoadiego",

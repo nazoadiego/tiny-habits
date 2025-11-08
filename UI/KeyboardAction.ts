@@ -21,6 +21,7 @@ const STATUS_CHANGE_MAP: Record<string, Status> = {
 	4: Entry.STATUS.unstarted
 }
 
+
 export class KeyboardAction {
 	private event
 	private target
@@ -32,6 +33,10 @@ export class KeyboardAction {
 		this.key = event.key
 	}
 
+	/*
+		TODO: Passing both this callbacks kinda sucks. I am not completely sure if focus and setActiceEntry is something that should be here. Feels like the wrong abstraction level.
+		TODO: Separate navigation from updating an entry. One ends with updateEntry, the other with navigateToEntry/setActiveEntry
+	*/
 	call(habits: Habit[], dates: DateValue[], updateEntry: (status?: Status) => void, setActiveEntry: (entry: Entry) => void) {
 		if (!this.isValid()) return
 

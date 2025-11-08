@@ -5,7 +5,7 @@
 */
 
 import Entry from './Entry'
-import { Notice, TFile, type FrontMatterCache } from 'obsidian'
+import { type TFile, type FrontMatterCache, type Notice } from 'obsidian'
 import DateValue from './DateValue'
 
 type THabit = {
@@ -37,14 +37,14 @@ class Habit implements THabit {
 		return new Habit({ id, name, path, entries: [] })
 	}
 
-	static fromFile(file: TFile, frontmatter: FrontMatterCache | undefined): Habit {
+	static fromFile(file: TFile, frontmatter: FrontMatterCache | undefined, notify: (message: string) => Notice): Habit {
 		if (!frontmatter) return this.empty(file)
 
 		const { id: habitId, name, path: habitPath } = this.parseFile(file)
 
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
 			if (!Entry.validateFrontmatter({ YMDDate: date, status })) {
-				new Notice(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
+				notify(`Invalid date format or status for entry in Habit file ${name}. Date: ${date}. Status: ${status}`)
 				return []
 			}
 

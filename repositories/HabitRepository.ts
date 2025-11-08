@@ -36,7 +36,10 @@ class HabitRepository implements THabitRepository {
 
 	async buildHabit(file: TFile) {
 		try {
-			return Habit.fromFile(file, this.metadataCache.getFileCache(file)?.frontmatter)
+			return Habit.fromFile(
+				file,
+				this.metadataCache.getFileCache(file)?.frontmatter,
+				(message) => new Notice(message))
 		}
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error)

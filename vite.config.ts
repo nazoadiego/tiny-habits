@@ -24,7 +24,6 @@ export default defineConfig({
 			]
 		}
 	},
-	appType: 'custom', // Custom app type for middleware mode
 	plugins: [
 		{
 			name: 'load-models-middleware',
@@ -56,6 +55,7 @@ const renderReplStatus = async (request: Connect.IncomingMessage, response: Serv
 
 type Models = { [key: string]: unknown; }
 
+// TODO viteServer, path and fs are dependencies, pass them as an interfaces
 const importModels = async (viteServer: ViteDevServer) => {
 	const modelsDirectory = path.resolve(__dirname, 'models')
 	const models: Models = {}
@@ -77,6 +77,10 @@ const importModels = async (viteServer: ViteDevServer) => {
 	return models
 }
 
+/*
+	TODO Turn into class.
+  TODO Add Reload command
+*/
 const startRepl = ({ models }: { models: Models}) => {
 	const replServer: repl.REPLServer | undefined = undefined
 	if (!replServer) {

@@ -31,15 +31,22 @@
 		target.focus()
 		activeEntry = entry
 	}
+	function handleMouseLeave() {
+		activeEntry = undefined
+	}
 
 	function handleKeydown(event: KeyboardEvent) {
-		new KeyboardAction(event).call(habits, dates, (status) => {
-			if (activeEntry == undefined) return
+		new KeyboardAction(event).call(
+			habits,
+			dates,
+			(status) => {
+				if (activeEntry == undefined) return
 
-			const updatedEntry = updateEntry(activeEntry, status || activeEntry.nextStatus())
+				const updatedEntry = updateEntry(activeEntry, status || activeEntry.nextStatus())
 
-			activeEntry = updatedEntry
-		})
+				activeEntry = updatedEntry
+			},
+			(entry) => { activeEntry = entry })
 	}
 
 </script>
@@ -77,6 +84,7 @@
 		data-entry-day={entry.date.toDayString()}
 		onclick={() => updateEntry(entry, entry.nextStatus())}
 		onmouseenter={(event) => handleHover(event.target, entry)}
+		onmouseleave={handleMouseLeave}
 		onkeydown={handleKeydown}
 		class="disable-text-selection entry-cell {entry.status} {activeEntry === entry ? 'active' : ''}"
 	>

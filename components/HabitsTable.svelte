@@ -104,6 +104,7 @@
 		background-color: rgba(var(--mono-rgb-0), 0.4);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: var(--radius-m);
+		cursor: pointer;
 	}
 
 	button.date-control:hover {

@@ -1,4 +1,4 @@
-import { Plugin, TAbstractFile } from 'obsidian'
+import { Notice, Plugin, TAbstractFile } from 'obsidian'
 import HabitRepository from 'repositories/HabitRepository'
 import { habitStore } from 'stores/store'
 import { get } from 'svelte/store'
@@ -21,7 +21,7 @@ export default class TinyHabitsPlugin extends Plugin {
 			this.app.workspace.onLayoutReady(async () => {
 				this.registerHabitEvents()
 
-				const settings = SourceSettings.fromSource(source)
+				const settings = SourceSettings.fromSource(source, (message) => new Notice(message))
 
 				if (settings == undefined) return mount(SomethingWentWrongMessage, { target: element })
 

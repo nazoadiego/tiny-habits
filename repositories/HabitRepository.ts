@@ -29,7 +29,7 @@ class HabitRepository implements THabitRepository {
 
 		const files = folder.children
 			.filter((child): child is TFile => child instanceof TFile)
-			.sort((firstFile, secondFile) => firstFile.name.localeCompare(secondFile.name))
+			.toSorted((firstFile, secondFile) => firstFile.name.localeCompare(secondFile.name))
 
 		return Array.fromAsync(files, (file) => this.buildHabit(file))
 	}

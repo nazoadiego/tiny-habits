@@ -54,11 +54,11 @@ importers:
         specifier: ^59.0.1
         version: 59.0.1(eslint@9.39.2)
       fishery:
-        specifier: ^2.3.1
-        version: 2.3.1
+        specifier: ^2.4.0
+        version: 2.4.0
       globals:
-        specifier: ^16.0.0
-        version: 16.2.0
+        specifier: ^16.5.0
+        version: 16.5.0
       obsidian:
         specifier: latest
         version: 1.11.0(@codemirror/state@6.5.2)(@codemirror/view@6.37.1)
@@ -1049,8 +1049,8 @@ packages:
     resolution: {integrity: sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==}
     engines: {node: '>=10'}
 
-  fishery@2.3.1:
-    resolution: {integrity: sha512-eKgpAfx88/dFnLUGhJmq9eslN6nsHUcCR13Th1z6tLZixUtKjW/33MqKuzxGtYmhzUh2yLYZxq4jHxIQd3F04A==}
+  fishery@2.4.0:
+    resolution: {integrity: sha512-QgeTlvgNhVGuMztrfAhlSIBs3rD3l9RMjl9I15yb/lnrx3njrOhvegr2L3LWdqvXwYfQjdQGpglyAfHH2J8DRA==}
 
   flat-cache@4.0.1:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
@@ -1084,8 +1084,8 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
-  globals@16.2.0:
-    resolution: {integrity: sha512-O+7l9tPdHCU320IigZZPj5zmRCFG9xHmx9cU8FqU2Rp+JN714seHV+2S9+JslCpY4gJwU2vOGox0wzgae/MCEg==}
+  globals@16.5.0:
+    resolution: {integrity: sha512-c/c15i26VrJ4IRt5Z89DnIzCGDn9EcebibhAOjw5ibqEHsE1wLUgkPn9RDmNcUKyU87GeaL633nyJ+pplFR2ZQ==}
     engines: {node: '>=18'}
 
   has-flag@4.0.0:
@@ -2605,7 +2605,7 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
       eslint: 9.39.2
       esutils: 2.0.3
-      globals: 16.2.0
+      globals: 16.5.0
       known-css-properties: 0.37.0
       postcss: 8.5.4
       postcss-load-config: 3.1.4(postcss@8.5.4)
@@ -2628,7 +2628,7 @@ snapshots:
       eslint: 9.39.2
       esquery: 1.6.0
       find-up-simple: 1.0.1
-      globals: 16.2.0
+      globals: 16.5.0
       indent-string: 5.0.0
       is-builtin-module: 5.0.0
       jsesc: 3.1.0
@@ -2743,7 +2743,7 @@ snapshots:
       locate-path: 6.0.0
       path-exists: 4.0.0
 
-  fishery@2.3.1:
+  fishery@2.4.0:
     dependencies:
       lodash.mergewith: 4.6.2
 
@@ -2780,7 +2780,7 @@ snapshots:
 
   globals@14.0.0: {}
 
-  globals@16.2.0: {}
+  globals@16.5.0: {}
 
   has-flag@4.0.0: {}
 

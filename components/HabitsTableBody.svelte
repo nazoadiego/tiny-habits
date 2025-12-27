@@ -4,8 +4,9 @@
 	import DateValue from 'models/DateValue'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
-	import { KeyboardAction } from 'UI/KeyboardAction'
+	import { KeyboardActionNavigateEntry } from 'UI/KeyboardActionNavigateEntry'
 	import type { THabitRepository } from 'repositories/HabitRepository'
+	import { KeyboardActionUpdateEntry } from 'UI/KeyboardActionUpdateEntry'
 
 	interface $Props {
 		habits: Habit[];
@@ -31,21 +32,25 @@
 		target.focus()
 		activeEntry = entry
 	}
+
 	function handleMouseLeave() {
 		activeEntry = undefined
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
-		new KeyboardAction(event).call(
-			habits,
-			dates,
+		new KeyboardActionUpdateEntry(event).call(
 			(status) => {
 				if (activeEntry == undefined) return
 
 				const updatedEntry = updateEntry(activeEntry, status || activeEntry.nextStatus())
 
 				activeEntry = updatedEntry
-			},
+			}
+		)
+
+		new KeyboardActionNavigateEntry(event).call(
+			habits,
+			dates,
 			(entry) => { activeEntry = entry })
 	}
 

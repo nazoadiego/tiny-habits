@@ -53,7 +53,6 @@
 			dates,
 			(entry) => { activeEntry = entry })
 	}
-
 </script>
 
 

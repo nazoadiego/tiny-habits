@@ -5,13 +5,12 @@
 	import HabitsTableBody from './HabitsTableBody.svelte'
 	import Icon from './icons/Icon.svelte'
 	import type SourceSettings from 'models/SourceSettings'
-	import type { Status } from 'models/Entry'
-	import type Entry from 'models/Entry'
 	import { CollapseStatus } from 'UI/CollapseStatus'
+	import type { THabitRepository } from 'repositories/HabitRepository'
 
 	interface $Props {
 		settings: SourceSettings;
-		updateEntry: (entry: Entry, status: Status) => void;
+		updateEntry: THabitRepository['updateEntry'];
 	}
 
 	const { updateEntry, settings }: $Props = $props()

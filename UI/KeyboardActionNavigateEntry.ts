@@ -2,7 +2,6 @@ import { Cursor } from './Cursor'
 import type DateValue from 'models/DateValue'
 import type Habit from 'models/Habit'
 import type { Direction } from './Direction'
-import type { Status } from 'models/Entry'
 import Entry from 'models/Entry'
 
 type EntrySelector = `td[data-entry-day="${string}"][data-habit-id="${string}"]`
@@ -14,14 +13,7 @@ const NAVIGATION_MAP: Record<string, Direction> = {
 	ArrowRight: 'right', l: 'right'
 }
 
-const STATUS_CHANGE_MAP: Record<string, Status> = {
-	1: Entry.STATUS.completed,
-	2: Entry.STATUS.failed,
-	3: Entry.STATUS.skip,
-	4: Entry.STATUS.unstarted
-}
-
-export class KeyboardAction {
+export class KeyboardActionNavigateEntry {
 	private event
 	private target
 	private key
@@ -32,44 +24,27 @@ export class KeyboardAction {
 		this.key = event.key
 	}
 
-	call(habits: Habit[], dates: DateValue[], updateEntry: (status?: Status) => void, setActiveEntry: (entry: Entry) => void) {
+	call(habits: Habit[], dates: DateValue[], setActiveEntry: (entry: Entry) => void) {
 		if (!this.isValid()) return
 
 		this.event.preventDefault()
 
-		if (this.isChangeEntryKey()) {
-			updateEntry(STATUS_CHANGE_MAP[this.key])
-			return
-		}
-
-		if (this.isToggleKey()) {
-			updateEntry()
-			return
-		}
-
 		if (this.isNavigationKey()) {
-			this.navigateToEntry(habits, dates, setActiveEntry)
-			return
+			const nextTargetEntry = this.navigateToEntry(habits, dates)
+
+			if (nextTargetEntry) setActiveEntry(nextTargetEntry)
 		}
 	}
 
 	private isValid() {
-		return this.isToggleKey() || this.isNavigationKey() || this.isChangeEntryKey()
-	}
-
-	private isToggleKey() {
-		return this.key === 'Enter' || this.key === ' '
-	}
-
-	private isChangeEntryKey() {
-		return this.key === '4' || this.key === '1' || this.key === '2' || this.key === '3'
+		return this.isNavigationKey()
 	}
 
 	private isNavigationKey() {
 		return !!NAVIGATION_MAP[this.key]
 	}
 
-	private navigateToEntry(habits: Habit[], dates: DateValue[], setActiveEntry: (entry: Entry) => void) {
+	private navigateToEntry(habits: Habit[], dates: DateValue[]) {
 		const direction = NAVIGATION_MAP[this.key]
 		if (!direction) return
 
@@ -105,7 +80,7 @@ export class KeyboardAction {
 
 			if (habit && date) {
 				const entry = habit.entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath: habit.path, habitId: habit.id })
-				setActiveEntry(entry)
+				return entry
 			}
 		}
 		else {

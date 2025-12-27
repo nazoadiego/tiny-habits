@@ -12,6 +12,7 @@ type TDateValue = {
 	equals(other: DateValue): boolean;
 }
 
+// TODO: Instead of a date, why not make value a integer from unix timestamp
 class DateValue implements TDateValue {
 	private value
 	readonly isValid

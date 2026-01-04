@@ -9,8 +9,7 @@
 	import type { THabitRepository } from 'repositories/HabitRepository'
 
 	interface $Props {
-		settings: SourceSettings;
-		updateEntry: THabitRepository['updateEntry'];
+		settings: SourceSettings; updateEntry: THabitRepository['updateEntry']
 	}
 
 	const { updateEntry, settings }: $Props = $props()

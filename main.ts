@@ -1,4 +1,4 @@
-import { Plugin, TAbstractFile } from 'obsidian'
+import { Editor, MarkdownView, Plugin, TAbstractFile, type MarkdownFileInfo } from 'obsidian'
 import HabitRepository from 'repositories/HabitRepository'
 import { habitStore } from 'stores/store'
 import { get } from 'svelte/store'
@@ -16,6 +16,8 @@ export default class TinyHabitsPlugin extends Plugin {
 
 	async onload() {
 		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager, this.app.metadataCache)
+
+		this.registerCommands()
 
 		this.registerMarkdownCodeBlockProcessor('habits', (source, element) => {
 			this.app.workspace.onLayoutReady(async () => {
@@ -65,6 +67,18 @@ export default class TinyHabitsPlugin extends Plugin {
 		this.registerEvent(this.app.vault.on('delete', (file) => this.refreshHabitStore(file)))
 		this.registerEvent(this.app.vault.on('modify', (file) => this.refreshHabitStore(file)))
 		this.registerEvent(this.app.metadataCache.on('changed', (file) => this.refreshHabitStore(file)))
+	}
+
+	registerCommands() {
+		this.addCommand({
+			id: 'tiny-habits-add-table',
+			name: 'Add Table',
+			editorCallback: (editor: Editor) => {
+				const newTableBlock = '```habits\n{\n\t"folderPath": "habits",\n\t"displayName": "My Habits"\n}\n```'
+
+				editor.replaceRange(newTableBlock, editor.getCursor())
+			}
+		})
 	}
 
 	onunload() {}

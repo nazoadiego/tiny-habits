@@ -30,7 +30,7 @@
 		"esbuild": "0.27.2",
 		"esbuild-svelte": "^0.9.4",
 		"eslint": "^9.39.2",
-		"eslint-plugin-jsdoc": "^61.5.0",
+		"eslint-plugin-jsdoc": "^62.0.0",
 		"eslint-plugin-svelte": "^3.13.1",
 		"eslint-plugin-unicorn": "^62.0.0",
 		"fishery": "^2.4.0",

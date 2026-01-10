@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Plugin, TAbstractFile, type MarkdownFileInfo } from 'obsidian'
+import { Editor, Plugin, TAbstractFile } from 'obsidian'
 import HabitRepository from 'repositories/HabitRepository'
 import { habitStore } from 'stores/store'
 import { get } from 'svelte/store'

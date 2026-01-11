@@ -119,12 +119,8 @@ Run with `pnpm run lint`
 
 ### Making a release
 
-Modify the version in package.json.
-
 ```
-pnpm run version
-git tag -a 0.2.0 -m "0.2.0"
-git push origin 0.2.0
+pnpm run version:new
 ```
 
 ## Support

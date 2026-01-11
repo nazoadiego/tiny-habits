@@ -67,6 +67,7 @@ async function main() {
 	console.log(`Updated package.json to ${newVersion}`)
 	await updateManifest(newVersion)
 	await runCommand('git add manifest.json versions.json package.json')
+	await runCommand(`git commit -m "${newVersion}"`)
 	await runCommand(`git tag -a ${newVersion} -m "${newVersion}"`)
 	console.log('Version bump flow complete.')
 }

@@ -1,6 +1,7 @@
+import dayjs, { Dayjs } from "dayjs";
 
 type TDateValue = {
-	isValid: boolean;
+	validate(): boolean;
 	toFullDateWithWeekday(): string;
 	toDayString(): string;
 	toDate(): Date | undefined;
@@ -12,60 +13,43 @@ type TDateValue = {
 	equals(other: DateValue): boolean;
 }
 
-// TODO: Instead of a date, why not make value a integer from unix timestamp
 class DateValue implements TDateValue {
-	private value
-	readonly isValid
+	private value: Dayjs | undefined;
+	isValid: boolean;
 
 	constructor(input: string) {
-		const isYMD = input.length === 10 && input[4] === '-' && input[7] === '-'
-		const isUTC = input.includes('T') && input.endsWith('Z')
+		this.value = dayjs(input)
 
-		if(isUTC) {
-			const date = new Date(input)
-			this.isValid = DateValue.validate(date)
-			this.value = this.isValid ? new Date(date) : undefined
-			return
-		}
-		if(isYMD) {
-			const [year, month, day] = input.split('-').map(Number)
-			const monthIndex = month - 1
-			const date = new Date(year, monthIndex, day) // * We do it like this, because passing the YYYY-MM-DD string here will give you the wrong day, example: 2025-09-01
-			this.isValid = DateValue.validate(date)
-			this.value = this.isValid ? new Date(date) : undefined
-			return
+		this.validate()
+	}
+
+	validate() {
+		if(this.value && this.value.isValid()) {
+			this.isValid = true
+			return true
 		}
 
 		this.isValid = false
-	}
+		this.value = undefined;
 
-	static validate(date: Date) {
-		return date instanceof Date && !Number.isNaN(date.getTime())
+		return false
 	}
 
 	toFullDateWithWeekday() {
-		if (!this.value) return '-'
-		const formatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' })
-		return formatter.format(this.value)
+		return this.value ? this.value.format("dddd, MMMM D, YYYY") : "-";
 	}
 
 	// "1", "30"
 	toDayString() {
-		if(!this.value) return '-'
-
-		return this.value.getDate().toString()
+		return this.value ? this.value.format("D") : "-";
 	}
 
 	toDayOfTheWeek() {
-		if(!this.value) return '-'
-
-		return this.value.toLocaleDateString('en-US', { weekday: 'short' })
+		return this.value ? this.value.format("ddd") : "-";
 	}
 
 	toDate() {
-		if (this.value === undefined) return undefined
-
-		return new Date(this.value)
+		return this.value ? this.value.toDate() : undefined;
 	}
 
 	/**
@@ -73,13 +57,7 @@ class DateValue implements TDateValue {
 		A string in "YYYY-MM-DD" format
 	*/
 	toYearMonthDayString() {
-		if (!this.value) return '-'
-
-		const year = this.value.getFullYear()
-		const month = String(this.value.getMonth() + 1).padStart(2, '0') // JavaScript months are zero-based index lol, January is 0
-		const day = String(this.value.getDate()).padStart(2, '0')
-
-		return `${year}-${month}-${day}`
+		return this.value ? this.value.format("YYYY-MM-DD") : "-";
 	}
 
 	/**
@@ -89,33 +67,25 @@ class DateValue implements TDateValue {
 		2011-10-05T14:48:00.000Z
 	*/
 	toISOString() {
-		return this.value?.toISOString() || '-'
+		return this.value ? this.value.toISOString() : "-";
 	}
 
 	isSameDay(other: DateValue) {
-		if (!this.value || !other.value) return false
-
-		return (
-			this.value.getFullYear() === other.value.getFullYear() &&
-      this.value.getMonth() === other.value.getMonth() &&
-      this.value.getDate() === other.value.getDate()
-		)
+		return !!(this.value && other.value && this.value.isSame(other.value, "day"));
 	}
 
 	isBefore(other: DateValue) {
-		if (!this.value || !other.value) return false
-		return this.value < other.value
+		return !!(this.value && other.value && this.value.isBefore(other.value, "day"));
 	}
 
 	isAfter(other: DateValue) {
-		if (!this.value || !other.value) return false
-		return this.value > other.value
+		return !!(this.value && other.value && this.value.isAfter(other.value, "day"));
 	}
 
 	equals(other: DateValue) {
-		if (!this.value || !other.value) return false
-		return this.value.getTime() === other.value.getTime()
+		return !!(this.value && other.value && this.value.isSame(other.value));
 	}
 }
+
 
 export default DateValue

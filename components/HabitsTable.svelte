@@ -37,9 +37,9 @@
 		currentOffset = 0
 	}
 
-	const collapseStatus = new CollapseStatus(settings.folderPath)
-	let collapseState = $state(collapseStatus.state)
-	const toggleCollapse = () => collapseState = collapseStatus.toggle()
+	const getSettings = () => settings
+	let collapseStatus = $state(new CollapseStatus(getSettings().folderPath))
+	const toggleCollapse = () => collapseStatus = collapseStatus.toggle()
 </script>
 
 <table class="purple-theme">
@@ -53,7 +53,7 @@
 		{habits}
 		{dates}
 		{updateEntry}
-		{collapseState}
+		{collapseStatus}
 	/>
 </table>
 <div class="date-controls-container">

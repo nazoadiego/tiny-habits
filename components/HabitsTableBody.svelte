@@ -7,15 +7,16 @@
 	import { KeyboardActionNavigateEntry } from 'UI/KeyboardActionNavigateEntry'
 	import type { THabitRepository } from 'repositories/HabitRepository'
 	import { KeyboardActionUpdateEntry } from 'UI/KeyboardActionUpdateEntry'
+	import type { CollapseStatus } from 'UI/CollapseStatus'
 
 	interface $Props {
 		habits: Habit[];
 		dates: DateValue[];
 		updateEntry: THabitRepository['updateEntry'];
-		collapseState: string;
+		collapseStatus: CollapseStatus;
 	}
 
-	const { habits, dates, updateEntry, collapseState }: $Props = $props()
+	const { habits, dates, updateEntry, collapseStatus }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
@@ -56,7 +57,7 @@
 </script>
 
 
-<tbody class={collapseState}>
+<tbody class={collapseStatus.value}>
 	{#if noHabits}
 		<NoHabitsMessage numberOfDates={dates.length}/>
 	{:else}

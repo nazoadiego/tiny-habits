@@ -50,5 +50,8 @@
 			"esbuild",
 			"svelte-preprocess"
 		]
+	},
+	"dependencies": {
+		"dayjs": "^1.11.19"
 	}
 }

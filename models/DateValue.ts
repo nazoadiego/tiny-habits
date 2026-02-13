@@ -85,6 +85,18 @@ class DateValue implements TDateValue {
 	equals(other: DateValue) {
 		return !!(this.value && other.value && this.value.isSame(other.value));
 	}
+
+	addDays(days: number): DateValue {
+		if (!this.value) return new DateValue("");
+
+		return new DateValue(this.value.add(days, "day").toISOString());
+	}
+
+	subtractDays(days: number): DateValue {
+		if (!this.value) return new DateValue("");
+
+		return new DateValue(this.value.subtract(days, "day").toISOString());
+	}
 }
 
 

@@ -12,13 +12,13 @@ export class CollapseStatus {
 	private folderPath
 	private localStorageStatus
 	private isFirstLoad
-	state: collapseState
+	value: collapseState
 
-	constructor(folderPath: string) {
+	constructor(folderPath: string, value: collapseState = this.getInitialState()) {
 		this.folderPath = folderPath
 		this.localStorageStatus = localStorage.getItem(folderPath)
 		this.isFirstLoad = true
-		this.state = this.getInitialState()
+		this.value = value
 	}
 
 
@@ -34,9 +34,8 @@ export class CollapseStatus {
 	}
 
 	toggle() {
-		const nextStatus = STATUS_TOGGLE[this.state]
+		const nextStatus = STATUS_TOGGLE[this.value]
 		localStorage.setItem(this.folderPath, nextStatus)
-		this.state = nextStatus
-		return this.state
+		return new CollapseStatus(this.folderPath, nextStatus)
 	}
 }

@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from 'dayjs'
 
 type TDateValue = {
 	validate(): boolean;
@@ -14,8 +14,8 @@ type TDateValue = {
 }
 
 class DateValue implements TDateValue {
-	private value: Dayjs | undefined;
-	isValid: boolean;
+	private value: Dayjs | undefined
+	isValid: boolean
 
 	constructor(input: string) {
 		this.value = dayjs(input)
@@ -30,26 +30,26 @@ class DateValue implements TDateValue {
 		}
 
 		this.isValid = false
-		this.value = undefined;
+		this.value = undefined
 
 		return false
 	}
 
 	toFullDateWithWeekday() {
-		return this.value ? this.value.format("dddd, MMMM D, YYYY") : "-";
+		return this.value ? this.value.format('dddd, MMMM D, YYYY') : '-'
 	}
 
 	// "1", "30"
 	toDayString() {
-		return this.value ? this.value.format("D") : "-";
+		return this.value ? this.value.format('D') : '-'
 	}
 
 	toDayOfTheWeek() {
-		return this.value ? this.value.format("ddd") : "-";
+		return this.value ? this.value.format('ddd') : '-'
 	}
 
 	toDate() {
-		return this.value ? this.value.toDate() : undefined;
+		return this.value ? this.value.toDate() : undefined
 	}
 
 	/**
@@ -57,7 +57,7 @@ class DateValue implements TDateValue {
 		A string in "YYYY-MM-DD" format
 	*/
 	toYearMonthDayString() {
-		return this.value ? this.value.format("YYYY-MM-DD") : "-";
+		return this.value ? this.value.format('YYYY-MM-DD') : '-'
 	}
 
 	/**
@@ -67,35 +67,35 @@ class DateValue implements TDateValue {
 		2011-10-05T14:48:00.000Z
 	*/
 	toISOString() {
-		return this.value ? this.value.toISOString() : "-";
+		return this.value ? this.value.toISOString() : '-'
 	}
 
 	isSameDay(other: DateValue) {
-		return !!(this.value && other.value && this.value.isSame(other.value, "day"));
+		return !!(this.value && other.value && this.value.isSame(other.value, 'day'))
 	}
 
 	isBefore(other: DateValue) {
-		return !!(this.value && other.value && this.value.isBefore(other.value, "day"));
+		return !!(this.value && other.value && this.value.isBefore(other.value, 'day'))
 	}
 
 	isAfter(other: DateValue) {
-		return !!(this.value && other.value && this.value.isAfter(other.value, "day"));
+		return !!(this.value && other.value && this.value.isAfter(other.value, 'day'))
 	}
 
 	equals(other: DateValue) {
-		return !!(this.value && other.value && this.value.isSame(other.value));
+		return !!(this.value && other.value && this.value.isSame(other.value))
 	}
 
 	addDays(days: number): DateValue {
-		if (!this.value) return new DateValue("");
+		if (!this.value) return new DateValue('')
 
-		return new DateValue(this.value.add(days, "day").toISOString());
+		return new DateValue(this.value.add(days, 'day').toISOString())
 	}
 
 	subtractDays(days: number): DateValue {
-		if (!this.value) return new DateValue("");
+		if (!this.value) return new DateValue('')
 
-		return new DateValue(this.value.subtract(days, "day").toISOString());
+		return new DateValue(this.value.subtract(days, 'day').toISOString())
 	}
 }
 

@@ -54,8 +54,8 @@ importers:
         specifier: ^2.4.0
         version: 2.4.0
       globals:
-        specifier: ^17.0.0
-        version: 17.0.0
+        specifier: ^17.3.0
+        version: 17.3.0
       obsidian:
         specifier: latest
         version: 1.12.0(@codemirror/state@6.5.2)(@codemirror/view@6.37.1)
@@ -1108,8 +1108,8 @@ packages:
     resolution: {integrity: sha512-c/c15i26VrJ4IRt5Z89DnIzCGDn9EcebibhAOjw5ibqEHsE1wLUgkPn9RDmNcUKyU87GeaL633nyJ+pplFR2ZQ==}
     engines: {node: '>=18'}
 
-  globals@17.0.0:
-    resolution: {integrity: sha512-gv5BeD2EssA793rlFWVPMMCqefTlpusw6/2TbAVMy0FzcG8wKJn4O+NqJ4+XWmmwrayJgw5TzrmWjFgmz1XPqw==}
+  globals@17.3.0:
+    resolution: {integrity: sha512-yMqGUQVVCkD4tqjOJf3TnrvaaHDMYp4VlUSObbkIiuCPe/ofdMBFIAcBbCSRFWOnos6qRiTVStDwqPLUclaxIw==}
     engines: {node: '>=18'}
 
   has-flag@4.0.0:
@@ -2779,7 +2779,7 @@ snapshots:
 
   globals@16.5.0: {}
 
-  globals@17.0.0: {}
+  globals@17.3.0: {}
 
   has-flag@4.0.0: {}
 

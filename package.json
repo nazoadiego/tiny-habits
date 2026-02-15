@@ -31,7 +31,7 @@
 		"esbuild-svelte": "^0.9.4",
 		"eslint": "^9.39.2",
 		"eslint-plugin-jsdoc": "^62.4.0",
-		"eslint-plugin-svelte": "^3.14.0",
+		"eslint-plugin-svelte": "^3.15.0",
 		"eslint-plugin-unicorn": "^63.0.0",
 		"fishery": "^2.4.0",
 		"globals": "^17.3.0",

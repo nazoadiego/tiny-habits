@@ -3,8 +3,8 @@ import Habit from 'models/Habit'
 import Entry, { type Status } from 'models/Entry'
 
 export type THabitRepository = {
-	allHabits(path: string): Promise<Habit[]>
-	buildHabit(path: TFile): Promise<Habit>
+	allHabits(path: string, dateFilter?: Set<string>): Promise<Habit[]>
+	buildHabit(path: TFile, dateFilter?: Set<string>): Promise<Habit>
 	updateEntry(entry: Entry, status: Status): Entry
 }
 
@@ -19,7 +19,7 @@ class HabitRepository implements THabitRepository {
 		this.metadataCache = metadataCache
 	}
 
-	async allHabits(folderPath: string) {
+	async allHabits(folderPath: string, dateFilter?: Set<string>) {
 		const folder = this.vault.getFolderByPath(folderPath)
 
 		if (!(folder instanceof TFolder)) {
@@ -31,12 +31,12 @@ class HabitRepository implements THabitRepository {
 			.filter((child): child is TFile => child instanceof TFile)
 			.toSorted((firstFile, secondFile) => firstFile.name.localeCompare(secondFile.name))
 
-		return Array.fromAsync(files, (file) => this.buildHabit(file))
+		return Array.fromAsync(files, (file) => this.buildHabit(file, dateFilter))
 	}
 
-	async buildHabit(file: TFile) {
+	async buildHabit(file: TFile, dateFilter?: Set<string>) {
 		try {
-			return Habit.fromFile(file, this.metadataCache.getFileCache(file)?.frontmatter)
+			return Habit.fromFile(file, this.metadataCache.getFileCache(file)?.frontmatter, dateFilter)
 		}
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error)

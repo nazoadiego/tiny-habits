@@ -8,8 +8,17 @@ import SourceSettings from 'models/SourceSettings'
 import SomethingWentWrongMessage from 'components/SomethingWentWrongMessage.svelte'
 import type { Status } from 'models/Entry'
 import type Entry from 'models/Entry'
+import DateRange from 'models/DateRange'
 
-// * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
+const NUMBER_OF_DAYS = 7
+
+function buildDateFilter(offset: number = 0): Set<string> {
+	return new Set(
+		DateRange.fromToday(NUMBER_OF_DAYS - 1, 'backwards', offset)
+			.getDates()
+			.map(date => date.toYearMonthDayString())
+	)
+}
 
 export default class TinyHabitsPlugin extends Plugin {
 	private habitRepository: HabitRepository
@@ -20,6 +29,7 @@ export default class TinyHabitsPlugin extends Plugin {
 
 		this.registerCommands()
 
+		// * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
 		this.registerMarkdownCodeBlockProcessor('habits', (source, element) => {
 			this.app.workspace.onLayoutReady(async () => {
 				this.registerHabitEvents()
@@ -28,7 +38,7 @@ export default class TinyHabitsPlugin extends Plugin {
 
 				if (settings == undefined) return mount(SomethingWentWrongMessage, { target: element })
 
-				await this.loadHabitStore(settings.folderPath)
+				await this.loadHabitStore(settings.folderPath, buildDateFilter())
 
 				mount(HabitsTable, {
 					target: element,

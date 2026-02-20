@@ -13,6 +13,7 @@ import type Entry from 'models/Entry'
 
 export default class TinyHabitsPlugin extends Plugin {
 	private habitRepository: HabitRepository
+	private dateFilters: Map<string, Set<string>> = new Map()
 
 	async onload() {
 		this.habitRepository = new HabitRepository(this.app.vault, this.app.fileManager, this.app.metadataCache)
@@ -33,6 +34,7 @@ export default class TinyHabitsPlugin extends Plugin {
 					target: element,
 					props: {
 						updateEntry: (entry: Entry, status: Status) => this.habitRepository.updateEntry(entry, status),
+						loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
 						settings
 					}
 				})
@@ -40,10 +42,13 @@ export default class TinyHabitsPlugin extends Plugin {
 		})
 	}
 
-	async loadHabitStore(folderPath: string | undefined) {
+	async loadHabitStore(folderPath: string | undefined, dateFilter?: Set<string>) {
 		if (folderPath == undefined) return
 
-		const habits = await this.habitRepository.allHabits(folderPath)
+		if (dateFilter) this.dateFilters.set(folderPath, dateFilter)
+
+		const filter = dateFilter ?? this.dateFilters.get(folderPath)
+		const habits = await this.habitRepository.allHabits(folderPath, filter)
 
 		habitStore.update(currentStore => ({ ...currentStore, [folderPath]: habits }))
 	}

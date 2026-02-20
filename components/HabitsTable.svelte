@@ -9,10 +9,12 @@
 	import type { THabitRepository } from 'repositories/HabitRepository'
 
 	interface $Props {
-		settings: SourceSettings; updateEntry: THabitRepository['updateEntry']
+		settings: SourceSettings;
+		updateEntry: THabitRepository['updateEntry'];
+		loadHabits: (folderPath: string, dateFilter: Set<string>) => void;
 	}
 
-	const { updateEntry, settings }: $Props = $props()
+	const { updateEntry, settings, loadHabits }: $Props = $props()
 
 	const habits = $derived($habitStore[settings.folderPath])
 
@@ -25,16 +27,24 @@
 			.toReversed()
 	)
 
+	const dateFilter = $derived(
+		new Set(dates.map(date => date.toYearMonthDayString()))
+	)
+
 	function moveBack() {
 		currentOffset -= 1
+		loadHabits(settings.folderPath, dateFilter)
 	}
 
 	function moveForward() {
 		currentOffset += 1
+		loadHabits(settings.folderPath, dateFilter)
+
 	}
 
 	function moveToToday() {
 		currentOffset = 0
+		loadHabits(settings.folderPath, dateFilter)
 	}
 
 	const getSettings = () => settings

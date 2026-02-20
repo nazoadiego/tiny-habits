@@ -37,12 +37,14 @@ class Habit implements THabit {
 		return new Habit({ id, name, path, entries: [] })
 	}
 
-	static fromFile(file: TFile, frontmatter: FrontMatterCache | undefined): Habit {
+	static fromFile(file: TFile, frontmatter: FrontMatterCache | undefined, dateFilter?: Set<string>): Habit {
 		if (!frontmatter) return this.empty(file)
 
 		const { id: habitId, name, path: habitPath } = this.parseFile(file)
 
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
+			if (dateFilter && !dateFilter.has(date)) return []
+
 			if (!Entry.validateFrontmatter({ YMDDate: date, status })) {
 				new Notice(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
 				return []

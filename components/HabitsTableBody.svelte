@@ -21,7 +21,6 @@
 	const noHabits = $derived(habits.length === 0)
 
 	function getEntryByDate(entries: Entry[], date: DateValue, habitPath: Habit['path'], habitId: Habit['id']): Entry {
-		// ? Can we find a way to only find the relevant entries? from the 7 days displayed. Right now we iterate over all the entries.
 		return entries.find((entry) => entry.date.isSameDay(date)) || Entry.empty({ date, habitPath, habitId })
 	}
 
@@ -91,7 +90,7 @@
 		onmouseenter={(event) => handleHover(event.target, entry)}
 		onmouseleave={handleMouseLeave}
 		onkeydown={handleKeydown}
-		class="disable-text-selection entry-cell {entry.status} {activeEntry === entry ? 'active' : ''}"
+		class="disable-text-selection entry-cell {entry.status}"
 	>
 		<EntryIcon status={entry.status} />
 	</td>
@@ -112,7 +111,7 @@
 		border-collapse: separate;
 		border-spacing: 6px;
 		border-radius: var(--radius-m);
-		transition: all 0.3s ease;
+		transition: background-color 0.3s ease;
 	}
 
 	td.entry-cell.skip {

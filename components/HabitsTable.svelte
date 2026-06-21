@@ -22,7 +22,7 @@
 	let currentOffset = $state(0)
 
 	const dates = $derived(
-		DateRange.fromToday(HEADER_NUMBER_OF_DAYS - 1, 'backwards', currentOffset)
+		DateRange.fromToday(HEADER_NUMBER_OF_DAYS - 1, currentOffset)
 			.getDates()
 			.toReversed()
 	)

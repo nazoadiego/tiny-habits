@@ -14,7 +14,7 @@ const NUMBER_OF_DAYS = 7
 
 function buildDateFilter(offset: number = 0): Set<string> {
 	return new Set(
-		DateRange.fromToday(NUMBER_OF_DAYS - 1, 'backwards', offset)
+		DateRange.fromToday(NUMBER_OF_DAYS - 1, offset)
 			.getDates()
 			.map(date => date.toYearMonthDayString())
 	)
@@ -98,4 +98,3 @@ export default class TinyHabitsPlugin extends Plugin {
 
 	onunload() {}
 }
-

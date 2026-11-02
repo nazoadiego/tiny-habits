@@ -11,8 +11,7 @@ typography:
     fontSize: "16px"
 spacing:
   cell-gap: "6px"
-  cell-y: "18px"
-  cell-x: "12px"
+  cell-size: "60px"
   control-size: "48px"
 components:
   entry-cell-completed:
@@ -81,7 +80,7 @@ The palette is Obsidian's, plus three status colors owned by the plugin (`styles
 
 ## Layout
 
-A full-width table with `border-collapse: separate` and a 6px gap between cells (`border-spacing`). Entry cells are padded 18px vertical, 12px horizontal. Above the table, a 48px-high info bar sits beside 48px square date controls, aligned to the right with a 6px gap.
+A full-width table with `border-collapse: separate` and a 6px gap between cells (`border-spacing`). The table uses a fixed layout: the habit column takes the remaining width, and every date column is a 60px square (`--tiny-cell-size`), so header and entry cells never differ in size. Above the table, a 48px-high info bar sits beside 48px square date controls, aligned to the right with a 6px gap.
 
 At 768px and narrower, all date columns hide except the last one, so a phone shows the habit name and today.
 
@@ -99,7 +98,7 @@ Rounded rectangles throughout. Radii come from the host (`--radius-m` for cells,
 ## Components
 
 ### Entry Cell
-- **Shape:** host medium radius, padding 18px 12px, centered content.
+- **Shape:** host medium radius, 60px square (`--tiny-cell-size`), centered content.
 - **States:** unstarted (no fill, no icon), completed (green, check icon), skipped (blue, minus-circle icon), failed (red, x-circle icon). Icons are Lucide, white.
 - **Hover:** while a row is hovered its entry cells dim to 0.7 opacity; the cell under the pointer returns to full opacity with a pointer cursor.
 - **Focus:** 3px outline in the host border color, inset by 2px, shown for keyboard focus only.
@@ -109,7 +108,7 @@ Rounded rectangles throughout. Radii come from the host (`--radius-m` for cells,
 - **Style:** host medium radius, 0.2 surface wash, contains an internal link to the habit's note.
 
 ### Table Header
-- **Style:** header cells with 12px padding, 0.4 surface wash, host medium radius, centered. Clicking the header collapses or expands the table.
+- **Style:** date header cells are 60px squares like the entry cells; 0.4 surface wash, host medium radius, centered. Clicking the header collapses or expands the table.
 
 ### Date Control
 - **Style:** 48px by 48px button, 0.4 surface wash, 1px host border, host medium radius.

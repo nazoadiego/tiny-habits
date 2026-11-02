@@ -224,6 +224,14 @@
 		transition: background-color 0.3s ease;
 	}
 
+	td.entry-cell {
+		box-sizing: border-box;
+		width: var(--tiny-cell-size);
+		min-width: 0; /* Obsidian gives table cells a min-width in ch */
+		height: var(--tiny-cell-size);
+		padding: 0;
+	}
+
 	td.entry-cell.skip {
 		background-color: var(--skip-blue);
 	}
@@ -245,7 +253,8 @@
 	}
 
 	td.habit-cell {
-		background-color: rgba(var(--mono-rgb-0), 0.2)
+		background-color: rgba(var(--mono-rgb-0), 0.2);
+		overflow-wrap: anywhere;
 	}
 
 	.disable-text-selection {

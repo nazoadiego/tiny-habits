@@ -38,8 +38,11 @@
 	}
 
 	th.date-cell {
-		width:18px;
-		height:18px;
+		box-sizing: border-box;
+		width: var(--tiny-cell-size);
+		min-width: 0; /* Obsidian gives table cells a min-width in ch */
+		height: var(--tiny-cell-size);
+		padding: 0;
 	}
 
 	th {
@@ -51,7 +54,6 @@
 	}
 
 	.group-title {
-		max-width: 18px;
 		white-space: nowrap;
 		text-overflow: ellipsis;
 		align-content: center;

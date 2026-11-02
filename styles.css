@@ -3,6 +3,8 @@
   --success-green: #4caf50;
   --failure-red: #f44336;
   --skip-blue: #64b5f6;
+  /* Date columns: header and entry cells are squares of this size (10 steps of the 6px cell gap) */
+  --tiny-cell-size: 60px;
   /* Font */
   --tiny-table-font-size: 16px;
 }

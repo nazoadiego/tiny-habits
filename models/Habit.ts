@@ -7,12 +7,14 @@
 import Entry, { type Status } from './Entry'
 import type { HabitFile } from 'platform/Platform'
 import DateValue from './DateValue'
+import Schedule from './Schedule'
 
 type THabit = {
 	id: string,
 	name: string,
 	path: string,
-	entries: Entry[]
+	entries: Entry[],
+	schedule?: Schedule
 }
 
 export type InvalidEntry = { date: string, status: unknown }
@@ -22,12 +24,17 @@ class Habit implements THabit {
 	name
 	path
 	entries
+	schedule
 
-	constructor({ id, name, path, entries }: THabit) {
+	/** The frontmatter property that holds the schedule. It is not a date, so it is never read as an entry. */
+	static readonly SCHEDULE_KEY = 'schedule'
+
+	constructor({ id, name, path, entries, schedule = Schedule.unscheduled() }: THabit) {
 		this.id = id
 		this.name = name
 		this.path = path
 		this.entries = entries
+		this.schedule = schedule
 	}
 
 	private static parseFile(file: HabitFile) {
@@ -41,17 +48,23 @@ class Habit implements THabit {
 
 	/**
 	 @description Builds a habit from its file's frontmatter, keeping only the dates in `dateFilter` when given.
-	 @returns The habit, plus the frontmatter entries that aren't a valid date and status, so the caller can report them.
+	 @returns
+		The habit, plus what the caller should report: the frontmatter entries that aren't a valid date and status,
+		and whether the `schedule` property was invalid (the habit then applies every day).
 	 */
-	static fromFile(file: HabitFile, dateFilter?: Set<string>): { habit: Habit, invalidEntries: InvalidEntry[] } {
+	static fromFile(file: HabitFile, dateFilter?: Set<string>): { habit: Habit, invalidEntries: InvalidEntry[], hasInvalidSchedule: boolean } {
 		const { frontmatter } = file
 
-		if (!frontmatter) return { habit: this.empty(file), invalidEntries: [] }
+		if (!frontmatter) return { habit: this.empty(file), invalidEntries: [], hasInvalidSchedule: false }
 
 		const { id: habitId, name, path: habitPath } = this.parseFile(file)
 		const invalidEntries: InvalidEntry[] = []
 
+		const { schedule, isValid: isScheduleValid } = Schedule.fromFrontmatter(frontmatter[Habit.SCHEDULE_KEY])
+
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
+			if (date === Habit.SCHEDULE_KEY) return []
+
 			if (dateFilter && !dateFilter.has(date)) return []
 
 			if (!Entry.validateFrontmatter({ YMDDate: date, status })) {
@@ -62,7 +75,16 @@ class Habit implements THabit {
 			return new Entry({ habitId, habitPath, date: new DateValue(date), status: status as Status })
 		})
 
-		return { habit: new Habit({ id: habitId, name, path: habitPath, entries }), invalidEntries }
+		return { habit: new Habit({ id: habitId, name, path: habitPath, entries, schedule }), invalidEntries, hasInvalidSchedule: !isScheduleValid }
+	}
+
+	/**
+	 @description
+		Whether the entry is on a day the schedule skips and nobody has marked it.
+		Such an entry shows as skipped, but nothing is written for it: marking it works like any other entry.
+	 */
+	isOffDay(entry: Entry) {
+		return entry.status === Entry.STATUS.unstarted && !this.schedule.appliesOn(entry.date)
 	}
 
 	/* getTodayEntry(): Entry {

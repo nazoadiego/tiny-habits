@@ -10,10 +10,12 @@ export type Platform = {
 	listHabitFiles(folderPath: string): HabitFile[] | undefined
 
 	/**
-	 @description Writes every key in `values` to the file's frontmatter in a single write.
+	 @description
+		Writes every key in `values` to the file's frontmatter in a single write.
+		A key whose value is undefined is removed from the frontmatter.
 	 @returns false when the file doesn't exist.
 	 */
-	updateFrontmatter(path: string, values: Record<string, string>): Promise<boolean>
+	updateFrontmatter(path: string, values: FrontmatterUpdate): Promise<boolean>
 
 	/**
 	 @description Calls back with the parent folder path whenever a file is created, renamed, deleted or modified.
@@ -34,5 +36,7 @@ export type HabitFile = {
 }
 
 export type Frontmatter = Record<string, unknown>
+
+export type FrontmatterUpdate = Record<string, string | string[] | undefined>
 
 export type IconRenderer = (element: HTMLElement, icon: string) => void

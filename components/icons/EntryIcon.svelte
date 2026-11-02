@@ -22,6 +22,13 @@
 
 <style>
 	.icon-container {
-		color: white
+		color: white;
+		display: flex;
+		justify-content: center;
+	}
+
+	/* An inline svg sits on the text baseline, which pushes the icon off center. */
+	.icon-container :global(svg) {
+		display: block;
 	}
 </style>

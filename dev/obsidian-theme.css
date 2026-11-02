@@ -54,7 +54,7 @@ body {
 	margin: 2em 0 0.5em;
 }
 
-button {
+button:not(.clickable-icon) {
 	background: var(--interactive-normal);
 	color: var(--text-normal);
 	border: 1px solid var(--background-modifier-border);
@@ -64,8 +64,26 @@ button {
 	cursor: pointer;
 }
 
-button:hover {
+button:not(.clickable-icon):hover {
 	background: var(--interactive-hover);
+}
+
+/* Obsidian's flat icon button. */
+.clickable-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px;
+	border: 0;
+	border-radius: var(--radius-s);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.clickable-icon:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
 }
 
 a.internal-link {
@@ -103,4 +121,10 @@ a.internal-link {
 	border-radius: var(--radius-m);
 	padding: 10px 14px;
 	font-size: 0.9em;
+}
+
+/* Obsidian aligns table cell content to the top by default. */
+th,
+td {
+	vertical-align: top;
 }

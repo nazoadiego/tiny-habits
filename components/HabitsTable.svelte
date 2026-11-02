@@ -12,10 +12,11 @@
 	interface $Props {
 		settings: SourceSettings;
 		updateEntries: THabitRepository['updateEntries'];
+		updateSchedule: THabitRepository['updateSchedule'];
 		loadHabits: (folderPath: string, dateFilter: Set<string>) => void;
 	}
 
-	const { updateEntries, settings, loadHabits }: $Props = $props()
+	const { updateEntries, updateSchedule, settings, loadHabits }: $Props = $props()
 
 	const habits = $derived($habitStore[settings.folderPath])
 
@@ -70,6 +71,7 @@
 		{habits}
 		{dates}
 		{updateEntries}
+		{updateSchedule}
 		{collapseStatus}
 		bind:selection
 	/>

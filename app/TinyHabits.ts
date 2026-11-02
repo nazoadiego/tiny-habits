@@ -8,6 +8,8 @@ import SourceSettings from 'models/SourceSettings'
 import DateRange from 'models/DateRange'
 import type { Status } from 'models/Entry'
 import type Entry from 'models/Entry'
+import type Habit from 'models/Habit'
+import type Schedule from 'models/Schedule'
 import type { Platform } from 'platform/Platform'
 import { iconContext } from 'platform/iconContext'
 
@@ -61,6 +63,7 @@ export default class TinyHabits {
 			context: iconContext((iconElement, icon) => this.platform.setIcon(iconElement, icon)),
 			props: {
 				updateEntries: (entries: Entry[], status: Status) => this.habitRepository.updateEntries(entries, status),
+				updateSchedule: (habit: Habit, schedule: Schedule) => this.habitRepository.updateSchedule(habit, schedule),
 				loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
 				settings
 			}

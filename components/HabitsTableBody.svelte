@@ -4,6 +4,8 @@
 	import DateValue from 'models/DateValue'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
+	import ScheduleEditor from './ScheduleEditor.svelte'
+	import Icon from './icons/Icon.svelte'
 	import type { THabitRepository } from 'repositories/HabitRepository'
 	import type { CollapseStatus } from 'UI/CollapseStatus'
 	import { Cursor } from 'UI/Cursor'
@@ -15,15 +17,23 @@
 		habits: Habit[];
 		dates: DateValue[];
 		updateEntries: THabitRepository['updateEntries'];
+		updateSchedule: THabitRepository['updateSchedule'];
 		collapseStatus: CollapseStatus;
 		selection: EntrySelection;
 	}
 
-	let { habits, dates, updateEntries, collapseStatus, selection = $bindable() }: $Props = $props()
+	let { habits, dates, updateEntries, updateSchedule, collapseStatus, selection = $bindable() }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
 	let tableBody: HTMLTableSectionElement | undefined = $state()
+
+	/** The habit whose schedule editor is open. Only one at a time. */
+	let editingHabitId: Habit['id'] | undefined = $state()
+
+	function toggleScheduleEditor(habit: Habit) {
+		editingHabitId = editingHabitId === habit.id ? undefined : habit.id
+	}
 
 	/** Set while a Shift+drag is painting the selection. */
 	let paintMode: PaintMode | undefined = undefined
@@ -170,29 +180,45 @@
 	{:else}
 		{#each habits as habit (habit.id)}
 			<tr>
-				{@render habitCell(habit.name, habit.path)}
+				{@render habitCell(habit)}
 				{#each dates as date (date.toDayString())}
-					{@render entryCell(getEntryByDate(habit.entries, date, habit.path, habit.id))}
+					{@const entry = getEntryByDate(habit.entries, date, habit.path, habit.id)}
+					{@render entryCell(entry, habit.isOffDay(entry))}
 				{/each}
 			</tr>
+			{#if editingHabitId === habit.id}
+				<tr class="schedule-row">
+					<td colspan={dates.length + 1}>
+						<ScheduleEditor {habit} {updateSchedule} close={() => editingHabitId = undefined} />
+					</td>
+				</tr>
+			{/if}
 		{/each}
 	{/if}
 </tbody>
 
-{#snippet habitCell(name: Habit['name'], path: Habit['path'])}
+{#snippet habitCell(habit: Habit)}
 	<td class="habit-cell">
-		<a aria-label={path} href={path} class="internal-link">
-			{name}
+		<a aria-label={habit.path} href={habit.path} class="internal-link">
+			{habit.name}
 		</a>
+		<button
+			class="clickable-icon schedule-button"
+			aria-label="Edit schedule for {habit.name}"
+			aria-expanded={editingHabitId === habit.id}
+			onclick={() => toggleScheduleEditor(habit)}
+		>
+			<Icon icon="lucide-calendar-days" />
+		</button>
 	</td>
 {/snippet}
 
-{#snippet entryCell(entry: Entry)}
+{#snippet entryCell(entry: Entry, isOffDay: boolean)}
 	{@const isSelected = selection.has(EntrySelection.keyOf(entry))}
 	<td
 		tabindex="0"
 		role="button"
-		aria-label="Mark habit as {entry.nextStatus()}{isSelected ? ', selected' : ''}"
+		aria-label="Mark habit as {entry.nextStatus()}{isOffDay ? ', off day' : ''}{isSelected ? ', selected' : ''}"
 		data-habit-id={entry.habitId}
 		data-entry-date={entry.frontMatterDate()}
 		onclick={(event) => handleClick(event, entry)}
@@ -200,9 +226,10 @@
 		onpointerenter={(event) => handlePointerEnter(event, entry)}
 		onkeydown={handleKeydown}
 		class="disable-text-selection entry-cell {entry.status}"
+		class:off-day={isOffDay}
 		class:selected={isSelected}
 	>
-		<EntryIcon status={entry.status} />
+		<EntryIcon status={isOffDay ? Entry.STATUS.skip : entry.status} />
 	</td>
 {/snippet}
 
@@ -230,10 +257,15 @@
 		min-width: 0; /* Obsidian gives table cells a min-width in ch */
 		height: var(--tiny-cell-size);
 		padding: 0;
+		vertical-align: middle;
 	}
 
 	td.entry-cell.skip {
 		background-color: var(--skip-blue);
+	}
+	/* A day the schedule skips: the skip color, paler, with the same icon. Nothing is stored for it. */
+	td.entry-cell.off-day {
+		background-color: color-mix(in srgb, var(--skip-blue) 35%, transparent);
 	}
 	td.entry-cell.completed {
 		background-color: var(--success-green);
@@ -253,8 +285,40 @@
 	}
 
 	td.habit-cell {
+		position: relative;
 		background-color: rgba(var(--mono-rgb-0), 0.2);
 		overflow-wrap: anywhere;
+		vertical-align: middle;
+		/* Room for the schedule button on both sides, so the name stays centered. */
+		padding-inline: 36px;
+	}
+
+	/* A flat icon in the corner of the cell. Obsidian's clickable-icon class supplies its hover look. */
+	button.schedule-button {
+		position: absolute;
+		inset-inline-end: 6px;
+		top: 50%;
+		transform: translateY(-50%);
+		opacity: 0;
+	}
+
+	/* Always reachable by touch and keyboard; the hover reveal only declutters pointer use. */
+	tr:hover button.schedule-button,
+	button.schedule-button:focus-visible,
+	button.schedule-button[aria-expanded="true"] {
+		opacity: 1;
+	}
+
+	@media (hover: none) {
+		button.schedule-button {
+			opacity: 1;
+		}
+	}
+
+	tr.schedule-row > td {
+		padding: 0;
+		background-color: rgba(var(--mono-rgb-0), 0.2);
+		text-align: start;
 	}
 
 	.disable-text-selection {

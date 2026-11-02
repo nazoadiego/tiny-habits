@@ -46,6 +46,7 @@
 	}
 
 	th {
+		vertical-align: middle;
 		padding: 12px;
 		font-size: var(--tiny-table-font-size);
 		border-radius: var(--radius-m);

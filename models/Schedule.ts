@@ -81,17 +81,6 @@ export default class Schedule {
 	}
 
 	/**
-	 @example
-		"Every day", "Weekdays", "Mon Wed Fri"
-	 */
-	summary() {
-		if (this.isEveryDay) return 'Every day'
-		if (this.days.join(',') === 'mon,tue,wed,thu,fri') return 'Weekdays'
-
-		return this.days.map(day => WEEKDAY_NAMES[day].short).join(' ')
-	}
-
-	/**
 	 @returns The value of the `schedule` property, or undefined when the property should be absent (no schedule).
 	 */
 	toFrontmatter(): Weekday[] | undefined {

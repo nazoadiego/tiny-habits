@@ -92,16 +92,4 @@ describe('Schedule', () => {
 			expect(Schedule.of(['mon', 'wed']).toFrontmatter()).toEqual(['mon', 'wed'])
 		})
 	})
-
-	describe('summary', () => {
-		it.each([
-			[[], 'Every day'],
-			[['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], 'Every day'],
-			[['mon', 'tue', 'wed', 'thu', 'fri'], 'Weekdays'],
-			[['mon', 'wed', 'fri'], 'Mon Wed Fri'],
-			[['wed'], 'Wed']
-		] as const)('summarizes %j as %s', (days, expected) => {
-			expect(Schedule.of([...days]).summary()).toBe(expected)
-		})
-	})
 })

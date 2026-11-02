@@ -93,7 +93,7 @@ A habit doesn't have to apply every day. Click the calendar button next to a hab
 schedule: [wed]
 ```
 
-Days outside the schedule show as a paler skip. Nothing is written to the note for them, and you can still mark them like any other day. A habit with no `schedule` applies every day.
+Days outside the schedule show as a paler skip. Nothing is written to the note for them, and you can still mark them like any other day. A habit with no `schedule`, or with none of the weekdays chosen, applies every day. You never have to set one.
 
 ## Selecting several entries
 

@@ -20,8 +20,7 @@ const isWeekday = (value: unknown): value is Weekday => WEEKDAY_SET.has(value)
 
 /**
  @description
-	The weekdays a habit applies on. A habit with no schedule applies every day.
-	A schedule always has at least one day: to stop tracking a habit, remove its note.
+	The weekdays a habit applies on. A schedule with no days is no schedule at all: the habit applies every day.
  */
 export default class Schedule {
 	readonly days: readonly Weekday[]
@@ -30,36 +29,37 @@ export default class Schedule {
 		this.days = WEEKDAYS.filter(day => days.includes(day))
 	}
 
-	static everyDay() {
-		return new Schedule([...WEEKDAYS])
+	/**
+	 @description The schedule of a habit nobody has scheduled. It applies every day.
+	 */
+	static unscheduled() {
+		return new Schedule([])
 	}
 
-	/**
-	 @returns The schedule, or undefined when `days` is empty.
-	 */
-	static of(days: Weekday[]): Schedule | undefined {
-		if (days.length === 0) return undefined
-
+	static of(days: Weekday[]) {
 		return new Schedule(days)
 	}
 
 	/**
-	 @description Reads the `schedule` property of a habit note. A missing property means every day.
-	 @returns The schedule, and whether the property was valid. An invalid property falls back to every day.
+	 @description Reads the `schedule` property of a habit note. A missing or empty property means no schedule.
+	 @returns The schedule, and whether the property was valid. An invalid property falls back to no schedule.
 	 */
 	static fromFrontmatter(value: unknown): { schedule: Schedule, isValid: boolean } {
-		if (value == undefined) return { schedule: Schedule.everyDay(), isValid: true }
+		if (value == undefined) return { schedule: Schedule.unscheduled(), isValid: true }
 
-		const isListOfWeekdays = Array.isArray(value) && value.length > 0 && value.every(day => isWeekday(day))
-		const schedule = isListOfWeekdays ? Schedule.of(value) : undefined
+		if (!Array.isArray(value) || !value.every(day => isWeekday(day))) return { schedule: Schedule.unscheduled(), isValid: false }
 
-		if (schedule == undefined) return { schedule: Schedule.everyDay(), isValid: false }
-
-		return { schedule, isValid: true }
+		return { schedule: Schedule.of(value), isValid: true }
 	}
 
+	/** True when no day is chosen, which is how a habit without a schedule looks. */
+	get isUnscheduled() {
+		return this.days.length === 0
+	}
+
+	/** True when the habit applies every day, whether or not every weekday was chosen. */
 	get isEveryDay() {
-		return this.days.length === WEEKDAYS.length
+		return this.isUnscheduled || this.days.length === WEEKDAYS.length
 	}
 
 	includes(day: Weekday) {
@@ -68,13 +68,13 @@ export default class Schedule {
 
 	appliesOn(date: DateValue) {
 		// `dayOfWeek` counts from Sunday (0), WEEKDAYS from Monday.
-		return this.includes(WEEKDAYS[(date.dayOfWeek() + 6) % WEEKDAYS.length])
+		return this.isEveryDay || this.includes(WEEKDAYS[(date.dayOfWeek() + 6) % WEEKDAYS.length])
 	}
 
 	/**
-	 @returns The schedule with the day added or removed, or undefined when that would leave no days.
+	 @returns The schedule with the day added or removed. Removing the last day leaves the habit unscheduled.
 	 */
-	toggle(day: Weekday): Schedule | undefined {
+	toggle(day: Weekday) {
 		const days = this.includes(day) ? this.days.filter(current => current !== day) : [...this.days, day]
 
 		return Schedule.of(days)
@@ -92,9 +92,9 @@ export default class Schedule {
 	}
 
 	/**
-	 @returns The value of the `schedule` property, or undefined when the property should be absent (every day).
+	 @returns The value of the `schedule` property, or undefined when the property should be absent (no schedule).
 	 */
 	toFrontmatter(): Weekday[] | undefined {
-		return this.isEveryDay ? undefined : [...this.days]
+		return this.isUnscheduled ? undefined : [...this.days]
 	}
 }

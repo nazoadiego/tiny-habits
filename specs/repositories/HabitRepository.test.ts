@@ -87,7 +87,7 @@ describe('HabitRepository', () => {
 
 			const habits = await repository.allHabits('habits')
 
-			expect(habits.find(habit => habit.name === 'Read')?.schedule.isEveryDay).toBe(true)
+			expect(habits.find(habit => habit.name === 'Read')?.schedule.isUnscheduled).toBe(true)
 		})
 
 		it('notifies about an invalid schedule and applies every day', async () => {
@@ -95,7 +95,7 @@ describe('HabitRepository', () => {
 
 			const habits = await repository.allHabits('habits')
 
-			expect(habits.find(habit => habit.name === 'Broken')?.schedule.isEveryDay).toBe(true)
+			expect(habits.find(habit => habit.name === 'Broken')?.schedule.isUnscheduled).toBe(true)
 			expect(notices).toContain('Invalid schedule in Habit file Broken. Use a list of weekdays, like [mon, wed, fri]. It applies every day for now')
 		})
 
@@ -114,16 +114,16 @@ describe('HabitRepository', () => {
 			const { platform, repository } = buildPlatform()
 			const meditate = await habitNamed(repository, 'Meditate')
 
-			await repository.updateSchedule(meditate, Schedule.of(['mon', 'wed'])!)
+			await repository.updateSchedule(meditate, Schedule.of(['mon', 'wed']))
 
 			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', schedule: ['mon', 'wed'] })
 		})
 
-		it('removes the property when the schedule is every day', async () => {
+		it('removes the property when no day is chosen', async () => {
 			const { platform, repository } = buildPlatform()
 			const write = await habitNamed(repository, 'Write')
 
-			await repository.updateSchedule(write, Schedule.everyDay())
+			await repository.updateSchedule(write, Schedule.unscheduled())
 
 			expect(platform.frontmatterOf('habits/Write.md')).toEqual({ '2026-01-07': 'completed' })
 		})
@@ -133,7 +133,7 @@ describe('HabitRepository', () => {
 			const meditate = await habitNamed(repository, 'Meditate')
 			vi.spyOn(platform, 'updateFrontmatter').mockResolvedValue(false)
 
-			await repository.updateSchedule(meditate, Schedule.of(['mon'])!)
+			await repository.updateSchedule(meditate, Schedule.of(['mon']))
 
 			expect(notices).toContain('Couldn\'t update Meditate')
 		})

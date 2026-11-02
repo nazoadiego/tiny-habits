@@ -29,7 +29,7 @@ class Habit implements THabit {
 	/** The frontmatter property that holds the schedule. It is not a date, so it is never read as an entry. */
 	static readonly SCHEDULE_KEY = 'schedule'
 
-	constructor({ id, name, path, entries, schedule = Schedule.everyDay() }: THabit) {
+	constructor({ id, name, path, entries, schedule = Schedule.unscheduled() }: THabit) {
 		this.id = id
 		this.name = name
 		this.path = path

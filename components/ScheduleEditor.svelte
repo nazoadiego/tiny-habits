@@ -12,21 +12,12 @@
 
 	const { habit, updateSchedule, close }: $Props = $props()
 
-	let hint = $state('')
 	let editor: HTMLElement | undefined = $state()
 
 	onMount(() => editor?.querySelector('button')?.focus())
 
 	function toggle(day: Weekday) {
-		const schedule = habit.schedule.toggle(day)
-
-		if (schedule == undefined) {
-			hint = 'A habit needs at least one day.'
-			return
-		}
-
-		hint = ''
-		void updateSchedule(habit, schedule)
+		void updateSchedule(habit, habit.schedule.toggle(day))
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -37,7 +28,7 @@
 <div bind:this={editor} class="schedule-editor" role="toolbar" aria-label="{habit.name} schedule" onkeydown={handleKeydown} tabindex="-1">
 	<div class="schedule-editor-header">
 		<span>Applies on</span>
-		<small class="faint">Other days show as skipped. You can still mark them.</small>
+		<small class="faint">Leave empty for every day. Other days show as skipped, and you can still mark them.</small>
 	</div>
 
 	<div class="chips" role="group" aria-label="Weekdays">
@@ -53,7 +44,6 @@
 		{/each}
 	</div>
 
-	<small class="faint" aria-live="polite">{hint}</small>
 </div>
 
 <style>

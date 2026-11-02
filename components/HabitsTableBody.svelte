@@ -199,24 +199,22 @@
 
 {#snippet habitCell(habit: Habit)}
 	<td class="habit-cell">
-		<div class="habit-cell-content">
-			<div class="habit-cell-name">
-				<a aria-label={habit.path} href={habit.path} class="internal-link">
-					{habit.name}
-				</a>
-				{#if !habit.schedule.isEveryDay}
-					<small class="schedule-summary">{habit.schedule.summary()}</small>
-				{/if}
-			</div>
-			<button
-				class="schedule-button"
-				aria-label="Edit schedule for {habit.name}"
-				aria-expanded={editingHabitId === habit.id}
-				onclick={() => toggleScheduleEditor(habit)}
-			>
-				<Icon icon="lucide-calendar-days" />
-			</button>
+		<div class="habit-cell-name">
+			<a aria-label={habit.path} href={habit.path} class="internal-link">
+				{habit.name}
+			</a>
+			{#if !habit.schedule.isEveryDay}
+				<small class="schedule-summary">{habit.schedule.summary()}</small>
+			{/if}
 		</div>
+		<button
+			class="clickable-icon schedule-button"
+			aria-label="Edit schedule for {habit.name}"
+			aria-expanded={editingHabitId === habit.id}
+			onclick={() => toggleScheduleEditor(habit)}
+		>
+			<Icon icon="lucide-calendar-days" />
+		</button>
 	</td>
 {/snippet}
 
@@ -291,36 +289,28 @@
 	}
 
 	td.habit-cell {
+		position: relative;
 		background-color: rgba(var(--mono-rgb-0), 0.2);
 		overflow-wrap: anywhere;
-	}
-
-	.habit-cell-content {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 6px;
+		/* Room for the schedule button on both sides, so the name stays centered. */
+		padding-inline: 36px;
 	}
 
 	.habit-cell-name {
 		display: flex;
 		flex-direction: column;
-		min-width: 0;
-		text-align: start;
 	}
 
 	.schedule-summary {
 		color: var(--text-faint);
 	}
 
+	/* A flat icon in the corner of the cell. Obsidian's clickable-icon class supplies its hover look. */
 	button.schedule-button {
-		flex: none;
-		display: flex;
-		background: transparent;
-		box-shadow: none;
-		padding: 4px;
-		color: var(--text-muted);
-		cursor: pointer;
+		position: absolute;
+		inset-inline-end: 6px;
+		top: 50%;
+		transform: translateY(-50%);
 		opacity: 0;
 	}
 

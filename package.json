@@ -20,32 +20,32 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
-		"@eslint/js": "^9.39.2",
+		"@eslint/js": "^9.39.5",
 		"@stylistic/eslint-plugin": "^5.10.0",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
-		"@types/node": "^25.3.5",
-		"@typescript-eslint/eslint-plugin": "^8.55.0",
-		"@typescript-eslint/parser": "^8.56.1",
+		"@types/node": "^25.9.9",
+		"@typescript-eslint/eslint-plugin": "^8.72.1",
+		"@typescript-eslint/parser": "^8.72.1",
 		"@vitest/coverage-v8": "4.0.16",
-		"@vitest/ui": "^4.0.16",
+		"@vitest/ui": "^4.1.12",
 		"builtin-modules": "5.0.0",
 		"esbuild": "0.27.3",
-		"esbuild-svelte": "^0.9.4",
-		"eslint": "^9.39.2",
-		"eslint-plugin-jsdoc": "^62.7.0",
-		"eslint-plugin-svelte": "^3.15.0",
+		"esbuild-svelte": "^0.9.5",
+		"eslint": "^9.39.5",
+		"eslint-plugin-jsdoc": "^62.9.0",
+		"eslint-plugin-svelte": "^3.23.1",
 		"eslint-plugin-unicorn": "^63.0.0",
 		"fishery": "^2.4.0",
-		"globals": "^17.4.0",
+		"globals": "^17.14.0",
 		"obsidian": "latest",
-		"svelte": "^5.53.5",
-		"svelte-check": "^4.4.4",
-		"svelte-preprocess": "^6.0.3",
+		"svelte": "^5.57.3",
+		"svelte-check": "^4.7.8",
+		"svelte-preprocess": "^6.0.5",
 		"tslib": "2.8.1",
 		"typescript": "~5.9.3",
-		"typescript-eslint": "^8.56.1",
-		"vite": "^7.3.2",
-		"vitest": "^4.0.16"
+		"typescript-eslint": "^8.72.1",
+		"vite": "^7.3.7",
+		"vitest": "^4.1.12"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
@@ -54,7 +54,7 @@
 		]
 	},
 	"dependencies": {
-		"dayjs": "^1.11.19",
+		"dayjs": "^1.11.23",
 		"tinykeys": "4.0.1"
 	}
 }

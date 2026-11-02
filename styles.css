@@ -8,3 +8,15 @@
   /* Font */
   --tiny-table-font-size: 16px;
 }
+
+/* The Add Habit dialog: a full-width input, the reason a name is invalid, then the buttons. */
+.tiny-habits-prompt-input {
+  width: 100%;
+}
+
+.tiny-habits-prompt-error {
+  min-height: 1.5em;
+  margin-top: var(--size-4-2);
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
+}

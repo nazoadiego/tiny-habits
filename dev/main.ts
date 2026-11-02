@@ -18,7 +18,18 @@ const platform = new InMemoryPlatform({
 	files: seedHabitFiles(),
 	notify: showNotice,
 	// The dev page has no command palette, so plain browser prompts stand in for the dialogs.
-	askText: (question, placeholder) => Promise.resolve(globalThis.prompt(question, placeholder ? '' : undefined) ?? undefined),
+	askText: ({ title, validate }) => {
+		let reason: string | undefined
+
+		// Asks again while the text is invalid, which is what the Obsidian dialog does by not submitting.
+		while (true) {
+			const input = globalThis.prompt(reason ? `${title}\n${reason}` : title)
+			if (input == undefined) return Promise.resolve(undefined)
+
+			reason = validate(input)
+			if (reason == undefined) return Promise.resolve(input)
+		}
+	},
 	askChoice: (question, choices) => Promise.resolve(globalThis.prompt(`${question}\n${choices.join('\n')}`, choices[0]) ?? undefined),
 	setIcon
 })

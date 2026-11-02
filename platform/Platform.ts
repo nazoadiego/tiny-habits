@@ -30,10 +30,12 @@ export type Platform = {
 	createHabitFile(folderPath: string, name: string): Promise<CreateHabitFileResult>
 
 	/**
-	 @description Asks the user for a line of text.
+	 @description
+		Asks the user for a line of text. The host shows `validate`'s message while the text is invalid
+		and doesn't let the user submit it.
 	 @returns undefined when the user cancels.
 	 */
-	askText(question: string, placeholder?: string): Promise<string | undefined>
+	askText(question: TextQuestion): Promise<string | undefined>
 
 	/**
 	 @description Asks the user to pick one of the choices.
@@ -52,6 +54,15 @@ export type HabitFile = {
 	/** Full path from the vault root, with the extension. */
 	path: string
 	frontmatter: Frontmatter | undefined
+}
+
+export type TextQuestion = {
+	title: string
+	placeholder?: string
+	/** Label of the button that submits the answer. */
+	submitLabel: string
+	/** @returns What is wrong with the text, or undefined when it is fine. */
+	validate: (input: string) => string | undefined
 }
 
 export type CreateHabitFileResult = 'created' | 'exists'

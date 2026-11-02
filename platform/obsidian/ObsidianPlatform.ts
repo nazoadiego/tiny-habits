@@ -1,5 +1,5 @@
 import { Notice, type Plugin, setIcon, TFile, TFolder, type TAbstractFile } from 'obsidian'
-import type { CreateHabitFileResult, FrontmatterUpdate, HabitFile, Platform } from 'platform/Platform'
+import type { CreateHabitFileResult, FrontmatterUpdate, HabitFile, Platform, TextQuestion } from 'platform/Platform'
 import { askChoice, askText } from './prompts'
 
 export default class ObsidianPlatform implements Platform {
@@ -80,8 +80,8 @@ export default class ObsidianPlatform implements Platform {
 		}
 	}
 
-	askText(question: string, placeholder?: string): Promise<string | undefined> {
-		return askText(this.app, question, placeholder)
+	askText(question: TextQuestion): Promise<string | undefined> {
+		return askText(this.app, question)
 	}
 
 	askChoice(question: string, choices: string[]): Promise<string | undefined> {

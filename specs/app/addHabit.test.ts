@@ -1,10 +1,11 @@
 import addHabit from 'app/addHabit'
 import HabitRepository from 'repositories/HabitRepository'
 import InMemoryPlatform from 'platform/memory/InMemoryPlatform'
+import type { TextQuestion } from 'platform/Platform'
 
 function setup({ answers, choice }: { answers: (string | undefined)[], choice?: string }) {
 	const notices: string[] = []
-	const questions: string[] = []
+	const questions: TextQuestion[] = []
 	const platform = new InMemoryPlatform({
 		folders: ['habits', 'work'],
 		files: [{ path: 'habits/Read.md' }],
@@ -55,13 +56,24 @@ describe('addHabit', () => {
 		expect(platform.listHabitFiles('habits')).toHaveLength(1)
 	})
 
-	it('asks again with the reason when the name is invalid', async () => {
-		const { run, platform, questions } = setup({ answers: ['a/b', 'Run'] })
+	it('gives the dialog the reason a name is invalid, and a label for its button', async () => {
+		const { run, questions } = setup({ answers: [undefined] })
 
 		await run(['habits'])
 
-		expect(questions[1]).toBe('A habit name can\'t contain "/"')
-		expect(platform.listHabitFiles('habits')?.map(file => file.basename)).toContain('Run')
+		const [question] = questions
+		expect(question.title).toBe('New habit in habits')
+		expect(question.submitLabel).toBe('Add habit')
+		expect(question.validate('a/b')).toBe('A habit name can\'t contain "/"')
+		expect(question.validate('Run')).toBeUndefined()
+	})
+
+	it('creates nothing when the host returns a name the rules reject', async () => {
+		const { run, platform } = setup({ answers: ['a/b'] })
+
+		await run(['habits'])
+
+		expect(platform.listHabitFiles('habits')).toHaveLength(1)
 	})
 
 	it('tells the user when the habit already exists', async () => {

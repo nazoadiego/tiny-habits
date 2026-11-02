@@ -90,6 +90,8 @@
 <style>
 	table.purple-theme {
 		width: 100%;
+		/* Column widths come from the cells' own width, not their content, so every date column is the same size. */
+		table-layout: fixed;
 		border-collapse: separate;
 		border-spacing: 6px;
 		border-radius: var(--radius-m);

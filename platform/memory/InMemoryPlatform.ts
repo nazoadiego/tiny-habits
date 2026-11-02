@@ -68,7 +68,7 @@ export default class InMemoryPlatform implements Platform {
 	}
 
 	async createHabitFile(folderPath: string, name: string): Promise<CreateHabitFileResult> {
-		if (!this.folders.has(folderPath)) return 'missing-folder'
+		for (let folder = folderPath; folder !== '/'; folder = parentPath(folder)) this.folders.add(folder)
 
 		const path = `${folderPath}/${name}.md`
 		if (this.files.has(path)) return 'exists'

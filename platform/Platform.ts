@@ -23,8 +23,9 @@ export type Platform = {
 	onFolderChanged(callback: (folderPath: string) => void): void
 
 	/**
-	 @description Creates an empty note named `<name>.md` in the folder.
-	 @returns 'exists' when the folder already has a note with that name, 'missing-folder' when the folder doesn't exist.
+	 @description
+		Creates an empty note named `<name>.md` in the folder, creating the folder (and its parents) first when it doesn't exist.
+	 @returns 'exists' when the folder already has a note with that name.
 	 */
 	createHabitFile(folderPath: string, name: string): Promise<CreateHabitFileResult>
 
@@ -53,7 +54,7 @@ export type HabitFile = {
 	frontmatter: Frontmatter | undefined
 }
 
-export type CreateHabitFileResult = 'created' | 'exists' | 'missing-folder'
+export type CreateHabitFileResult = 'created' | 'exists'
 
 export type Frontmatter = Record<string, unknown>
 

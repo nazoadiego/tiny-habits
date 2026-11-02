@@ -24,23 +24,3 @@
 .tiny-habits-prompt-error:empty {
   display: none;
 }
-
-/* The approved mockup's spacing, set explicitly so the dialog doesn't depend on the theme's modal padding. */
-.tiny-habits-prompt {
-  padding: var(--size-4-6);
-}
-
-.tiny-habits-prompt .modal-title {
-  margin: 0 0 var(--size-4-4);
-  font-size: var(--font-ui-large);
-  font-weight: var(--font-semibold);
-}
-
-.tiny-habits-prompt .modal-content {
-  margin: 0;
-}
-
-.tiny-habits-prompt .modal-button-container {
-  margin-top: var(--size-4-5);
-  gap: var(--size-4-2);
-}

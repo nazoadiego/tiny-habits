@@ -1,4 +1,4 @@
-import HabitName from 'models/HabitName'
+import Habit from 'models/Habit'
 import type { THabitRepository } from 'repositories/HabitRepository'
 import type { Platform } from 'platform/Platform'
 
@@ -40,7 +40,7 @@ async function askName(platform: Platform, folderPath: string) {
 		const input = await platform.askText(question, 'Habit name')
 		if (input == undefined) return undefined
 
-		const { name, message } = HabitName.parse(input)
+		const { name, message } = Habit.parseName(input)
 		if (name != undefined) return name
 
 		question = message

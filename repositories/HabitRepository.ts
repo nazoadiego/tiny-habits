@@ -54,7 +54,7 @@ class HabitRepository implements THabitRepository {
 	 @description
 		Creates an empty note for the habit in the table's folder, and tells the user if it can't.
 	 @param folderPath The table's folder.
-	 @param name Already checked with HabitName.parse.
+	 @param name Already checked with Habit.parseName.
 	 @returns Whether the note was created.
 	 */
 	async createHabit(folderPath: string, name: string) {

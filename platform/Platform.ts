@@ -22,6 +22,24 @@ export type Platform = {
 	 */
 	onFolderChanged(callback: (folderPath: string) => void): void
 
+	/**
+	 @description Creates an empty note named `<name>.md` in the folder.
+	 @returns 'exists' when the folder already has a note with that name, 'missing-folder' when the folder doesn't exist.
+	 */
+	createHabitFile(folderPath: string, name: string): Promise<CreateHabitFileResult>
+
+	/**
+	 @description Asks the user for a line of text.
+	 @returns undefined when the user cancels.
+	 */
+	askText(question: string, placeholder?: string): Promise<string | undefined>
+
+	/**
+	 @description Asks the user to pick one of the choices.
+	 @returns undefined when the user cancels.
+	 */
+	askChoice(question: string, choices: string[]): Promise<string | undefined>
+
 	notify(message: string): void
 
 	setIcon: IconRenderer
@@ -34,6 +52,8 @@ export type HabitFile = {
 	path: string
 	frontmatter: Frontmatter | undefined
 }
+
+export type CreateHabitFileResult = 'created' | 'exists' | 'missing-folder'
 
 export type Frontmatter = Record<string, unknown>
 

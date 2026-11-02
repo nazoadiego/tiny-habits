@@ -19,6 +19,13 @@ type THabit = {
 
 export type InvalidEntry = { date: string, status: unknown }
 
+export type HabitNameResult =
+	| { name: string, message?: undefined }
+	| { name?: undefined, message: string }
+
+// Characters Obsidian refuses in file names (\ / : * ? " < > |), plus the ones its links can't hold (# ^ [ ]).
+const FORBIDDEN_NAME_CHARACTERS = /[\\/:*?"<>|#^[\]]/
+
 class Habit implements THabit {
 	id
 	name
@@ -35,6 +42,24 @@ class Habit implements THabit {
 		this.path = path
 		this.entries = entries
 		this.schedule = schedule
+	}
+
+	/**
+	 @description A habit's name is its note's name, so it must be a valid file name in Obsidian.
+	 @param input What the user typed.
+	 @returns The trimmed name, or a message saying what to fix.
+	 */
+	static parseName(input: string): HabitNameResult {
+		const name = input.trim()
+
+		if (name === '') return { message: 'Give the habit a name' }
+
+		const forbidden = FORBIDDEN_NAME_CHARACTERS.exec(name)?.[0]
+		if (forbidden != undefined) return { message: `A habit name can't contain "${forbidden}"` }
+
+		if (name.startsWith('.')) return { message: 'A habit name can\'t start with "."' }
+
+		return { name }
 	}
 
 	private static parseFile(file: HabitFile) {

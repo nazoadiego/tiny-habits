@@ -1,4 +1,4 @@
-import type { Frontmatter, FrontmatterUpdate, HabitFile, IconRenderer, Platform } from 'platform/Platform'
+import type { CreateHabitFileResult, Frontmatter, FrontmatterUpdate, HabitFile, IconRenderer, Platform } from 'platform/Platform'
 
 type InMemoryFile = { path: string, frontmatter?: Frontmatter }
 
@@ -6,6 +6,8 @@ type InMemoryPlatformOptions = {
 	folders: string[]
 	files: InMemoryFile[]
 	notify?: (message: string) => void
+	askText?: (question: string, placeholder?: string) => Promise<string | undefined>
+	askChoice?: (question: string, choices: string[]) => Promise<string | undefined>
 	setIcon?: IconRenderer
 }
 
@@ -18,12 +20,16 @@ export default class InMemoryPlatform implements Platform {
 	private readonly listeners: ((folderPath: string) => void)[] = []
 	private readonly notifyCallback
 	private readonly iconRenderer
+	private readonly textAsker
+	private readonly choiceAsker
 
-	constructor({ folders, files, notify, setIcon }: InMemoryPlatformOptions) {
+	constructor({ folders, files, notify, askText, askChoice, setIcon }: InMemoryPlatformOptions) {
 		this.folders = new Set(folders)
 		this.files = new Map(files.map(file => [file.path, file.frontmatter]))
 		this.notifyCallback = notify ?? ((message: string) => console.info(`[notice] ${message}`))
 		this.iconRenderer = setIcon ?? (() => {})
+		this.textAsker = askText ?? (() => Promise.resolve(undefined))
+		this.choiceAsker = askChoice ?? (() => Promise.resolve(undefined))
 
 		for (const path of this.files.keys()) {
 			if (!this.folders.has(parentPath(path))) throw new Error(`File "${path}" is outside the declared folders`)
@@ -59,6 +65,26 @@ export default class InMemoryPlatform implements Platform {
 
 	onFolderChanged(callback: (folderPath: string) => void): void {
 		this.listeners.push(callback)
+	}
+
+	async createHabitFile(folderPath: string, name: string): Promise<CreateHabitFileResult> {
+		if (!this.folders.has(folderPath)) return 'missing-folder'
+
+		const path = `${folderPath}/${name}.md`
+		if (this.files.has(path)) return 'exists'
+
+		this.files.set(path, undefined)
+		queueMicrotask(() => this.emitFolderChanged(folderPath))
+
+		return 'created'
+	}
+
+	askText(question: string, placeholder?: string): Promise<string | undefined> {
+		return this.textAsker(question, placeholder)
+	}
+
+	askChoice(question: string, choices: string[]): Promise<string | undefined> {
+		return this.choiceAsker(question, choices)
 	}
 
 	notify(message: string): void {

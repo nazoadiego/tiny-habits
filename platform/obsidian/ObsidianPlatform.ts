@@ -1,5 +1,6 @@
 import { Notice, type Plugin, setIcon, TFile, TFolder, type TAbstractFile } from 'obsidian'
-import type { FrontmatterUpdate, HabitFile, Platform } from 'platform/Platform'
+import type { CreateHabitFileResult, FrontmatterUpdate, HabitFile, Platform } from 'platform/Platform'
+import { askChoice, askText } from './prompts'
 
 export default class ObsidianPlatform implements Platform {
 	private readonly plugin
@@ -55,6 +56,25 @@ export default class ObsidianPlatform implements Platform {
 		this.plugin.registerEvent(vault.on('delete', notify))
 		this.plugin.registerEvent(vault.on('modify', notify))
 		this.plugin.registerEvent(metadataCache.on('changed', notify))
+	}
+
+	async createHabitFile(folderPath: string, name: string): Promise<CreateHabitFileResult> {
+		if (this.app.vault.getFolderByPath(folderPath) == undefined) return 'missing-folder'
+
+		const path = `${folderPath}/${name}.md`
+		if (this.app.vault.getAbstractFileByPath(path) != undefined) return 'exists'
+
+		await this.app.vault.create(path, '')
+
+		return 'created'
+	}
+
+	askText(question: string, placeholder?: string): Promise<string | undefined> {
+		return askText(this.app, question, placeholder)
+	}
+
+	askChoice(question: string, choices: string[]): Promise<string | undefined> {
+		return askChoice(this.app, question, choices)
 	}
 
 	notify(message: string): void {

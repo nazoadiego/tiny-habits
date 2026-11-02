@@ -6,7 +6,7 @@ export default class TinyHabitsPlugin extends Plugin {
 	async onload() {
 		const tinyHabits = new TinyHabits(new ObsidianPlatform(this))
 
-		this.registerCommands()
+		this.registerCommands(tinyHabits)
 
 		// * Why onLayoutReady? https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
 		this.app.workspace.onLayoutReady(() => tinyHabits.watchHabitFiles())
@@ -16,7 +16,7 @@ export default class TinyHabitsPlugin extends Plugin {
 		})
 	}
 
-	registerCommands() {
+	registerCommands(tinyHabits: TinyHabits) {
 		this.addCommand({
 			id: 'tiny-habits-add-table',
 			name: 'Add Table',
@@ -25,6 +25,12 @@ export default class TinyHabitsPlugin extends Plugin {
 
 				editor.replaceRange(newTableBlock, editor.getCursor())
 			}
+		})
+
+		this.addCommand({
+			id: 'tiny-habits-add-habit',
+			name: 'Add Habit',
+			callback: () => tinyHabits.addHabit()
 		})
 	}
 

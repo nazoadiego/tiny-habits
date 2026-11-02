@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-02T18:30:00Z",
+  "title": "Design System: Tiny Habits",
+  "extensions": {
+    "colorMeta": {
+      "success-green": { "role": "primary", "displayName": "Completed Green", "canonical": "#4caf50" },
+      "failure-red": { "role": "secondary", "displayName": "Failed Red", "canonical": "#f44336" },
+      "skip-blue": { "role": "secondary", "displayName": "Skipped Blue", "canonical": "#64b5f6" },
+      "on-status": { "role": "neutral", "displayName": "On-Status White", "canonical": "#ffffff" }
+    },
+    "typographyMeta": {
+      "table": { "displayName": "Table", "purpose": "Single size for header, habit names and entries; font family inherited from Obsidian." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "cell-fill", "value": "background-color 0.3s ease", "purpose": "Entry status color change." },
+      { "name": "table-expand", "value": "0.6s cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Expanding a collapsed table." },
+      { "name": "table-collapse", "value": "0.4s cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Collapsing a table." }
+    ],
+    "breakpoints": [
+      { "name": "narrow", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Entry Cell (completed)",
+      "kind": "custom",
+      "refersTo": "entry-cell-completed",
+      "description": "A completed habit entry: green fill with a white check.",
+      "html": "<table style=\"border-collapse:separate;border-spacing:6px\"><tr><td class=\"ds-entry ds-completed\" tabindex=\"0\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></td></tr></table>",
+      "css": ".ds-entry { padding: 18px 12px; text-align: center; color: #fff; border-radius: var(--radius-m, 8px); transition: background-color 0.3s ease; cursor: pointer; } .ds-completed { background-color: #4caf50; } .ds-entry:hover { opacity: 0.7; } .ds-entry:focus-visible { outline: 3px solid var(--background-modifier-border, #888); outline-offset: -2px; }"
+    },
+    {
+      "name": "Entry Cell (failed)",
+      "kind": "custom",
+      "refersTo": "entry-cell-failed",
+      "description": "A failed habit entry: red fill with a white x-circle.",
+      "html": "<table style=\"border-collapse:separate;border-spacing:6px\"><tr><td class=\"ds-entry ds-failed\" tabindex=\"0\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m15 9-6 6M9 9l6 6\"/></svg></td></tr></table>",
+      "css": ".ds-entry { padding: 18px 12px; text-align: center; color: #fff; border-radius: var(--radius-m, 8px); transition: background-color 0.3s ease; cursor: pointer; } .ds-failed { background-color: #f44336; } .ds-entry:hover { opacity: 0.7; } .ds-entry:focus-visible { outline: 3px solid var(--background-modifier-border, #888); outline-offset: -2px; }"
+    },
+    {
+      "name": "Entry Cell (skipped)",
+      "kind": "custom",
+      "refersTo": "entry-cell-skip",
+      "description": "A skipped habit entry: blue fill with a white minus-circle.",
+      "html": "<table style=\"border-collapse:separate;border-spacing:6px\"><tr><td class=\"ds-entry ds-skip\" tabindex=\"0\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M8 12h8\"/></svg></td></tr></table>",
+      "css": ".ds-entry { padding: 18px 12px; text-align: center; color: #fff; border-radius: var(--radius-m, 8px); transition: background-color 0.3s ease; cursor: pointer; } .ds-skip { background-color: #64b5f6; } .ds-entry:hover { opacity: 0.7; } .ds-entry:focus-visible { outline: 3px solid var(--background-modifier-border, #888); outline-offset: -2px; }"
+    },
+    {
+      "name": "Date Control",
+      "kind": "button",
+      "refersTo": "date-control",
+      "description": "48px square button for moving the visible date range.",
+      "html": "<button class=\"ds-date-control\" aria-label=\"Previous\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 18-6-6 6-6\"/></svg></button>",
+      "css": ".ds-date-control { width: 48px; height: 48px; background-color: rgba(128,128,128,0.2); border: 1px solid var(--background-modifier-border, #888); border-radius: var(--radius-m, 8px); cursor: pointer; color: inherit; } .ds-date-control:hover { background-color: rgba(128,128,128,0.08); transition: all 0.3s ease-in-out; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Native Guest",
+    "overview": "Tiny Habits lives inside someone else's house. Obsidian owns the theme, the fonts, the radii, and the surfaces; the plugin borrows them through Obsidian's CSS variables and adds only what the host cannot supply: three status colors for habit entries.",
+    "keyCharacteristics": [
+      "Host-themed: every neutral, border, radius, and font comes from Obsidian variables.",
+      "Three plugin-owned colors, all for entry status.",
+      "Flat: no shadows; depth comes from translucency and a 6px gap between cells.",
+      "Keyboard-first: focus is visible and the cells are the interaction targets."
+    ],
+    "rules": [
+      { "name": "The Host First Rule", "body": "If Obsidian already has a variable for it, use the variable. Add a plugin-owned color only for entry status.", "section": "colors" },
+      { "name": "The Status Is Fill Rule", "body": "Entry status is carried by cell fill and an icon, never by text color.", "section": "colors" },
+      { "name": "The Flat Cell Rule", "body": "Cells never get shadows or gradients; hover changes opacity only.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Obsidian variables for surfaces, borders, text, radii, and fonts.",
+      "Do keep the three status colors identical in every theme, with a white icon on top.",
+      "Do keep a visible focus outline on entry cells for keyboard users.",
+      "Do keep the small-screen rule: last date column only at 768px and below."
+    ],
+    "donts": [
+      "Don't hard-code a neutral color, font, or radius the host already provides.",
+      "Don't add shadows, gradients, or decorative borders to cells.",
+      "Don't signal status with color alone; keep the icon.",
+      "Don't introduce a fourth status color without a new entry status."
+    ]
+  }
+}

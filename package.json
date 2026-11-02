@@ -16,7 +16,8 @@
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest run --coverage",
 		"lint": "eslint .",
-		"lint:fix": "eslint . --fix"
+		"lint:fix": "eslint . --fix",
+		"prepare": "git config core.hooksPath .githooks"
 	},
 	"keywords": [],
 	"author": "",

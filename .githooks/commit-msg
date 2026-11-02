@@ -1,0 +1,7 @@
+#!/bin/sh
+# Rejects commit messages with attribution trailers (Co-Authored-By, Claude-Session).
+# Enabled by `pnpm install` through the "prepare" script (core.hooksPath).
+if grep -i -E '^(co-authored-by|claude-session):' "$1" > /dev/null; then
+	echo 'commit-msg: remove the Co-Authored-By / Claude-Session trailer from the commit message.' >&2
+	exit 1
+fi

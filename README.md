@@ -147,9 +147,28 @@ Run with `pnpm run lint`
 
 ### Making a release
 
+Start from a clean, up-to-date `master` branch and run one of:
+
+```bash
+pnpm release patch
+pnpm release minor
+pnpm release major
+pnpm release 1.2.3
 ```
-pnpm run version:new
+
+The command synchronizes `package.json`, `manifest.json` and `versions.json`, builds and validates the plugin, commits the version files, creates an annotated tag, and pushes the commit and tag. GitHub Actions then publishes the GitHub Release automatically with `main.js`, `manifest.json` and `styles.css`. Update `minAppVersion` in the manifest before releasing if the required Obsidian version changes.
+
+The command is safe to retry when the version and tag already point to the same commit. In that case it starts the release repair workflow. It refuses to move a tag that points to another commit.
+
+To only bump the version files without committing, tagging or pushing, run `pnpm version:new <major|minor|patch|x.y.z>`.
+
+To repair a missing release or release asset without making a new version, run:
+
+```bash
+gh workflow run release.yml --ref master -f version=1.2.3
 ```
+
+The repair workflow reuses an existing tag or creates a missing tag from `master` after verifying that the version metadata matches. The generated `main.js` is ignored by Git and is not a release source.
 
 ## Support
 

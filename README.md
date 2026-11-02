@@ -103,6 +103,12 @@ If you are a developer and you wish to run it locally, follow these steps:
 - `pnpm i` to install dependencies.
 - `pnpm run dev` to start compilation in watch mode.
 
+### Running it in a browser, without Obsidian
+
+`pnpm run dev:web` serves the habit tables on http://localhost:5173 with seeded, in-memory habits (they reset on reload). It runs the same code as the plugin; only the host is swapped.
+
+Obsidian sits behind the `Platform` interface in `platform/Platform.ts`. The plugin uses `platform/obsidian/ObsidianPlatform.ts`, and the dev page and tests use `platform/memory/InMemoryPlatform.ts`. Importing `obsidian` anywhere else is a lint error.
+
 ### Manually installing the plugin
 
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.

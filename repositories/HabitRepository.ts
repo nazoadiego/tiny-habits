@@ -1,42 +1,40 @@
-import { type FileManager, type MetadataCache, Notice, TFile, TFolder, type Vault } from 'obsidian'
 import Habit from 'models/Habit'
 import Entry, { type Status } from 'models/Entry'
+import type { HabitFile, Platform } from 'platform/Platform'
 
 export type THabitRepository = {
 	allHabits(path: string, dateFilter?: Set<string>): Promise<Habit[]>
-	buildHabit(path: TFile, dateFilter?: Set<string>): Promise<Habit>
+	buildHabit(file: HabitFile, dateFilter?: Set<string>): Promise<Habit>
 	updateEntry(entry: Entry, status: Status): Entry
 }
 
 class HabitRepository implements THabitRepository {
-	private readonly metadataCache
-	private readonly vault
-	private readonly fileManager
+	private readonly platform
 
-	constructor(vault: Vault, fileManager: FileManager, metadataCache: MetadataCache) {
-		this.vault = vault
-		this.fileManager = fileManager
-		this.metadataCache = metadataCache
+	constructor(platform: Platform) {
+		this.platform = platform
 	}
 
 	async allHabits(folderPath: string, dateFilter?: Set<string>) {
-		const folder = this.vault.getFolderByPath(folderPath)
+		const files = this.platform.listHabitFiles(folderPath)
 
-		if (!(folder instanceof TFolder)) {
-			new Notice(`Couldn't find the folder "${folderPath}"`)
+		if (files == undefined) {
+			this.platform.notify(`Couldn't find the folder "${folderPath}"`)
 			return []
 		}
-
-		const files = folder.children
-			.filter((child): child is TFile => child instanceof TFile)
-			.toSorted((firstFile, secondFile) => firstFile.name.localeCompare(secondFile.name))
 
 		return Array.fromAsync(files, (file) => this.buildHabit(file, dateFilter))
 	}
 
-	async buildHabit(file: TFile, dateFilter?: Set<string>) {
+	async buildHabit(file: HabitFile, dateFilter?: Set<string>) {
 		try {
-			return Habit.fromFile(file, this.metadataCache.getFileCache(file)?.frontmatter, dateFilter)
+			const { habit, invalidEntries } = Habit.fromFile(file, dateFilter)
+
+			for (const { date, status } of invalidEntries) {
+				this.platform.notify(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
+			}
+
+			return habit
 		}
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error)
@@ -44,19 +42,22 @@ class HabitRepository implements THabitRepository {
 		}
 	}
 
+	/**
+	 @description
+		Writes the new status to the habit's file and returns the updated entry right away.
+		The write finishes in the background; if the file is gone or the write fails, the user gets a notice.
+	 */
 	updateEntry(entry: Entry, status: Status) {
-		const file = this.vault.getFileByPath(entry.habitPath)
-
-		if (!(file instanceof TFile)) {
-			new Notice('Couldn\'t update the habit entry!')
-			return entry
-		}
-
 		const updatedEntry = new Entry({ ...entry, status })
 
-		this.fileManager.processFrontMatter(file, (frontmatter) => {
-			frontmatter[entry.frontMatterDate()] = updatedEntry.status
-		})
+		this.platform.updateFrontmatter(entry.habitPath, { [entry.frontMatterDate()]: updatedEntry.status })
+			.then((isUpdated) => {
+				if (!isUpdated) this.platform.notify('Couldn\'t update the habit entry!')
+			})
+			.catch((error: unknown) => {
+				console.error(`Failed to update the habit entry in ${entry.habitPath}:`, error)
+				this.platform.notify('Couldn\'t update the habit entry!')
+			})
 
 		return updatedEntry
 	}

@@ -81,6 +81,18 @@ export default defineConfig(
 		}
 	},
 	{
+		// Obsidian sits behind the Platform interface (platform/Platform.ts); only its implementation and the plugin entry point may import it.
+		ignores: ['platform/obsidian/**', 'main.ts'],
+		rules: {
+			'no-restricted-imports': ['error', {
+				paths: [{
+					name: 'obsidian',
+					message: 'Depend on the Platform interface (platform/Platform.ts) instead. Obsidian APIs belong in platform/obsidian/.'
+				}]
+			}]
+		}
+	},
+	{
 		files: [
 			'**/*.svelte'
 		],

@@ -4,8 +4,8 @@
    A habit belongs to one or more Habit Groups
 */
 
-import Entry from './Entry'
-import { Notice, type FrontMatterCache, type TFile } from 'obsidian'
+import Entry, { type Status } from './Entry'
+import type { HabitFile } from 'platform/Platform'
 import DateValue from './DateValue'
 
 type THabit = {
@@ -14,6 +14,8 @@ type THabit = {
 	path: string,
 	entries: Entry[]
 }
+
+export type InvalidEntry = { date: string, status: unknown }
 
 class Habit implements THabit {
 	id
@@ -28,32 +30,39 @@ class Habit implements THabit {
 		this.entries = entries
 	}
 
-	private static parseFile(file: TFile) {
+	private static parseFile(file: HabitFile) {
 		return { id: file.basename, name: file.basename, path: file.path }
 	}
 
-	static empty(file: TFile): Habit {
+	static empty(file: HabitFile): Habit {
 		const { id, name, path } = this.parseFile(file)
 		return new Habit({ id, name, path, entries: [] })
 	}
 
-	static fromFile(file: TFile, frontmatter: FrontMatterCache | undefined, dateFilter?: Set<string>): Habit {
-		if (!frontmatter) return this.empty(file)
+	/**
+	 @description Builds a habit from its file's frontmatter, keeping only the dates in `dateFilter` when given.
+	 @returns The habit, plus the frontmatter entries that aren't a valid date and status, so the caller can report them.
+	 */
+	static fromFile(file: HabitFile, dateFilter?: Set<string>): { habit: Habit, invalidEntries: InvalidEntry[] } {
+		const { frontmatter } = file
+
+		if (!frontmatter) return { habit: this.empty(file), invalidEntries: [] }
 
 		const { id: habitId, name, path: habitPath } = this.parseFile(file)
+		const invalidEntries: InvalidEntry[] = []
 
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
 			if (dateFilter && !dateFilter.has(date)) return []
 
 			if (!Entry.validateFrontmatter({ YMDDate: date, status })) {
-				new Notice(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
+				invalidEntries.push({ date, status })
 				return []
 			}
 
-			return new Entry({ habitId, habitPath, date: new DateValue(date), status })
+			return new Entry({ habitId, habitPath, date: new DateValue(date), status: status as Status })
 		})
 
-		return new Habit({ id: habitId, name, path: habitPath, entries })
+		return { habit: new Habit({ id: habitId, name, path: habitPath, entries }), invalidEntries }
 	}
 
 	/* getTodayEntry(): Entry {

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Tiny Habits dev</title>
+	</head>
+	<body class="theme-light">
+		<header class="dev-toolbar">
+			<strong>Tiny Habits dev page</strong>
+			<span>In-memory habits, reset on reload.</span>
+			<button id="theme-toggle" type="button">Toggle dark mode</button>
+		</header>
+
+		<main class="markdown-preview-view">
+			<h2>Seeded habits</h2>
+			<div data-habits-source>
+				<script type="text/plain">{ "folderPath": "habits", "displayName": "My Habits" }</script>
+			</div>
+
+			<h2>Empty folder</h2>
+			<div data-habits-source>
+				<script type="text/plain">{ "folderPath": "empty-habits" }</script>
+			</div>
+
+			<h2>Invalid settings</h2>
+			<div data-habits-source>
+				<script type="text/plain">{ "folder": "habits" }</script>
+			</div>
+		</main>
+
+		<div class="notice-container"></div>
+		<script type="module" src="./main.ts"></script>
+	</body>
+</html>

@@ -29,7 +29,7 @@
 		"@vitest/coverage-v8": "4.0.16",
 		"@vitest/ui": "^4.1.12",
 		"builtin-modules": "5.0.0",
-		"esbuild": "0.27.3",
+		"esbuild": "0.28.1",
 		"esbuild-svelte": "^0.9.5",
 		"eslint": "^9.39.5",
 		"eslint-plugin-jsdoc": "^62.9.0",

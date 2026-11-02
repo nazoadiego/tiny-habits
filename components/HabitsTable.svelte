@@ -7,14 +7,15 @@
 	import type SourceSettings from 'models/SourceSettings'
 	import { CollapseStatus } from 'UI/CollapseStatus'
 	import type { THabitRepository } from 'repositories/HabitRepository'
+	import { EntrySelection } from 'UI/EntrySelection'
 
 	interface $Props {
 		settings: SourceSettings;
-		updateEntry: THabitRepository['updateEntry'];
+		updateEntries: THabitRepository['updateEntries'];
 		loadHabits: (folderPath: string, dateFilter: Set<string>) => void;
 	}
 
-	const { updateEntry, settings, loadHabits }: $Props = $props()
+	const { updateEntries, settings, loadHabits }: $Props = $props()
 
 	const habits = $derived($habitStore[settings.folderPath])
 
@@ -31,18 +32,24 @@
 		new Set(dates.map(date => date.toYearMonthDayString()))
 	)
 
+	// Cleared whenever the date window moves, so no selected cell is ever out of view.
+	let selection = $state(EntrySelection.empty())
+
 	function moveBack() {
+		selection = EntrySelection.empty()
 		currentOffset -= 1
 		loadHabits(settings.folderPath, dateFilter)
 	}
 
 	function moveForward() {
+		selection = EntrySelection.empty()
 		currentOffset += 1
 		loadHabits(settings.folderPath, dateFilter)
 
 	}
 
 	function moveToToday() {
+		selection = EntrySelection.empty()
 		currentOffset = 0
 		loadHabits(settings.folderPath, dateFilter)
 	}
@@ -62,8 +69,9 @@
 	<HabitsTableBody
 		{habits}
 		{dates}
-		{updateEntry}
+		{updateEntries}
 		{collapseStatus}
+		bind:selection
 	/>
 </table>
 <div class="date-controls-container">

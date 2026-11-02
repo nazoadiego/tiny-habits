@@ -20,6 +20,7 @@ Habit data lives in the user's own notes, not in a separate database or service.
 - Configured by JSON in the code block (`folderPath`); several blocks may appear in one file, and a block can be collapsed by clicking its table header.
 - Entries are marked completed, failed, skipped, or not started. Navigation covers past and future entries.
 - Keyboard support: arrow keys or hjkl to move, Enter to mark the focused entry.
+- Multi-select: Shift+click, Shift+drag or Shift+arrows select several entries; any status change applies to all of them.
 
 ## Capabilities and Constraints
 - Svelte 5 components built with esbuild and distributed as an Obsidian community plugin (id `tiny-habits`, min app version 0.15.0).

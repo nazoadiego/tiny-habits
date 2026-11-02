@@ -85,6 +85,18 @@ To mark an entry with an specific status these are the shortcuts:
 - Skip - 3
 - Not started - 4
 
+## Selecting several entries
+
+Hold Shift and click entries to select them, across any habits and days in the table. Shift+click a selected entry to unselect it. You can also hold Shift and drag over entries to select them all; a drag that starts on a selected entry unselects instead.
+
+From the keyboard, Shift+arrows (or Shift+hjkl) select the entry you are on and the one you move to.
+
+With a selection, every status change applies to all selected entries:
+- 1 to 4 set all of them to that status.
+- Enter, Space or a click on a selected entry moves all of them to the next status of that entry, so they end up with the same status.
+
+Press Escape to clear the selection. Clicking an entry outside the selection, or moving to other dates, clears it too.
+
 ## Options
 
     ```habits

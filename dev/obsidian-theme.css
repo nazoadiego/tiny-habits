@@ -122,3 +122,9 @@ a.internal-link {
 	padding: 10px 14px;
 	font-size: 0.9em;
 }
+
+/* Obsidian aligns table cell content to the top by default. */
+th,
+td {
+	vertical-align: top;
+}

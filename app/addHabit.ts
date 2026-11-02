@@ -32,17 +32,14 @@ async function chooseFolder(platform: Platform, folderPaths: string[]) {
 	return platform.askChoice('Add a habit to which table?', folderPaths)
 }
 
-// Asks again until the name is valid; undefined means the user cancelled.
+// The dialog shows why a name is invalid and won't submit it; undefined means the user cancelled.
 async function askName(platform: Platform, folderPath: string) {
-	let question = `New habit in ${folderPath}`
+	const input = await platform.askText({
+		title: `New habit in ${folderPath}`,
+		placeholder: 'Habit name',
+		submitLabel: 'Add habit',
+		validate: (text) => Habit.parseName(text).message
+	})
 
-	while (true) {
-		const input = await platform.askText(question, 'Habit name')
-		if (input == undefined) return undefined
-
-		const { name, message } = Habit.parseName(input)
-		if (name != undefined) return name
-
-		question = message
-	}
+	return input == undefined ? undefined : Habit.parseName(input).name
 }

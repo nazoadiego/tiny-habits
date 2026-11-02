@@ -1,4 +1,4 @@
-import type { CreateHabitFileResult, Frontmatter, FrontmatterUpdate, HabitFile, IconRenderer, Platform } from 'platform/Platform'
+import type { CreateHabitFileResult, Frontmatter, FrontmatterUpdate, HabitFile, IconRenderer, Platform, TextQuestion } from 'platform/Platform'
 
 type InMemoryFile = { path: string, frontmatter?: Frontmatter }
 
@@ -6,7 +6,7 @@ type InMemoryPlatformOptions = {
 	folders: string[]
 	files: InMemoryFile[]
 	notify?: (message: string) => void
-	askText?: (question: string, placeholder?: string) => Promise<string | undefined>
+	askText?: (question: TextQuestion) => Promise<string | undefined>
 	askChoice?: (question: string, choices: string[]) => Promise<string | undefined>
 	setIcon?: IconRenderer
 }
@@ -79,8 +79,8 @@ export default class InMemoryPlatform implements Platform {
 		return 'created'
 	}
 
-	askText(question: string, placeholder?: string): Promise<string | undefined> {
-		return this.textAsker(question, placeholder)
+	askText(question: TextQuestion): Promise<string | undefined> {
+		return this.textAsker(question)
 	}
 
 	askChoice(question: string, choices: string[]): Promise<string | undefined> {

@@ -1,11 +1,12 @@
-import { type App, FuzzySuggestModal, Modal, Setting } from 'obsidian'
+import { type App, FuzzySuggestModal, Modal } from 'obsidian'
+import type { TextQuestion } from 'platform/Platform'
 
 /**
  @returns What the user typed, or undefined when they dismissed the dialog.
  */
-export function askText(app: App, question: string, placeholder?: string): Promise<string | undefined> {
+export function askText(app: App, question: TextQuestion): Promise<string | undefined> {
 	return new Promise((resolve) => {
-		new TextPrompt(app, question, placeholder, resolve).open()
+		new TextPrompt(app, question, resolve).open()
 	})
 }
 
@@ -23,29 +24,54 @@ class TextPrompt extends Modal {
 
 	constructor(
 		app: App,
-		private readonly question: string,
-		private readonly placeholder: string | undefined,
+		private readonly question: TextQuestion,
 		private readonly resolve: (answer: string | undefined) => void
 	) {
 		super(app)
 	}
 
 	onOpen() {
-		this.setTitle(this.question)
+		const { title, placeholder, submitLabel, validate } = this.question
 
-		new Setting(this.contentEl).addText((text) => {
-			if (this.placeholder != undefined) text.setPlaceholder(this.placeholder)
+		this.setTitle(title)
+		this.modalEl.addClass('tiny-habits-prompt')
 
-			text.inputEl.addEventListener('keydown', (event) => {
-				if (event.key !== 'Enter' || event.isComposing) return
+		const input = this.contentEl.createEl('input', { type: 'text', cls: 'tiny-habits-prompt-input' })
+		if (placeholder != undefined) input.placeholder = placeholder
 
-				event.preventDefault()
-				this.answer = text.getValue()
-				this.close()
-			})
+		const error = this.contentEl.createDiv({ cls: 'tiny-habits-prompt-error' })
 
-			text.inputEl.focus()
+		const buttons = this.contentEl.createDiv({ cls: 'modal-button-container' })
+		const submitButton = buttons.createEl('button', { text: submitLabel, cls: 'mod-cta' })
+		buttons.createEl('button', { text: 'Cancel' }).addEventListener('click', () => this.close())
+
+		const submit = () => {
+			if (validate(input.value) != undefined || input.value.trim() === '') return
+
+			this.answer = input.value
+			this.close()
+		}
+
+		// The error only appears once the user has typed something, so the empty dialog starts calm.
+		const refresh = () => {
+			const message = validate(input.value)
+			const isEmpty = input.value.trim() === ''
+
+			error.setText(isEmpty ? '' : (message ?? ''))
+			submitButton.disabled = message != undefined
+		}
+
+		input.addEventListener('input', refresh)
+		input.addEventListener('keydown', (event) => {
+			if (event.key !== 'Enter' || event.isComposing) return
+
+			event.preventDefault()
+			submit()
 		})
+		submitButton.addEventListener('click', submit)
+
+		refresh()
+		input.focus()
 	}
 
 	onClose() {

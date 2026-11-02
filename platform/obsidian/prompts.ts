@@ -42,8 +42,8 @@ class TextPrompt extends Modal {
 		const error = this.contentEl.createDiv({ cls: 'tiny-habits-prompt-error' })
 
 		const buttons = this.contentEl.createDiv({ cls: 'modal-button-container' })
-		const submitButton = buttons.createEl('button', { text: submitLabel, cls: 'mod-cta' })
 		buttons.createEl('button', { text: 'Cancel' }).addEventListener('click', () => this.close())
+		const submitButton = buttons.createEl('button', { text: submitLabel, cls: 'mod-cta' })
 
 		const submit = () => {
 			if (validate(input.value) != undefined || input.value.trim() === '') return

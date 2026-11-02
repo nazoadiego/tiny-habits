@@ -54,6 +54,7 @@
 		]
 	},
 	"dependencies": {
-		"dayjs": "^1.11.19"
+		"dayjs": "^1.11.19",
+		"tinykeys": "4.0.1"
 	}
 }

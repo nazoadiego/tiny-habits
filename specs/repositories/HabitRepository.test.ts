@@ -19,8 +19,8 @@ function buildPlatform() {
 	return { platform, notices, repository: new HabitRepository(platform) }
 }
 
-function entryFor(habitPath: string) {
-	return Entry.empty({ habitId: 'Read', habitPath, date: new DateValue('2026-01-03') })
+function entryFor(habitPath: string, date: string, habitId = 'Read') {
+	return Entry.empty({ habitId, habitPath, date: new DateValue(date) })
 }
 
 describe('HabitRepository', () => {
@@ -70,23 +70,61 @@ describe('HabitRepository', () => {
 		})
 	})
 
-	describe('updateEntry', () => {
-		it('writes the status to the frontmatter and returns the updated entry', async () => {
+	describe('updateEntries', () => {
+		it('writes the status to every entry, keeping the rest of the frontmatter', async () => {
 			const { platform, repository } = buildPlatform()
 
-			const updatedEntry = repository.updateEntry(entryFor('habits/Read.md'), Entry.STATUS.completed)
-			await vi.waitFor(() => expect(platform.frontmatterOf('habits/Read.md')?.['2026-01-03']).toBe('completed'))
+			await repository.updateEntries([
+				entryFor('habits/Read.md', '2026-01-03'),
+				entryFor('habits/Read.md', '2026-01-04'),
+				entryFor('habits/Meditate.md', '2026-01-03', 'Meditate')
+			], Entry.STATUS.completed)
 
-			expect(updatedEntry.status).toBe('completed')
-			expect(platform.frontmatterOf('habits/Read.md')?.['2026-01-01']).toBe('completed')
+			expect(platform.frontmatterOf('habits/Read.md')).toEqual({
+				'2026-01-01': 'completed', '2026-01-02': 'failed', tags: 'not-an-entry', '2026-01-03': 'completed', '2026-01-04': 'completed'
+			})
+			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', '2026-01-03': 'completed' })
 		})
 
-		it('notifies when the habit file does not exist', async () => {
-			const { repository, notices } = buildPlatform()
+		it('writes each habit file once', async () => {
+			const { platform, repository } = buildPlatform()
+			const updateFrontmatter = vi.spyOn(platform, 'updateFrontmatter')
 
-			repository.updateEntry(entryFor('habits/Gone.md'), Entry.STATUS.completed)
+			await repository.updateEntries([
+				entryFor('habits/Read.md', '2026-01-03'),
+				entryFor('habits/Read.md', '2026-01-04')
+			], Entry.STATUS.skip)
 
-			await vi.waitFor(() => expect(notices).toEqual(['Couldn\'t update the habit entry!']))
+			expect(updateFrontmatter).toHaveBeenCalledExactlyOnceWith('habits/Read.md', { '2026-01-03': 'skip', '2026-01-04': 'skip' })
+		})
+
+		it('updates the other habits and names the failed ones in one notice', async () => {
+			const { platform, repository, notices } = buildPlatform()
+			const updateFrontmatter = platform.updateFrontmatter.bind(platform)
+			vi.spyOn(platform, 'updateFrontmatter').mockImplementation(async (path, values) => {
+				if (path === 'habits/Meditate.md') throw new Error('disk full')
+				return updateFrontmatter(path, values)
+			})
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			await repository.updateEntries([
+				entryFor('habits/Gone.md', '2026-01-03', 'Gone'),
+				entryFor('habits/Meditate.md', '2026-01-03', 'Meditate'),
+				entryFor('habits/Read.md', '2026-01-03')
+			], Entry.STATUS.failed)
+
+			expect(platform.frontmatterOf('habits/Read.md')?.['2026-01-03']).toBe('failed')
+			expect(notices).toEqual(['Couldn\'t update Gone, Meditate'])
+		})
+
+		it('does nothing for no entries', async () => {
+			const { platform, repository, notices } = buildPlatform()
+			const updateFrontmatter = vi.spyOn(platform, 'updateFrontmatter')
+
+			await repository.updateEntries([], Entry.STATUS.completed)
+
+			expect(updateFrontmatter).not.toHaveBeenCalled()
+			expect(notices).toEqual([])
 		})
 	})
 })

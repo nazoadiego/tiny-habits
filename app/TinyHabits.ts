@@ -60,7 +60,7 @@ export default class TinyHabits {
 			target: element,
 			context: iconContext((iconElement, icon) => this.platform.setIcon(iconElement, icon)),
 			props: {
-				updateEntry: (entry: Entry, status: Status) => this.habitRepository.updateEntry(entry, status),
+				updateEntries: (entries: Entry[], status: Status) => this.habitRepository.updateEntries(entries, status),
 				loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
 				settings
 			}

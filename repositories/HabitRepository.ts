@@ -1,11 +1,12 @@
 import Habit from 'models/Habit'
-import Entry, { type Status } from 'models/Entry'
+import type Entry from 'models/Entry'
+import type { Status } from 'models/Entry'
 import type { HabitFile, Platform } from 'platform/Platform'
 
 export type THabitRepository = {
 	allHabits(path: string, dateFilter?: Set<string>): Promise<Habit[]>
 	buildHabit(file: HabitFile, dateFilter?: Set<string>): Promise<Habit>
-	updateEntry(entry: Entry, status: Status): Entry
+	updateEntries(entries: Entry[], status: Status): Promise<void>
 }
 
 class HabitRepository implements THabitRepository {
@@ -44,22 +45,35 @@ class HabitRepository implements THabitRepository {
 
 	/**
 	 @description
-		Writes the new status to the habit's file and returns the updated entry right away.
-		The write finishes in the background; if the file is gone or the write fails, the user gets a notice.
+		Writes the status to every entry, one frontmatter write per habit file, and waits for all of them.
+		A failed file doesn't stop the others; the user gets one notice naming the habits that weren't updated.
 	 */
-	updateEntry(entry: Entry, status: Status) {
-		const updatedEntry = new Entry({ ...entry, status })
+	async updateEntries(entries: Entry[], status: Status) {
+		const valuesByHabitPath = new Map<string, Record<string, string>>()
+		const habitIdByPath = new Map<string, string>()
 
-		this.platform.updateFrontmatter(entry.habitPath, { [entry.frontMatterDate()]: updatedEntry.status })
-			.then((isUpdated) => {
-				if (!isUpdated) this.platform.notify('Couldn\'t update the habit entry!')
-			})
-			.catch((error: unknown) => {
-				console.error(`Failed to update the habit entry in ${entry.habitPath}:`, error)
-				this.platform.notify('Couldn\'t update the habit entry!')
-			})
+		for (const entry of entries) {
+			const values = valuesByHabitPath.get(entry.habitPath) ?? {}
+			values[entry.frontMatterDate()] = status
+			valuesByHabitPath.set(entry.habitPath, values)
+			habitIdByPath.set(entry.habitPath, entry.habitId)
+		}
 
-		return updatedEntry
+		const habitPaths = [...valuesByHabitPath.keys()]
+		const results = await Promise.allSettled(
+			habitPaths.map((habitPath) => this.platform.updateFrontmatter(habitPath, valuesByHabitPath.get(habitPath) ?? {}))
+		)
+
+		const failedHabitIds = results.flatMap((result, index) => {
+			if (result.status === 'fulfilled' && result.value) return []
+
+			const habitPath = habitPaths[index]
+			if (result.status === 'rejected') console.error(`Failed to update the habit entries in ${habitPath}:`, result.reason)
+
+			return [habitIdByPath.get(habitPath) ?? habitPath]
+		})
+
+		if (failedHabitIds.length > 0) this.platform.notify(`Couldn't update ${failedHabitIds.join(', ')}`)
 	}
 }
 

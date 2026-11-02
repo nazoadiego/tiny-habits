@@ -13,6 +13,7 @@ body.theme-light {
 	--mono-rgb-100: 0, 0, 0;
 	--interactive-normal: #ffffff;
 	--interactive-hover: #f2f3f5;
+	--interactive-accent: #8a5cf5;
 }
 
 body.theme-dark {
@@ -26,6 +27,7 @@ body.theme-dark {
 	--mono-rgb-100: 255, 255, 255;
 	--interactive-normal: #363636;
 	--interactive-hover: #3f3f3f;
+	--interactive-accent: #7f6df2;
 }
 
 body {

@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
+		"dev:web": "vite --config dev/vite.config.ts",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version:new": "node scripts/new-version.js",
 		"svelte-check": "svelte-check --tsconfig tsconfig.json",
@@ -21,6 +22,7 @@
 	"devDependencies": {
 		"@eslint/js": "^9.39.2",
 		"@stylistic/eslint-plugin": "^5.10.0",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@types/node": "^25.3.5",
 		"@typescript-eslint/eslint-plugin": "^8.55.0",
 		"@typescript-eslint/parser": "^8.56.1",

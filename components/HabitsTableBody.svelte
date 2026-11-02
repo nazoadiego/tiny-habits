@@ -198,7 +198,7 @@
 </tbody>
 
 {#snippet habitCell(habit: Habit)}
-	<td class="habit-cell">
+	<td class="habit-cell" class:scheduled={!habit.schedule.isEveryDay}>
 		<div class="habit-cell-name">
 			<a aria-label={habit.path} href={habit.path} class="internal-link">
 				{habit.name}
@@ -262,6 +262,7 @@
 		min-width: 0; /* Obsidian gives table cells a min-width in ch */
 		height: var(--tiny-cell-size);
 		padding: 0;
+		vertical-align: middle;
 	}
 
 	td.entry-cell.skip {
@@ -292,8 +293,22 @@
 		position: relative;
 		background-color: rgba(var(--mono-rgb-0), 0.2);
 		overflow-wrap: anywhere;
+		vertical-align: middle;
 		/* Room for the schedule button on both sides, so the name stays centered. */
 		padding-inline: 36px;
+	}
+
+	/* The name and its summary must fit the row, so a scheduled habit never makes its row taller than the cells. */
+	td.habit-cell.scheduled {
+		height: var(--tiny-cell-size);
+		padding-block: 0;
+	}
+
+	td.habit-cell.scheduled a {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.habit-cell-name {
@@ -303,6 +318,7 @@
 
 	.schedule-summary {
 		color: var(--text-faint);
+		line-height: 1.2;
 	}
 
 	/* A flat icon in the corner of the cell. Obsidian's clickable-icon class supplies its hover look. */

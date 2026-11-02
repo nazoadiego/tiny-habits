@@ -1,4 +1,4 @@
-import type { Frontmatter, HabitFile, IconRenderer, Platform } from 'platform/Platform'
+import type { Frontmatter, FrontmatterUpdate, HabitFile, IconRenderer, Platform } from 'platform/Platform'
 
 type InMemoryFile = { path: string, frontmatter?: Frontmatter }
 
@@ -39,10 +39,17 @@ export default class InMemoryPlatform implements Platform {
 			.toSorted((firstFile, secondFile) => fileName(firstFile.path).localeCompare(fileName(secondFile.path)))
 	}
 
-	async updateFrontmatter(path: string, values: Record<string, string>): Promise<boolean> {
+	async updateFrontmatter(path: string, values: FrontmatterUpdate): Promise<boolean> {
 		if (!this.files.has(path)) return false
 
-		this.files.set(path, { ...this.files.get(path), ...values })
+		const frontmatter: Frontmatter = { ...this.files.get(path) }
+
+		for (const [key, value] of Object.entries(values)) {
+			if (value === undefined) delete frontmatter[key]
+			else frontmatter[key] = value
+		}
+
+		this.files.set(path, frontmatter)
 
 		// Obsidian fires its vault events after the write, never during it.
 		queueMicrotask(() => this.emitFolderChanged(parentPath(path)))

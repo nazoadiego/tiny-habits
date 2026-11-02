@@ -2,6 +2,7 @@ import HabitRepository from 'repositories/HabitRepository'
 import InMemoryPlatform from 'platform/memory/InMemoryPlatform'
 import Entry from 'models/Entry'
 import DateValue from 'models/DateValue'
+import Schedule from 'models/Schedule'
 
 function buildPlatform() {
 	const notices: string[] = []
@@ -10,6 +11,8 @@ function buildPlatform() {
 		files: [
 			{ path: 'habits/Read.md', frontmatter: { '2026-01-01': 'completed', '2026-01-02': 'failed', tags: 'not-an-entry' } },
 			{ path: 'habits/Meditate.md', frontmatter: { '2026-01-01': 'skip' } },
+			{ path: 'habits/Write.md', frontmatter: { schedule: ['wed'], '2026-01-07': 'completed' } },
+			{ path: 'habits/Broken.md', frontmatter: { schedule: 'sometimes' } },
 			{ path: 'habits/No frontmatter.md' },
 			{ path: 'habits/archive/Old.md', frontmatter: { '2026-01-01': 'completed' } }
 		],
@@ -17,6 +20,14 @@ function buildPlatform() {
 	})
 
 	return { platform, notices, repository: new HabitRepository(platform) }
+}
+
+async function habitNamed(repository: HabitRepository, name: string) {
+	const habits = await repository.allHabits('habits')
+	const habit = habits.find(habit => habit.name === name)
+	if (habit == undefined) throw new Error(`No habit named ${name}`)
+
+	return habit
 }
 
 function entryFor(habitPath: string, date: string, habitId = 'Read') {
@@ -30,8 +41,8 @@ describe('HabitRepository', () => {
 
 			const habits = await repository.allHabits('habits')
 
-			expect(habits.map(habit => habit.name)).toEqual(['Meditate', 'No frontmatter', 'Read'])
-			expect(habits.map(habit => habit.path)).toEqual(['habits/Meditate.md', 'habits/No frontmatter.md', 'habits/Read.md'])
+			expect(habits.map(habit => habit.name)).toEqual(['Broken', 'Meditate', 'No frontmatter', 'Read', 'Write'])
+			expect(habits.map(habit => habit.path)).toEqual(['habits/Broken.md', 'habits/Meditate.md', 'habits/No frontmatter.md', 'habits/Read.md', 'habits/Write.md'])
 		})
 
 		it('keeps only the dates in the filter', async () => {
@@ -57,7 +68,35 @@ describe('HabitRepository', () => {
 			const habits = await repository.allHabits('habits')
 
 			expect(habits.find(habit => habit.name === 'Read')?.entries).toHaveLength(2)
-			expect(notices).toEqual(['Invalid date format or status for entry in Habit file Read. Date: tags. Status: not-an-entry'])
+			expect(notices.filter(notice => notice.startsWith('Invalid date format'))).toEqual(['Invalid date format or status for entry in Habit file Read. Date: tags. Status: not-an-entry'])
+		})
+
+		it('reads the schedule property and never as an entry', async () => {
+			const { repository, notices } = buildPlatform()
+
+			const habits = await repository.allHabits('habits')
+			const write = habits.find(habit => habit.name === 'Write')
+
+			expect(write?.schedule.days).toEqual(['wed'])
+			expect(write?.entries.map(entry => entry.frontMatterDate())).toEqual(['2026-01-07'])
+			expect(notices).not.toContain(expect.stringContaining('Write'))
+		})
+
+		it('schedules every day when there is no schedule property', async () => {
+			const { repository } = buildPlatform()
+
+			const habits = await repository.allHabits('habits')
+
+			expect(habits.find(habit => habit.name === 'Read')?.schedule.isEveryDay).toBe(true)
+		})
+
+		it('notifies about an invalid schedule and applies every day', async () => {
+			const { repository, notices } = buildPlatform()
+
+			const habits = await repository.allHabits('habits')
+
+			expect(habits.find(habit => habit.name === 'Broken')?.schedule.isEveryDay).toBe(true)
+			expect(notices).toContain('Invalid schedule in Habit file Broken. Use a list of weekdays, like [mon, wed, fri]. It applies every day for now')
 		})
 
 		it('notifies and returns no habits when the folder does not exist', async () => {
@@ -67,6 +106,36 @@ describe('HabitRepository', () => {
 
 			expect(habits).toEqual([])
 			expect(notices).toEqual(['Couldn\'t find the folder "missing"'])
+		})
+	})
+
+	describe('updateSchedule', () => {
+		it('writes the schedule to the habit note, keeping the entries', async () => {
+			const { platform, repository } = buildPlatform()
+			const meditate = await habitNamed(repository, 'Meditate')
+
+			await repository.updateSchedule(meditate, Schedule.of(['mon', 'wed'])!)
+
+			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', schedule: ['mon', 'wed'] })
+		})
+
+		it('removes the property when the schedule is every day', async () => {
+			const { platform, repository } = buildPlatform()
+			const write = await habitNamed(repository, 'Write')
+
+			await repository.updateSchedule(write, Schedule.everyDay())
+
+			expect(platform.frontmatterOf('habits/Write.md')).toEqual({ '2026-01-07': 'completed' })
+		})
+
+		it('notifies when the note is gone', async () => {
+			const { platform, repository, notices } = buildPlatform()
+			const meditate = await habitNamed(repository, 'Meditate')
+			vi.spyOn(platform, 'updateFrontmatter').mockResolvedValue(false)
+
+			await repository.updateSchedule(meditate, Schedule.of(['mon'])!)
+
+			expect(notices).toContain('Couldn\'t update Meditate')
 		})
 	})
 

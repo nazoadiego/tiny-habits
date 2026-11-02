@@ -85,6 +85,16 @@ To mark an entry with an specific status these are the shortcuts:
 - Skip - 3
 - Not started - 4
 
+## Scheduling a habit by weekday
+
+A habit doesn't have to apply every day. Click the calendar button next to a habit's name and pick the weekdays it applies on. The choice is saved in that habit's own note as a `schedule` property, which you can also edit by hand:
+
+```yaml
+schedule: [wed]
+```
+
+Days outside the schedule show as a paler skip. Nothing is written to the note for them, and you can still mark them like any other day. A habit with no `schedule` applies every day.
+
 ## Selecting several entries
 
 Hold Shift and click entries to select them, across any habits and days in the table. Shift+click a selected entry to unselect it. You can also hold Shift and drag over entries to select them all; a drag that starts on a selected entry unselects instead.

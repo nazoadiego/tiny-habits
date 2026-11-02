@@ -4,6 +4,9 @@ import type { Status } from 'models/Entry'
 const HABITS = ['Drink water', 'Meditate', 'Read', 'Stretch', 'Write']
 const DAYS_OF_HISTORY = 28
 
+// Habits that don't apply every day.
+const SCHEDULES: Record<string, string[]> = { Write: ['wed'], Stretch: ['mon', 'wed', 'fri'] }
+
 // A fixed pattern, so the page looks the same on every reload (today is always left unstarted).
 const PATTERN: (Status | undefined)[] = ['completed', 'completed', 'failed', 'completed', 'skip', undefined, 'completed', 'failed']
 
@@ -14,7 +17,8 @@ export function seedHabitFiles() {
 	const today = new DateValue(new Date().toISOString())
 
 	return HABITS.map((name, habitIndex) => {
-		const frontmatter: Record<string, Status> = {}
+		const frontmatter: Record<string, Status | string[]> = {}
+		if (SCHEDULES[name]) frontmatter.schedule = SCHEDULES[name]
 
 		for (let daysAgo = 1; daysAgo <= DAYS_OF_HISTORY; daysAgo++) {
 			const status = PATTERN[(daysAgo + (habitIndex * 3)) % PATTERN.length]

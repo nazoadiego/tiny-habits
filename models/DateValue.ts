@@ -48,6 +48,13 @@ class DateValue implements TDateValue {
 		return this.value ? this.value.format('ddd') : '-'
 	}
 
+	/**
+	 @returns The day of the week, from 0 (Sunday) to 6 (Saturday), or NaN for an invalid date.
+	 */
+	dayOfWeek() {
+		return this.value ? this.value.day() : Number.NaN
+	}
+
 	toDate() {
 		return this.value ? this.value.toDate() : undefined
 	}

@@ -1,5 +1,6 @@
 import Habit from 'models/Habit'
 import type Entry from 'models/Entry'
+import type Schedule from 'models/Schedule'
 import type { Status } from 'models/Entry'
 import type { HabitFile, Platform } from 'platform/Platform'
 
@@ -7,6 +8,7 @@ export type THabitRepository = {
 	allHabits(path: string, dateFilter?: Set<string>): Promise<Habit[]>
 	buildHabit(file: HabitFile, dateFilter?: Set<string>): Promise<Habit>
 	updateEntries(entries: Entry[], status: Status): Promise<void>
+	updateSchedule(habit: Habit, schedule: Schedule): Promise<void>
 }
 
 class HabitRepository implements THabitRepository {
@@ -29,10 +31,14 @@ class HabitRepository implements THabitRepository {
 
 	async buildHabit(file: HabitFile, dateFilter?: Set<string>) {
 		try {
-			const { habit, invalidEntries } = Habit.fromFile(file, dateFilter)
+			const { habit, invalidEntries, hasInvalidSchedule } = Habit.fromFile(file, dateFilter)
 
 			for (const { date, status } of invalidEntries) {
 				this.platform.notify(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
+			}
+
+			if (hasInvalidSchedule) {
+				this.platform.notify(`Invalid schedule in Habit file ${file.basename}. Use a list of weekdays, like [mon, wed, fri]. It applies every day for now`)
 			}
 
 			return habit
@@ -40,6 +46,23 @@ class HabitRepository implements THabitRepository {
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error)
 			return Habit.empty(file)
+		}
+	}
+
+	/**
+	 @description
+		Saves the schedule in the habit's own note, as the `schedule` property.
+		A schedule of every day removes the property, since that is what a habit without one means.
+	 */
+	async updateSchedule(habit: Habit, schedule: Schedule) {
+		try {
+			const wasUpdated = await this.platform.updateFrontmatter(habit.path, { [Habit.SCHEDULE_KEY]: schedule.toFrontmatter() })
+
+			if (!wasUpdated) this.platform.notify(`Couldn't update ${habit.name}`)
+		}
+		catch (error) {
+			console.error(`Failed to update the schedule in ${habit.path}:`, error)
+			this.platform.notify(`Couldn't update ${habit.name}`)
 		}
 	}
 

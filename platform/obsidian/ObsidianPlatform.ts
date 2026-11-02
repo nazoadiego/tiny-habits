@@ -1,5 +1,5 @@
 import { Notice, type Plugin, setIcon, TFile, TFolder, type TAbstractFile } from 'obsidian'
-import type { HabitFile, Platform } from 'platform/Platform'
+import type { FrontmatterUpdate, HabitFile, Platform } from 'platform/Platform'
 
 export default class ObsidianPlatform implements Platform {
 	private readonly plugin
@@ -27,13 +27,16 @@ export default class ObsidianPlatform implements Platform {
 			}))
 	}
 
-	async updateFrontmatter(path: string, values: Record<string, string>): Promise<boolean> {
+	async updateFrontmatter(path: string, values: FrontmatterUpdate): Promise<boolean> {
 		const file = this.app.vault.getFileByPath(path)
 
 		if (!(file instanceof TFile)) return false
 
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-			Object.assign(frontmatter, values)
+			for (const [key, value] of Object.entries(values)) {
+				if (value === undefined) delete frontmatter[key]
+				else frontmatter[key] = value
+			}
 		})
 
 		return true

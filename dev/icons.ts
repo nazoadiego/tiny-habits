@@ -4,6 +4,7 @@ const ICON_PATHS: Record<string, string> = {
 	'lucide-circle-minus': '<circle cx="12" cy="12" r="10"/><path d="M8 12h8"/>',
 	'lucide-circle-x': '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
 	'lucide-timer-reset': '<path d="M10 2h4"/><path d="M12 14v-4"/><path d="M4 13a8 8 0 0 1 8-7 8 8 0 1 1-5.3 14L4 17.6"/><path d="M9 17H4v5"/>',
+	'lucide-calendar-days': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
 	'lucide-chevron-left': '<path d="m15 18-6-6 6-6"/>',
 	'lucide-chevron-right': '<path d="m9 18 6-6-6-6"/>'
 }

@@ -15,8 +15,12 @@
 }
 
 .tiny-habits-prompt-error {
-  min-height: 1.5em;
   margin-top: var(--size-4-2);
   color: var(--text-error);
   font-size: var(--font-ui-small);
+}
+
+/* No reason to show: take no space, so the buttons sit right under the input. */
+.tiny-habits-prompt-error:empty {
+  display: none;
 }

@@ -17,6 +17,9 @@ const platform = new InMemoryPlatform({
 	folders: [HABITS_FOLDER, EMPTY_FOLDER],
 	files: seedHabitFiles(),
 	notify: showNotice,
+	// The dev page has no command palette, so plain browser prompts stand in for the dialogs.
+	askText: (question, placeholder) => Promise.resolve(globalThis.prompt(question, placeholder ? '' : undefined) ?? undefined),
+	askChoice: (question, choices) => Promise.resolve(globalThis.prompt(`${question}\n${choices.join('\n')}`, choices[0]) ?? undefined),
 	setIcon
 })
 
@@ -39,6 +42,8 @@ document.addEventListener('click', (event) => {
 	event.preventDefault()
 	showNotice(`Would open ${link.getAttribute('href')} in Obsidian`)
 })
+
+document.querySelector('#add-habit')?.addEventListener('click', () => tinyHabits.addHabit())
 
 const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle')
 themeToggle?.addEventListener('click', () => {

@@ -4,6 +4,7 @@ import HabitRepository from 'repositories/HabitRepository'
 import { habitStore } from 'stores/store'
 import HabitsTable from 'components/HabitsTable.svelte'
 import SomethingWentWrongMessage from 'components/SomethingWentWrongMessage.svelte'
+import addHabit from 'app/addHabit'
 import SourceSettings from 'models/SourceSettings'
 import DateRange from 'models/DateRange'
 import type { Status } from 'models/Entry'
@@ -68,6 +69,15 @@ export default class TinyHabits {
 				settings
 			}
 		})
+	}
+
+	/**
+	 @description
+		Asks for a name and creates the habit in a table's folder.
+		The tables are the ones this session has rendered; with several, the user picks one.
+	 */
+	addHabit() {
+		return addHabit(this.platform, this.habitRepository, Object.keys(get(habitStore)))
 	}
 
 	async loadHabitStore(folderPath: string | undefined, dateFilter?: Set<string>) {

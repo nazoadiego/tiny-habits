@@ -9,6 +9,7 @@ export type THabitRepository = {
 	buildHabit(file: HabitFile, dateFilter?: Set<string>): Promise<Habit>
 	updateEntries(entries: Entry[], status: Status): Promise<void>
 	updateSchedule(habit: Habit, schedule: Schedule): Promise<void>
+	createHabit(folderPath: string, name: string): Promise<boolean>
 }
 
 class HabitRepository implements THabitRepository {
@@ -46,6 +47,29 @@ class HabitRepository implements THabitRepository {
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error)
 			return Habit.empty(file)
+		}
+	}
+
+	/**
+	 @description
+		Creates an empty note for the habit in the table's folder, and tells the user if it can't.
+	 @param folderPath The table's folder.
+	 @param name Already checked with HabitName.parse.
+	 @returns Whether the note was created.
+	 */
+	async createHabit(folderPath: string, name: string) {
+		try {
+			const result = await this.platform.createHabitFile(folderPath, name)
+
+			if (result === 'exists') this.platform.notify(`"${name}" already exists in ${folderPath}`)
+			if (result === 'missing-folder') this.platform.notify(`Couldn't find the folder "${folderPath}"`)
+
+			return result === 'created'
+		}
+		catch (error) {
+			console.error(`Failed to create the habit ${name} in ${folderPath}:`, error)
+			this.platform.notify(`Couldn't create ${name}`)
+			return false
 		}
 	}
 

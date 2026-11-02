@@ -59,7 +59,7 @@ export default class ObsidianPlatform implements Platform {
 	}
 
 	async createHabitFile(folderPath: string, name: string): Promise<CreateHabitFileResult> {
-		if (this.app.vault.getFolderByPath(folderPath) == undefined) return 'missing-folder'
+		await this.ensureFolder(folderPath)
 
 		const path = `${folderPath}/${name}.md`
 		if (this.app.vault.getAbstractFileByPath(path) != undefined) return 'exists'
@@ -67,6 +67,17 @@ export default class ObsidianPlatform implements Platform {
 		await this.app.vault.create(path, '')
 
 		return 'created'
+	}
+
+	// Creates each missing level on its own, so it works the same whatever the vault adapter does with nested paths.
+	private async ensureFolder(folderPath: string) {
+		let path = ''
+
+		for (const segment of folderPath.split('/').filter(Boolean)) {
+			path = path === '' ? segment : `${path}/${segment}`
+
+			if (this.app.vault.getAbstractFileByPath(path) == undefined) await this.app.vault.createFolder(path)
+		}
 	}
 
 	askText(question: string, placeholder?: string): Promise<string | undefined> {

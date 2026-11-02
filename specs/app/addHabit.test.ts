@@ -71,4 +71,13 @@ describe('addHabit', () => {
 
 		expect(notices).toEqual(['"Read" already exists in habits'])
 	})
+
+	it('creates the folder when the table points at one that does not exist yet', async () => {
+		const { run, platform, notices } = setup({ answers: ['Run'] })
+
+		await run(['new/nested'])
+
+		expect(platform.listHabitFiles('new/nested')?.map(file => file.path)).toEqual(['new/nested/Run.md'])
+		expect(notices).toEqual(['Added Run to new/nested'])
+	})
 })

@@ -3,37 +3,86 @@ name: Release Obsidian plugin
 on:
   push:
     tags:
-      - "*"
+      - '[0-9]*.[0-9]*.[0-9]*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing or prepared version to publish or repair
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Clone repository
-        uses: actions/checkout@v4
-    
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve release tag
+        id: release
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+          PUSHED_TAG: ${{ github.ref_name }}
+        run: |
+          tag="${DISPATCH_VERSION:-$PUSHED_TAG}"
+          if ! [[ "$tag" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid release version: $tag" >&2
+            exit 1
+          fi
+          git fetch origin --tags --force
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && git show-ref --verify --quiet "refs/tags/$tag"; then
+            git checkout --detach "refs/tags/$tag"
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag_exists=${{ github.event_name == 'push' && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Setup and install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-          version: latest
-      - name: Build plugin
-        run: |
-          pnpm run build
-
-      - name: Create release
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Test release tooling
+        run: pnpm run test:release
+      - name: Verify release metadata
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: node scripts/verify-release.mjs "$RELEASE_TAG" --skip-assets
+      - run: pnpm build
+      - name: Verify release assets
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: node scripts/verify-release.mjs "$RELEASE_TAG"
+      - name: Create missing tag
+        if: github.event_name == 'workflow_dispatch' && steps.release.outputs.tag_exists == 'false'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          tag="${GITHUB_REF#refs/tags/}"
-
-          gh release create "$tag" \
-            --title="$tag" \
-            --draft \
-            main.js manifest.json styles.css
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git tag -a "$RELEASE_TAG" -m "$RELEASE_TAG"
+          git push origin "refs/tags/$RELEASE_TAG"
+      - name: Publish or repair GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          assets=(main.js manifest.json)
+          [[ -f styles.css ]] && assets+=(styles.css)
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+            gh release edit "$RELEASE_TAG" --title "$RELEASE_TAG" --draft=false --latest
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --title "$RELEASE_TAG" --generate-notes --latest --verify-tag
+          fi

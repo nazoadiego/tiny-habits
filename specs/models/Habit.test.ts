@@ -53,3 +53,23 @@ describe('Habit.parseName', () => {
 		expect(Habit.parseName('Café 2.0 walk').name).toBe('Café 2.0 walk')
 	})
 })
+
+const habitFile = (frontmatter: Record<string, unknown>) => ({ basename: 'Long run', path: 'habits/Long run.md', frontmatter })
+
+describe('Habit cadence', () => {
+	it('has no off days when it is weekly, whatever its schedule says', () => {
+		const { habit } = Habit.fromFile(habitFile({ every: 'week', schedule: ['mon'] }))
+		const entry = Entry.empty({ habitId: habit.id, habitPath: habit.path, date: new DateValue('2026-11-04') })
+
+		expect(habit.isOffDay(entry)).toBe(false)
+	})
+
+	it('stores a weekly entry under the Monday and a monthly one under the first', () => {
+		const week = Habit.fromFile(habitFile({ every: 'week' })).habit
+		const month = Habit.fromFile(habitFile({ every: 'month' })).habit
+		const date = new DateValue('2026-11-04')
+
+		expect(week.entryDate(date).toYearMonthDayString()).toBe('2026-11-02')
+		expect(month.entryDate(date).toYearMonthDayString()).toBe('2026-11-01')
+	})
+})

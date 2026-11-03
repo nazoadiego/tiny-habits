@@ -4,6 +4,7 @@
 	import HabitsTableHead from './HabitsTableHead.svelte'
 	import HabitsTableBody from './HabitsTableBody.svelte'
 	import Icon from './icons/Icon.svelte'
+	import { visibleEntryDates } from 'models/Cadence'
 	import type SourceSettings from 'models/SourceSettings'
 	import { CollapseStatus } from 'UI/CollapseStatus'
 	import type { THabitRepository } from 'repositories/HabitRepository'
@@ -13,11 +14,12 @@
 		settings: SourceSettings;
 		updateEntries: THabitRepository['updateEntries'];
 		updateSchedule: THabitRepository['updateSchedule'];
+		updateCadence: THabitRepository['updateCadence'];
 		moveHabit: THabitRepository['moveHabit'];
 		loadHabits: (folderPath: string, dateFilter: Set<string>) => void;
 	}
 
-	const { updateEntries, updateSchedule, moveHabit, settings, loadHabits }: $Props = $props()
+	const { updateEntries, updateSchedule, updateCadence, moveHabit, settings, loadHabits }: $Props = $props()
 
 	const habits = $derived($habitStore[settings.folderPath])
 
@@ -30,9 +32,7 @@
 			.toReversed()
 	)
 
-	const dateFilter = $derived(
-		new Set(dates.map(date => date.toYearMonthDayString()))
-	)
+	const dateFilter = $derived(visibleEntryDates(dates))
 
 	// Cleared whenever the date window moves, so no selected cell is ever out of view.
 	let selection = $state(EntrySelection.empty())
@@ -73,6 +73,7 @@
 		{dates}
 		{updateEntries}
 		{updateSchedule}
+		{updateCadence}
 		moveHabit={(fromIndex, toIndex) => moveHabit(habits, fromIndex, toIndex)}
 		{collapseStatus}
 		bind:selection

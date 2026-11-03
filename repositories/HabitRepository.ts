@@ -2,6 +2,7 @@ import Habit from 'models/Habit'
 import type Entry from 'models/Entry'
 import { sortByOrder, reorder } from 'models/HabitOrder'
 import type Schedule from 'models/Schedule'
+import { cadenceToFrontmatter, type Cadence } from 'models/Cadence'
 import type { Status } from 'models/Entry'
 import type { HabitFile, Platform } from 'platform/Platform'
 
@@ -10,6 +11,7 @@ export type THabitRepository = {
 	buildHabit(file: HabitFile, dateFilter?: Set<string>): Promise<Habit>
 	updateEntries(entries: Entry[], status: Status): Promise<void>
 	updateSchedule(habit: Habit, schedule: Schedule): Promise<void>
+	updateCadence(habit: Habit, cadence: Cadence): Promise<void>
 	createHabit(folderPath: string, name: string): Promise<boolean>
 	moveHabit(habits: Habit[], fromIndex: number, toIndex: number): Promise<void>
 }
@@ -34,7 +36,7 @@ class HabitRepository implements THabitRepository {
 
 	async buildHabit(file: HabitFile, dateFilter?: Set<string>) {
 		try {
-			const { habit, invalidEntries, hasInvalidSchedule } = Habit.fromFile(file, dateFilter)
+			const { habit, invalidEntries, hasInvalidSchedule, hasInvalidCadence } = Habit.fromFile(file, dateFilter)
 
 			for (const { date, status } of invalidEntries) {
 				this.platform.notify(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
@@ -42,6 +44,10 @@ class HabitRepository implements THabitRepository {
 
 			if (hasInvalidSchedule) {
 				this.platform.notify(`Invalid schedule in Habit file ${file.basename}. Use a list of weekdays, like [mon, wed, fri]. It applies every day for now`)
+			}
+
+			if (hasInvalidCadence) {
+				this.platform.notify(`Invalid every in Habit file ${file.basename}. Use week or month. It is daily for now`)
 			}
 
 			return habit
@@ -87,6 +93,23 @@ class HabitRepository implements THabitRepository {
 		}
 		catch (error) {
 			console.error(`Failed to update the schedule in ${habit.path}:`, error)
+			this.platform.notify(`Couldn't update ${habit.name}`)
+		}
+	}
+
+	/**
+	 @description
+		Saves the cadence in the habit's own note, as the `every` property.
+		Daily removes the property, since that is what a habit without one means.
+	 */
+	async updateCadence(habit: Habit, cadence: Cadence) {
+		try {
+			const wasUpdated = await this.platform.updateFrontmatter(habit.path, { [Habit.CADENCE_KEY]: cadenceToFrontmatter(cadence) })
+
+			if (!wasUpdated) this.platform.notify(`Couldn't update ${habit.name}`)
+		}
+		catch (error) {
+			console.error(`Failed to update the cadence in ${habit.path}:`, error)
 			this.platform.notify(`Couldn't update ${habit.name}`)
 		}
 	}

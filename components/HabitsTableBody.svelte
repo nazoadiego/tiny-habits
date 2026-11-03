@@ -12,17 +12,20 @@
 	import type { Direction } from 'UI/Direction'
 	import { EntrySelection, type EntryKey, type PaintMode } from 'UI/EntrySelection'
 	import { createEntryKeydownHandler } from 'UI/entryKeybindings'
+	import { dropSlot, destinationOf } from 'UI/habitDrag'
+	import { tick } from 'svelte'
 
 	interface $Props {
 		habits: Habit[];
 		dates: DateValue[];
 		updateEntries: THabitRepository['updateEntries'];
 		updateSchedule: THabitRepository['updateSchedule'];
+		moveHabit: (fromIndex: number, toIndex: number) => Promise<void>;
 		collapseStatus: CollapseStatus;
 		selection: EntrySelection;
 	}
 
-	let { habits, dates, updateEntries, updateSchedule, collapseStatus, selection = $bindable() }: $Props = $props()
+	let { habits, dates, updateEntries, updateSchedule, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
@@ -33,6 +36,86 @@
 
 	function toggleScheduleEditor(habit: Habit) {
 		editingHabitId = editingHabitId === habit.id ? undefined : habit.id
+	}
+
+
+	const canReorder = $derived(habits.length > 1)
+
+	/** The habit being dragged and the slot (0 to habits.length) it would drop into. */
+	let dragging: { habitId: Habit['id'], slot: number } | undefined = $state()
+
+	function habitRows(): HTMLTableRowElement[] {
+		return [...(tableBody?.querySelectorAll<HTMLTableRowElement>('tr[data-habit-row]') ?? [])]
+	}
+
+	function startDrag(event: PointerEvent, habit: Habit) {
+		if (event.button !== 0) return
+
+		event.preventDefault()
+		const grip = event.currentTarget
+		if (grip instanceof HTMLElement) grip.setPointerCapture(event.pointerId)
+
+		dragging = { habitId: habit.id, slot: habits.indexOf(habit) }
+	}
+
+	function moveDrag(event: PointerEvent) {
+		if (dragging == undefined) return
+
+		const rects = habitRows().map(row => row.getBoundingClientRect())
+		dragging = { ...dragging, slot: dropSlot(rects, event.clientY) }
+	}
+
+	function endDrag(commit: boolean) {
+		if (dragging == undefined) return
+
+		const { habitId, slot } = dragging
+		dragging = undefined
+
+		const fromIndex = habits.findIndex(habit => habit.id === habitId)
+		if (!commit || fromIndex === -1) return
+
+		const toIndex = destinationOf(fromIndex, slot)
+		if (toIndex !== fromIndex) void moveAndKeepFocus(habitId, fromIndex, toIndex)
+	}
+
+	/** The grip keeps focus while its row moves, so Alt+Arrow can be pressed again. */
+	let focusGripOf: Habit['id'] | undefined = undefined
+
+	async function moveAndKeepFocus(habitId: Habit['id'], fromIndex: number, toIndex: number) {
+		focusGripOf = habitId
+		await moveHabit(fromIndex, toIndex)
+	}
+
+	$effect(() => {
+		void habits
+		const habitId = focusGripOf
+		if (habitId == undefined) return
+
+		void tick().then(() => {
+			const grip = tableBody?.querySelector(`button.grip[data-habit-id="${CSS.escape(habitId)}"]`)
+			if (grip instanceof HTMLElement) grip.focus()
+		})
+	})
+
+	function handleGripKeydown(event: KeyboardEvent, habit: Habit) {
+		if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+		if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
+
+		event.preventDefault()
+		event.stopPropagation()
+
+		const fromIndex = habits.indexOf(habit)
+		const toIndex = fromIndex + (event.key === 'ArrowUp' ? -1 : 1)
+		if (toIndex < 0 || toIndex >= habits.length) return
+
+		void moveAndKeepFocus(habit.id, fromIndex, toIndex)
+	}
+
+	/** Which side of the row the drop line goes on, while a drag is over it. */
+	function dropEdge(index: number): 'before' | 'after' | undefined {
+		if (dragging == undefined) return
+		if (dragging.slot === index) return 'before'
+		if (dragging.slot === habits.length && index === habits.length - 1) return 'after'
 	}
 
 	/** Set while a Shift+drag is painting the selection. */
@@ -178,8 +261,8 @@
 	{#if noHabits}
 		<NoHabitsMessage numberOfDates={dates.length}/>
 	{:else}
-		{#each habits as habit (habit.id)}
-			<tr>
+		{#each habits as habit, index (habit.id)}
+			<tr data-habit-row class:dragging={dragging?.habitId === habit.id} class:drop-before={dropEdge(index) === 'before'} class:drop-after={dropEdge(index) === 'after'}>
 				{@render habitCell(habit)}
 				{#each dates as date (date.toDayString())}
 					{@const entry = getEntryByDate(habit.entries, date, habit.path, habit.id)}
@@ -199,6 +282,20 @@
 
 {#snippet habitCell(habit: Habit)}
 	<td class="habit-cell">
+		{#if canReorder}
+			<button
+				class="clickable-icon grip"
+				aria-label="Move {habit.name}. Drag, or press Alt and an arrow key"
+				data-habit-id={habit.id}
+				onpointerdown={(event) => startDrag(event, habit)}
+				onpointermove={moveDrag}
+				onpointerup={() => endDrag(true)}
+				onpointercancel={() => endDrag(false)}
+				onkeydown={(event) => handleGripKeydown(event, habit)}
+			>
+				<Icon icon="lucide-grip-vertical" />
+			</button>
+		{/if}
 		<a aria-label={habit.path} href={habit.path} class="internal-link">
 			{habit.name}
 		</a>
@@ -302,6 +399,44 @@
 		opacity: 0;
 	}
 
+	/* The grip mirrors the schedule button, on the other side of the name. */
+	button.grip {
+		position: absolute;
+		inset-inline-start: 6px;
+		top: 50%;
+		transform: translateY(-50%);
+		opacity: 0;
+		cursor: grab;
+		touch-action: none;
+	}
+
+	tr:hover button.grip,
+	button.grip:focus-visible {
+		opacity: 1;
+	}
+
+	tr.dragging button.grip {
+		opacity: 1;
+		cursor: grabbing;
+	}
+
+	tr.dragging td.habit-cell {
+		outline: 2px solid var(--interactive-accent);
+	}
+
+	tr.dragging td.entry-cell {
+		opacity: 0.6;
+	}
+
+	/* The drop line, inside the row's edge so the 6px gap between rows doesn't move. */
+	tr.drop-before > td {
+		box-shadow: inset 0 3px 0 var(--interactive-accent);
+	}
+
+	tr.drop-after > td {
+		box-shadow: inset 0 -3px 0 var(--interactive-accent);
+	}
+
 	/* Always reachable by touch and keyboard; the hover reveal only declutters pointer use. */
 	tr:hover button.schedule-button,
 	button.schedule-button:focus-visible,
@@ -310,7 +445,8 @@
 	}
 
 	@media (hover: none) {
-		button.schedule-button {
+		button.schedule-button,
+		button.grip {
 			opacity: 1;
 		}
 	}

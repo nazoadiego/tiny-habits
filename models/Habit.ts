@@ -14,7 +14,8 @@ type THabit = {
 	name: string,
 	path: string,
 	entries: Entry[],
-	schedule?: Schedule
+	schedule?: Schedule,
+	order?: number
 }
 
 export type InvalidEntry = { date: string, status: unknown }
@@ -32,16 +33,22 @@ class Habit implements THabit {
 	path
 	entries
 	schedule
+	/** Where the user put the habit in the table. Undefined until they reorder. */
+	order
 
 	/** The frontmatter property that holds the schedule. It is not a date, so it is never read as an entry. */
 	static readonly SCHEDULE_KEY = 'schedule'
 
-	constructor({ id, name, path, entries, schedule = Schedule.unscheduled() }: THabit) {
+	/** The frontmatter property that holds the habit's position in the table. Not a date, so it is never read as an entry. */
+	static readonly ORDER_KEY = 'order'
+
+	constructor({ id, name, path, entries, schedule = Schedule.unscheduled(), order }: THabit) {
 		this.id = id
 		this.name = name
 		this.path = path
 		this.entries = entries
 		this.schedule = schedule
+		this.order = order
 	}
 
 	/**
@@ -60,6 +67,11 @@ class Habit implements THabit {
 		if (name.startsWith('.')) return { message: 'A habit name can\'t start with "."' }
 
 		return { name }
+	}
+
+	/** An order that isn't a number counts as no order, so the habit sorts after the ordered ones. */
+	private static parseOrder(value: unknown) {
+		return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 	}
 
 	private static parseFile(file: HabitFile) {
@@ -87,8 +99,10 @@ class Habit implements THabit {
 
 		const { schedule, isValid: isScheduleValid } = Schedule.fromFrontmatter(frontmatter[Habit.SCHEDULE_KEY])
 
+		const order = this.parseOrder(frontmatter[Habit.ORDER_KEY])
+
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
-			if (date === Habit.SCHEDULE_KEY) return []
+			if (date === Habit.SCHEDULE_KEY || date === Habit.ORDER_KEY) return []
 
 			if (dateFilter && !dateFilter.has(date)) return []
 
@@ -100,7 +114,7 @@ class Habit implements THabit {
 			return new Entry({ habitId, habitPath, date: new DateValue(date), status: status as Status })
 		})
 
-		return { habit: new Habit({ id: habitId, name, path: habitPath, entries, schedule }), invalidEntries, hasInvalidSchedule: !isScheduleValid }
+		return { habit: new Habit({ id: habitId, name, path: habitPath, entries, schedule, order }), invalidEntries, hasInvalidSchedule: !isScheduleValid }
 	}
 
 	/**

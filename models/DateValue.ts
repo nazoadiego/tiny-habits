@@ -55,6 +55,43 @@ class DateValue implements TDateValue {
 		return this.value ? this.value.day() : Number.NaN
 	}
 
+	// "Oct 26"
+	toShortMonthDay() {
+		return this.value ? this.value.format('MMM D') : '-'
+	}
+
+	// "October"
+	toMonthName() {
+		return this.value ? this.value.format('MMMM') : '-'
+	}
+
+	/**
+	 @returns The Monday of this date's week, since weeks start on Monday.
+	 */
+	startOfWeek(): DateValue {
+		if (!this.value) return new DateValue('')
+
+		return this.subtractDays((this.value.day() + 6) % 7)
+	}
+
+	/**
+	 @returns The first day of this date's month.
+	 */
+	startOfMonth(): DateValue {
+		if (!this.value) return new DateValue('')
+
+		return new DateValue(this.value.startOf('month').toISOString())
+	}
+
+	/**
+	 @returns The last day of this date's month.
+	 */
+	endOfMonth(): DateValue {
+		if (!this.value) return new DateValue('')
+
+		return new DateValue(this.value.endOf('month').startOf('day').toISOString())
+	}
+
 	toDate() {
 		return this.value ? this.value.toDate() : undefined
 	}

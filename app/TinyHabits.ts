@@ -11,17 +11,15 @@ import type { Status } from 'models/Entry'
 import type Entry from 'models/Entry'
 import type Habit from 'models/Habit'
 import type Schedule from 'models/Schedule'
+import type { Cadence } from 'models/Cadence'
+import { visibleEntryDates } from 'models/Cadence'
 import type { Platform } from 'platform/Platform'
 import { iconContext } from 'platform/iconContext'
 
 const NUMBER_OF_DAYS = 7
 
 function buildDateFilter(offset: number = 0): Set<string> {
-	return new Set(
-		DateRange.fromToday(NUMBER_OF_DAYS - 1, offset)
-			.getDates()
-			.map(date => date.toYearMonthDayString())
-	)
+	return visibleEntryDates(DateRange.fromToday(NUMBER_OF_DAYS - 1, offset).getDates())
 }
 
 /**
@@ -65,6 +63,7 @@ export default class TinyHabits {
 			props: {
 				updateEntries: (entries: Entry[], status: Status) => this.habitRepository.updateEntries(entries, status),
 				updateSchedule: (habit: Habit, schedule: Schedule) => this.habitRepository.updateSchedule(habit, schedule),
+				updateCadence: (habit: Habit, cadence: Cadence) => this.habitRepository.updateCadence(habit, cadence),
 				moveHabit: (habits: Habit[], fromIndex: number, toIndex: number) => this.habitRepository.moveHabit(habits, fromIndex, toIndex),
 				loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
 				settings

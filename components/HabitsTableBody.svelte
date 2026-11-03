@@ -2,6 +2,7 @@
 	import type Habit from 'models/Habit'
 	import Entry, { type Status } from 'models/Entry'
 	import DateValue from 'models/DateValue'
+	import { periodLabel, segmentsOf } from 'models/Cadence'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
 	import ScheduleEditor from './ScheduleEditor.svelte'
@@ -20,12 +21,13 @@
 		dates: DateValue[];
 		updateEntries: THabitRepository['updateEntries'];
 		updateSchedule: THabitRepository['updateSchedule'];
+		updateCadence: THabitRepository['updateCadence'];
 		moveHabit: (fromIndex: number, toIndex: number) => Promise<void>;
 		collapseStatus: CollapseStatus;
 		selection: EntrySelection;
 	}
 
-	let { habits, dates, updateEntries, updateSchedule, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
+	let { habits, dates, updateEntries, updateSchedule, updateCadence, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
@@ -38,6 +40,24 @@
 		editingHabitId = editingHabitId === habit.id ? undefined : habit.id
 	}
 
+
+	/** On a phone the table shows only the last date, so every habit shows just its current day, week or month. */
+	let isNarrow = $state(false)
+
+	$effect(() => {
+		const query = globalThis.matchMedia('(max-width: 768px)')
+		const update = () => isNarrow = query.matches
+
+		update()
+		query.addEventListener('change', update)
+
+		return () => query.removeEventListener('change', update)
+	})
+
+	/** The cells of a habit's row: one per visible day, or one per week or month, spanning the days it covers. */
+	function segmentsFor(habit: Habit) {
+		return segmentsOf(isNarrow ? dates.slice(-1) : dates, habit.cadence)
+	}
 
 	const canReorder = $derived(habits.length > 1)
 
@@ -131,10 +151,9 @@
 		const frontMatterDate = key.slice(separator + 1)
 
 		const habit = habits.find((habit) => habit.id === habitId)
-		const date = dates.find((date) => date.toYearMonthDayString() === frontMatterDate)
-		if (habit == undefined || date == undefined) return
+		if (habit == undefined) return
 
-		return getEntryByDate(habit.entries, date, habit.path, habit.id)
+		return getEntryByDate(habit.entries, new DateValue(frontMatterDate), habit.path, habit.id)
 	}
 
 	function cellOf(target: EventTarget | null): HTMLTableCellElement | undefined {
@@ -212,21 +231,27 @@
 	function nextKey(key: EntryKey, direction: Direction): EntryKey | undefined {
 		const separator = key.lastIndexOf('|')
 		const habitIds = habits.map((habit) => habit.id)
-		const frontMatterDates = dates.map((date) => date.toYearMonthDayString())
 		const verticalPosition = habitIds.indexOf(key.slice(0, separator))
-		const horizontalPosition = frontMatterDates.indexOf(key.slice(separator + 1))
-		if (verticalPosition === -1 || horizontalPosition === -1) return
+		if (verticalPosition === -1) return
+
+		// A weekly or monthly cell covers several dates: leave it from the side the cursor moves toward.
+		const columns = dates.map((date) => habits[verticalPosition].entryDate(date).toYearMonthDayString())
+		const entryDate = key.slice(separator + 1)
+		const horizontalPosition = direction === 'right' ? columns.lastIndexOf(entryDate) : columns.indexOf(entryDate)
+		if (horizontalPosition === -1) return
 
 		const cursor = new Cursor({
 			verticalPosition,
 			horizontalPosition,
 			verticalTotal: habitIds.length,
-			horizontalTotal: frontMatterDates.length
+			horizontalTotal: dates.length
 		})
 
 		cursor.move(direction)
 
-		return `${habitIds[cursor.verticalPosition]}|${frontMatterDates[cursor.horizontalPosition]}`
+		const destination = habits[cursor.verticalPosition]
+
+		return `${destination.id}|${destination.entryDate(dates[cursor.horizontalPosition]).toYearMonthDayString()}`
 	}
 
 	const handleKeydown = createEntryKeydownHandler({
@@ -264,15 +289,15 @@
 		{#each habits as habit, index (habit.id)}
 			<tr data-habit-row class:dragging={dragging?.habitId === habit.id} class:drop-before={dropEdge(index) === 'before'} class:drop-after={dropEdge(index) === 'after'}>
 				{@render habitCell(habit)}
-				{#each dates as date (date.toDayString())}
-					{@const entry = getEntryByDate(habit.entries, date, habit.path, habit.id)}
-					{@render entryCell(entry, habit.isOffDay(entry))}
+				{#each segmentsFor(habit) as segment (segment.start.toYearMonthDayString())}
+					{@const entry = getEntryByDate(habit.entries, segment.start, habit.path, habit.id)}
+					{@render entryCell(entry, habit.isOffDay(entry), segment.span, habit.cadence === 'day' ? undefined : periodLabel(segment.start, habit.cadence))}
 				{/each}
 			</tr>
 			{#if editingHabitId === habit.id}
 				<tr class="schedule-row">
 					<td colspan={dates.length + 1}>
-						<ScheduleEditor {habit} {updateSchedule} close={() => editingHabitId = undefined} />
+						<ScheduleEditor {habit} {updateSchedule} {updateCadence} close={() => editingHabitId = undefined} />
 					</td>
 				</tr>
 			{/if}
@@ -310,12 +335,13 @@
 	</td>
 {/snippet}
 
-{#snippet entryCell(entry: Entry, isOffDay: boolean)}
+{#snippet entryCell(entry: Entry, isOffDay: boolean, span: number, period?: string)}
 	{@const isSelected = selection.has(EntrySelection.keyOf(entry))}
 	<td
 		tabindex="0"
 		role="button"
-		aria-label="Mark habit as {entry.nextStatus()}{isOffDay ? ', off day' : ''}{isSelected ? ', selected' : ''}"
+		colspan={span}
+		aria-label="Mark habit as {entry.nextStatus()}{period ? `, ${period}` : ''}{isOffDay ? ', off day' : ''}{isSelected ? ', selected' : ''}"
 		data-habit-id={entry.habitId}
 		data-entry-date={entry.frontMatterDate()}
 		onclick={(event) => handleClick(event, entry)}
@@ -327,17 +353,13 @@
 		class:selected={isSelected}
 	>
 		<EntryIcon status={isOffDay ? Entry.STATUS.skip : entry.status} />
+		{#if period && span > 1}
+			<span class="period-label">{period}</span>
+		{/if}
 	</td>
 {/snippet}
 
 <style>
-	@media screen and (max-width: 768px) {
-		/* Hide all date columns except the last one */
-		td.entry-cell:not(:last-of-type) {
-			display: none;
-		}
-	}
-
 	td {
 		font-size: var(--tiny-table-font-size);
 		text-align: center;
@@ -355,6 +377,24 @@
 		height: var(--tiny-cell-size);
 		padding: 0;
 		vertical-align: middle;
+		position: relative;
+	}
+
+	/* Names the week or month a wide cell covers, in the corner so the icon stays centered. */
+	span.period-label {
+		position: absolute;
+		inset-inline-start: 10px;
+		bottom: 6px;
+		font-size: var(--font-ui-smaller);
+		line-height: 1;
+		white-space: nowrap;
+		color: white;
+		opacity: 0.9;
+		pointer-events: none;
+	}
+
+	td.entry-cell.unstarted span.period-label {
+		color: var(--text-faint);
 	}
 
 	td.entry-cell.skip {

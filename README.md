@@ -95,6 +95,18 @@ schedule: [wed]
 
 Days outside the schedule show as a paler skip. Nothing is written to the note for them, and you can still mark them like any other day. A habit with no `schedule`, or with none of the weekdays chosen, applies every day. You never have to set one.
 
+## Weekly and monthly habits
+
+A habit doesn't have to come around every day. Click the calendar button next to a habit's name and choose Weekly or Monthly under Repeats. The choice is saved in that habit's own note as an `every` property, which you can also edit by hand:
+
+```yaml
+every: week
+```
+
+A weekly or monthly habit shows as one wide cell across the days of its week (weeks start on Monday) or its month, with its dates in the corner. Marking it once means you did it for that whole week or month. The entry is stored under the first day of the period, like `2026-11-02: completed` for the week starting Monday, November 2. When the dates on screen cut a period, the cell covers only the days you can see. On a phone it shows the current week or month.
+
+A habit with no `every` property is daily, and the weekday schedule above only applies to daily habits.
+
 ## Selecting several entries
 
 Hold Shift and click entries to select them, across any habits and days in the table. Shift+click a selected entry to unselect it. You can also hold Shift and drag over entries to select them all; a drag that starts on a selected entry unselects instead.

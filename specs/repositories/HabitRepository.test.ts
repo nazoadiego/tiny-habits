@@ -4,7 +4,9 @@ import Entry from 'models/Entry'
 import DateValue from 'models/DateValue'
 import Schedule from 'models/Schedule'
 
-function buildPlatform() {
+const LONG_RUN = { path: 'habits/Long run.md', frontmatter: { every: 'week', '2026-10-26': 'completed' } }
+
+function buildPlatform(extraFiles: { path: string, frontmatter?: Record<string, unknown> }[] = []) {
 	const notices: string[] = []
 	const platform = new InMemoryPlatform({
 		folders: ['habits', 'habits/archive'],
@@ -14,7 +16,8 @@ function buildPlatform() {
 			{ path: 'habits/Write.md', frontmatter: { schedule: ['wed'], '2026-01-07': 'completed' } },
 			{ path: 'habits/Broken.md', frontmatter: { schedule: 'sometimes' } },
 			{ path: 'habits/No frontmatter.md' },
-			{ path: 'habits/archive/Old.md', frontmatter: { '2026-01-01': 'completed' } }
+			{ path: 'habits/archive/Old.md', frontmatter: { '2026-01-01': 'completed' } },
+			...extraFiles
 		],
 		notify: (message) => notices.push(message)
 	})
@@ -99,6 +102,34 @@ describe('HabitRepository', () => {
 			expect(notices).toContain('Invalid schedule in Habit file Broken. Use a list of weekdays, like [mon, wed, fri]. It applies every day for now')
 		})
 
+		it('reads the every property and never as an entry', async () => {
+			const { repository, notices } = buildPlatform([LONG_RUN])
+
+			const habits = await repository.allHabits('habits')
+			const longRun = habits.find(habit => habit.name === 'Long run')
+
+			expect(longRun?.cadence).toBe('week')
+			expect(longRun?.entries.map(entry => entry.frontMatterDate())).toEqual(['2026-10-26'])
+			expect(notices.filter(notice => notice.includes('Long run'))).toEqual([])
+		})
+
+		it('makes a habit daily when there is no every property', async () => {
+			const { repository } = buildPlatform()
+
+			const habits = await repository.allHabits('habits')
+
+			expect(habits.find(habit => habit.name === 'Read')?.cadence).toBe('day')
+		})
+
+		it('notifies about an invalid every property and makes the habit daily', async () => {
+			const { repository, notices } = buildPlatform([{ path: 'habits/Odd.md', frontmatter: { every: 'sometimes' } }])
+
+			const habits = await repository.allHabits('habits')
+
+			expect(habits.find(habit => habit.name === 'Odd')?.cadence).toBe('day')
+			expect(notices).toContain('Invalid every in Habit file Odd. Use week or month. It is daily for now')
+		})
+
 		it('notifies and returns no habits when the folder does not exist', async () => {
 			const { repository, notices } = buildPlatform()
 
@@ -134,6 +165,36 @@ describe('HabitRepository', () => {
 			vi.spyOn(platform, 'updateFrontmatter').mockResolvedValue(false)
 
 			await repository.updateSchedule(meditate, Schedule.of(['mon']))
+
+			expect(notices).toContain('Couldn\'t update Meditate')
+		})
+	})
+
+	describe('updateCadence', () => {
+		it('writes the cadence to the habit note, keeping the entries', async () => {
+			const { platform, repository } = buildPlatform()
+			const meditate = await habitNamed(repository, 'Meditate')
+
+			await repository.updateCadence(meditate, 'month')
+
+			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', every: 'month' })
+		})
+
+		it('removes the property when the habit is daily again', async () => {
+			const { platform, repository } = buildPlatform([LONG_RUN])
+			const longRun = await habitNamed(repository, 'Long run')
+
+			await repository.updateCadence(longRun, 'day')
+
+			expect(platform.frontmatterOf('habits/Long run.md')).toEqual({ '2026-10-26': 'completed' })
+		})
+
+		it('notifies when the note is gone', async () => {
+			const { platform, repository, notices } = buildPlatform()
+			const meditate = await habitNamed(repository, 'Meditate')
+			vi.spyOn(platform, 'updateFrontmatter').mockResolvedValue(false)
+
+			await repository.updateCadence(meditate, 'week')
 
 			expect(notices).toContain('Couldn\'t update Meditate')
 		})

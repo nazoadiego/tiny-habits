@@ -1,5 +1,6 @@
 import Habit from 'models/Habit'
 import type Entry from 'models/Entry'
+import { sortByOrder, reorder } from 'models/HabitOrder'
 import type Schedule from 'models/Schedule'
 import type { Status } from 'models/Entry'
 import type { HabitFile, Platform } from 'platform/Platform'
@@ -10,6 +11,7 @@ export type THabitRepository = {
 	updateEntries(entries: Entry[], status: Status): Promise<void>
 	updateSchedule(habit: Habit, schedule: Schedule): Promise<void>
 	createHabit(folderPath: string, name: string): Promise<boolean>
+	moveHabit(habits: Habit[], fromIndex: number, toIndex: number): Promise<void>
 }
 
 class HabitRepository implements THabitRepository {
@@ -27,7 +29,7 @@ class HabitRepository implements THabitRepository {
 			return []
 		}
 
-		return Array.fromAsync(files, (file) => this.buildHabit(file, dateFilter))
+		return sortByOrder(await Array.fromAsync(files, (file) => this.buildHabit(file, dateFilter)))
 	}
 
 	async buildHabit(file: HabitFile, dateFilter?: Set<string>) {
@@ -87,6 +89,29 @@ class HabitRepository implements THabitRepository {
 			console.error(`Failed to update the schedule in ${habit.path}:`, error)
 			this.platform.notify(`Couldn't update ${habit.name}`)
 		}
+	}
+
+	/**
+	 @description
+		Moves the habit at `fromIndex` to `toIndex` in the table and saves the new order as each habit's `order` property.
+		Only the notes whose position changed are written. Failures are reported in one notice.
+	 */
+	async moveHabit(habits: Habit[], fromIndex: number, toIndex: number) {
+		const changes = reorder(habits, fromIndex, toIndex)
+
+		const results = await Promise.allSettled(
+			changes.map(({ habit, order }) => this.platform.updateFrontmatter(habit.path, { [Habit.ORDER_KEY]: order }))
+		)
+
+		const failedNames = results.flatMap((result, index) => {
+			if (result.status === 'fulfilled' && result.value) return []
+
+			if (result.status === 'rejected') console.error(`Failed to update the order in ${changes[index].habit.path}:`, result.reason)
+
+			return [changes[index].habit.name]
+		})
+
+		if (failedNames.length > 0) this.platform.notify(`Couldn't reorder ${failedNames.join(', ')}`)
 	}
 
 	/**

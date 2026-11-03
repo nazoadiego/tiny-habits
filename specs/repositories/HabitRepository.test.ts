@@ -196,4 +196,61 @@ describe('HabitRepository', () => {
 			expect(notices).toEqual([])
 		})
 	})
+
+	describe('ordering', () => {
+		it('lists ordered habits first, then the rest by name', async () => {
+			const { platform, repository } = buildPlatform()
+			await platform.updateFrontmatter('habits/Write.md', { order: 0 })
+			await platform.updateFrontmatter('habits/Read.md', { order: 1 })
+
+			const habits = await repository.allHabits('habits')
+
+			expect(habits.map(habit => habit.name)).toEqual(['Write', 'Read', 'Broken', 'Meditate', 'No frontmatter'])
+		})
+
+		it('never reads the order as an entry', async () => {
+			const { platform, repository } = buildPlatform()
+			await platform.updateFrontmatter('habits/Read.md', { order: 3 })
+
+			const read = await habitNamed(repository, 'Read')
+
+			expect(read.order).toBe(3)
+			expect(read.entries.map(entry => entry.frontMatterDate())).toEqual(['2026-01-01', '2026-01-02'])
+		})
+
+		it('treats an order that is not a number as no order', async () => {
+			const { platform, repository } = buildPlatform()
+			await platform.updateFrontmatter('habits/Read.md', { order: 'first' })
+
+			const read = await habitNamed(repository, 'Read')
+
+			expect(read.order).toBeUndefined()
+		})
+
+		it('saves a move as the order of each habit, and the move shows on the next load', async () => {
+			const { platform, repository } = buildPlatform()
+			const habits = await repository.allHabits('habits')
+			const lastIndex = habits.length - 1
+
+			await repository.moveHabit(habits, lastIndex, 0)
+
+			expect(platform.frontmatterOf('habits/Write.md')?.order).toBe(0)
+			expect(platform.frontmatterOf('habits/Broken.md')?.order).toBe(1)
+			const reloaded = await repository.allHabits('habits')
+
+			expect(reloaded.map(habit => habit.name)).toEqual(['Write', 'Broken', 'Meditate', 'No frontmatter', 'Read'])
+		})
+
+		it('tells the user which habits it could not reorder', async () => {
+			const { platform, notices, repository } = buildPlatform()
+			const habits = await repository.allHabits('habits')
+			vi.spyOn(platform, 'updateFrontmatter').mockImplementation(async path => path !== 'habits/Broken.md')
+
+			notices.length = 0
+
+			await repository.moveHabit(habits, 1, 0)
+
+			expect(notices).toEqual(['Couldn\'t reorder Broken'])
+		})
+	})
 })

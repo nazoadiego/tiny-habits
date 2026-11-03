@@ -13,10 +13,11 @@
 		settings: SourceSettings;
 		updateEntries: THabitRepository['updateEntries'];
 		updateSchedule: THabitRepository['updateSchedule'];
+		moveHabit: THabitRepository['moveHabit'];
 		loadHabits: (folderPath: string, dateFilter: Set<string>) => void;
 	}
 
-	const { updateEntries, updateSchedule, settings, loadHabits }: $Props = $props()
+	const { updateEntries, updateSchedule, moveHabit, settings, loadHabits }: $Props = $props()
 
 	const habits = $derived($habitStore[settings.folderPath])
 
@@ -72,6 +73,7 @@
 		{dates}
 		{updateEntries}
 		{updateSchedule}
+		moveHabit={(fromIndex, toIndex) => moveHabit(habits, fromIndex, toIndex)}
 		{collapseStatus}
 		bind:selection
 	/>

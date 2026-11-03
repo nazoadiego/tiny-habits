@@ -65,6 +65,7 @@ export default class TinyHabits {
 			props: {
 				updateEntries: (entries: Entry[], status: Status) => this.habitRepository.updateEntries(entries, status),
 				updateSchedule: (habit: Habit, schedule: Schedule) => this.habitRepository.updateSchedule(habit, schedule),
+				moveHabit: (habits: Habit[], fromIndex: number, toIndex: number) => this.habitRepository.moveHabit(habits, fromIndex, toIndex),
 				loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
 				settings
 			}

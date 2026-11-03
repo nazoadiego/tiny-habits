@@ -69,6 +69,6 @@ export type CreateHabitFileResult = 'created' | 'exists'
 
 export type Frontmatter = Record<string, unknown>
 
-export type FrontmatterUpdate = Record<string, string | string[] | undefined>
+export type FrontmatterUpdate = Record<string, string | number | string[] | undefined>
 
 export type IconRenderer = (element: HTMLElement, icon: string) => void

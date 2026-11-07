@@ -31,7 +31,7 @@
 		"@typescript-eslint/parser": "^8.72.1",
 		"@vitest/coverage-v8": "4.0.16",
 		"@vitest/ui": "^4.1.12",
-		"builtin-modules": "5.0.0",
+		"builtin-modules": "5.5.0",
 		"esbuild": "0.28.1",
 		"esbuild-svelte": "^0.9.5",
 		"eslint": "^9.39.5",

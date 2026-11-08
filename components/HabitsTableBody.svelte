@@ -335,9 +335,6 @@
 		class:selected={isSelected}
 	>
 		<EntryIcon status={isOffDay ? Entry.STATUS.skip : entry.status} />
-		{#if period && span > 1}
-			<span class="period-label">{period}</span>
-		{/if}
 	</td>
 {/snippet}
 
@@ -360,23 +357,6 @@
 		padding: 0;
 		vertical-align: middle;
 		position: relative;
-	}
-
-	/* Names the week or month a wide cell covers, in the corner so the icon stays centered. */
-	span.period-label {
-		position: absolute;
-		inset-inline-start: 10px;
-		bottom: 6px;
-		font-size: var(--font-ui-smaller);
-		line-height: 1;
-		white-space: nowrap;
-		color: white;
-		opacity: 0.9;
-		pointer-events: none;
-	}
-
-	td.entry-cell.unstarted span.period-label {
-		color: var(--text-faint);
 	}
 
 	td.entry-cell.skip {

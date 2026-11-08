@@ -62,7 +62,7 @@
 	const canReorder = $derived(habits.length > 1)
 
 	/** The habit being dragged and the slot (0 to habits.length) it would drop into. */
-	let dragging: { habitId: Habit['id'], slot: number } | undefined = $state()
+	let dragging: { habitId: Habit['id'], slot: number, startY: number, offsetY: number } | undefined = $state()
 
 	function habitRows(): HTMLTableRowElement[] {
 		return [...(tableBody?.querySelectorAll<HTMLTableRowElement>('tr[data-habit-row]') ?? [])]
@@ -75,14 +75,14 @@
 		const grip = event.currentTarget
 		if (grip instanceof HTMLElement) grip.setPointerCapture(event.pointerId)
 
-		dragging = { habitId: habit.id, slot: habits.indexOf(habit) }
+		dragging = { habitId: habit.id, slot: habits.indexOf(habit), startY: event.clientY, offsetY: 0 }
 	}
 
 	function moveDrag(event: PointerEvent) {
 		if (dragging == undefined) return
 
 		const rects = habitRows().map(row => row.getBoundingClientRect())
-		dragging = { ...dragging, slot: dropSlot(rects, event.clientY) }
+		dragging = { ...dragging, slot: dropSlot(rects, event.clientY), offsetY: event.clientY - dragging.startY }
 	}
 
 	function endDrag(commit: boolean) {
@@ -287,7 +287,7 @@
 		<NoHabitsMessage numberOfDates={dates.length}/>
 	{:else}
 		{#each habits as habit, index (habit.id)}
-			<tr data-habit-row class:dragging={dragging?.habitId === habit.id} class:drop-before={dropEdge(index) === 'before'} class:drop-after={dropEdge(index) === 'after'}>
+			<tr data-habit-row class:dragging={dragging?.habitId === habit.id} style:--drag-offset={dragging?.habitId === habit.id ? `${dragging.offsetY}px` : undefined} class:drop-before={dropEdge(index) === 'before'} class:drop-after={dropEdge(index) === 'after'}>
 				{@render habitCell(habit)}
 				{#each segmentsFor(habit) as segment (segment.start.toYearMonthDayString())}
 					{@const entry = getEntryByDate(habit.entries, segment.start, habit.path, habit.id)}
@@ -460,12 +460,21 @@
 		cursor: grabbing;
 	}
 
+	/* The row follows the pointer, lifted above the others. The drop line shows where it lands. */
+	tr.dragging {
+		position: relative;
+		z-index: 1;
+		transform: translateY(var(--drag-offset, 0));
+		filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+	}
+
 	tr.dragging td.habit-cell {
 		outline: 2px solid var(--interactive-accent);
+		background-color: var(--background-secondary);
 	}
 
 	tr.dragging td.entry-cell {
-		opacity: 0.6;
+		opacity: 1;
 	}
 
 	/* The drop line, inside the row's edge so the 6px gap between rows doesn't move. */

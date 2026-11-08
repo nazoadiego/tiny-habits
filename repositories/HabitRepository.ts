@@ -2,7 +2,7 @@ import Habit from 'models/Habit'
 import type Entry from 'models/Entry'
 import { sortByOrder, reorder, type OrderChange } from 'models/HabitOrder'
 import Schedule from 'models/Schedule'
-import { cadenceToFrontmatter, type Cadence } from 'models/Cadence'
+import type { Cadence } from 'models/Cadence'
 import type { Status } from 'models/Entry'
 import type { FrontmatterUpdate, HabitFile, Platform } from 'platform/Platform'
 
@@ -10,14 +10,13 @@ import type { FrontmatterUpdate, HabitFile, Platform } from 'platform/Platform'
 export type HabitDetails = {
 	name: string
 	folderPath: string
-	cadence: Cadence
 	schedule: Schedule
 	position?: number
 }
 
 export type THabitRepository = {
-	allHabits(path: string, dateFilter?: Set<string>): Promise<Habit[]>
-	buildHabit(file: HabitFile, dateFilter?: Set<string>): Promise<Habit>
+	allHabits(path: string, dateFilter?: Set<string>, cadence?: Cadence): Promise<Habit[]>
+	buildHabit(file: HabitFile, dateFilter?: Set<string>, cadence?: Cadence): Promise<Habit>
 	updateEntries(entries: Entry[], status: Status): Promise<void>
 	createHabit(details: HabitDetails, siblings: Habit[]): Promise<boolean>
 	updateHabit(habit: Habit, details: HabitDetails, siblings: Habit[]): Promise<boolean>
@@ -31,7 +30,8 @@ class HabitRepository implements THabitRepository {
 		this.platform = platform
 	}
 
-	async allHabits(folderPath: string, dateFilter?: Set<string>) {
+	/** Every habit in the table takes its `cadence`. */
+	async allHabits(folderPath: string, dateFilter?: Set<string>, cadence: Cadence = 'day') {
 		const files = this.platform.listHabitFiles(folderPath)
 
 		if (files == undefined) {
@@ -39,12 +39,12 @@ class HabitRepository implements THabitRepository {
 			return []
 		}
 
-		return sortByOrder(await Array.fromAsync(files, (file) => this.buildHabit(file, dateFilter)))
+		return sortByOrder(await Array.fromAsync(files, (file) => this.buildHabit(file, dateFilter, cadence)))
 	}
 
-	async buildHabit(file: HabitFile, dateFilter?: Set<string>) {
+	async buildHabit(file: HabitFile, dateFilter?: Set<string>, cadence: Cadence = 'day') {
 		try {
-			const { habit, invalidEntries, hasInvalidSchedule, hasInvalidCadence } = Habit.fromFile(file, dateFilter)
+			const { habit, invalidEntries, hasInvalidSchedule } = Habit.fromFile(file, dateFilter, cadence)
 
 			for (const { date, status } of invalidEntries) {
 				this.platform.notify(`Invalid date format or status for entry in Habit file ${file.basename}. Date: ${date}. Status: ${status}`)
@@ -54,28 +54,24 @@ class HabitRepository implements THabitRepository {
 				this.platform.notify(`Invalid schedule in Habit file ${file.basename}. Use a list of weekdays, like [mon, wed, fri]. It applies every day for now`)
 			}
 
-			if (hasInvalidCadence) {
-				this.platform.notify(`Invalid every in Habit file ${file.basename}. Use week or month. It is daily for now`)
-			}
-
 			return habit
 		}
 		catch (error) {
 			console.warn(`Failed to build habits for ${file.basename}:`, error)
-			return Habit.empty(file)
+			return Habit.empty(file, cadence)
 		}
 	}
 
 	/**
 	 @description
-		Creates the habit's note in the table's folder (made when missing), saves its cadence and schedule in it,
+		Creates the habit's note in the table's folder (made when missing), saves its schedule in it,
 		and puts it at `details.position` among the table's habits. Tells the user if it can't.
 	 @param details The name is already checked with Habit.parseName.
 	 @param siblings The habits the table already has, in the order it shows them.
 	 @returns Whether the note was created.
 	 */
 	async createHabit(details: HabitDetails, siblings: Habit[]) {
-		const { name, folderPath, cadence, schedule, position } = details
+		const { name, folderPath, schedule, position } = details
 
 		try {
 			const result = await this.platform.createHabitFile(folderPath, name)
@@ -91,9 +87,9 @@ class HabitRepository implements THabitRepository {
 			return false
 		}
 
-		const habit = new Habit({ id: name, name, path: `${folderPath}/${name}.md`, entries: [], cadence, schedule })
+		const habit = new Habit({ id: name, name, path: `${folderPath}/${name}.md`, entries: [], schedule })
 
-		await this.saveSettings(habit, { cadence, schedule })
+		await this.saveSettings(habit, schedule)
 		await this.place(habit, siblings, position)
 
 		return true
@@ -102,7 +98,7 @@ class HabitRepository implements THabitRepository {
 	/**
 	 @description
 		Applies the form to an existing habit: renames and moves its note when the name or table changed,
-		saves the cadence and schedule when they changed, and puts it at `details.position` among the table's habits.
+		saves the schedule when it changed, and puts it at `details.position` among the table's habits.
 		Nothing else is touched when the rename fails, and the user is told why.
 	 @param habit The habit as the table shows it now.
 	 @param details What the form was saved with.
@@ -110,7 +106,7 @@ class HabitRepository implements THabitRepository {
 	 @returns Whether the note could be renamed or moved, which is always true when it didn't need to be.
 	 */
 	async updateHabit(habit: Habit, details: HabitDetails, siblings: Habit[]) {
-		const { name, folderPath, cadence, schedule, position } = details
+		const { name, folderPath, schedule, position } = details
 		const newPath = `${folderPath}/${name}.md`
 		let current = habit
 
@@ -125,7 +121,7 @@ class HabitRepository implements THabitRepository {
 			current = new Habit({ ...habit, id: name, name, path: newPath })
 		}
 
-		await this.saveSettings(current, { cadence, schedule }, habit)
+		await this.saveSettings(current, schedule, habit)
 		await this.place(current, siblings, position)
 
 		return true
@@ -141,14 +137,11 @@ class HabitRepository implements THabitRepository {
 		}
 	}
 
-	/** Writes the cadence and schedule in one go. With `before`, only what differs from it is written; without it, only what isn't the default. */
-	private async saveSettings(habit: Habit, { cadence, schedule }: { cadence: Cadence, schedule: Schedule }, before?: Habit) {
-		const values: FrontmatterUpdate = {}
+	/** Writes the schedule. With `before`, only when it differs from that habit's; without it, only when it isn't the default. */
+	private async saveSettings(habit: Habit, schedule: Schedule, before?: Habit) {
+		if (schedule.days.join(',') === (before?.schedule ?? Schedule.unscheduled()).days.join(',')) return
 
-		if (cadence !== (before?.cadence ?? 'day')) values[Habit.CADENCE_KEY] = cadenceToFrontmatter(cadence)
-		if (schedule.days.join(',') !== (before?.schedule ?? Schedule.unscheduled()).days.join(',')) values[Habit.SCHEDULE_KEY] = schedule.toFrontmatter()
-
-		if (Object.keys(values).length === 0) return
+		const values: FrontmatterUpdate = { [Habit.SCHEDULE_KEY]: schedule.toFrontmatter() }
 
 		try {
 			if (!await this.platform.updateFrontmatter(habit.path, values)) this.platform.notify(`Couldn't update ${habit.name}`)

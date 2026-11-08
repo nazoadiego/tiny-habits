@@ -8,7 +8,7 @@ import Entry, { type Status } from './Entry'
 import type { HabitFile } from 'platform/Platform'
 import DateValue from './DateValue'
 import Schedule from './Schedule'
-import { cadenceFromFrontmatter, periodStart, type Cadence } from './Cadence'
+import type { Cadence } from './Cadence'
 
 type THabit = {
 	id: string,
@@ -41,9 +41,6 @@ class Habit implements THabit {
 
 	/** The frontmatter property that holds the schedule. It is not a date, so it is never read as an entry. */
 	static readonly SCHEDULE_KEY = 'schedule'
-
-	/** The frontmatter property that holds the cadence: `week` or `month`. Without it a habit is daily. Not a date, so never read as an entry. */
-	static readonly CADENCE_KEY = 'every'
 
 	/** The frontmatter property that holds the habit's position in the table. Not a date, so it is never read as an entry. */
 	static readonly ORDER_KEY = 'order'
@@ -85,34 +82,32 @@ class Habit implements THabit {
 		return { id: file.basename, name: file.basename, path: file.path }
 	}
 
-	static empty(file: HabitFile): Habit {
+	static empty(file: HabitFile, cadence: Cadence = 'day'): Habit {
 		const { id, name, path } = this.parseFile(file)
-		return new Habit({ id, name, path, entries: [] })
+		return new Habit({ id, name, path, entries: [], cadence })
 	}
 
 	/**
 	 @description Builds a habit from its file's frontmatter, keeping only the dates in `dateFilter` when given.
+		The habit's cadence is `cadence`, the one of the table it is in.
 	 @returns
 		The habit, plus what the caller should report: the frontmatter entries that aren't a valid date and status,
-		whether the `schedule` property was invalid (the habit then applies every day),
-		and whether the `every` property was invalid (the habit is then daily).
+		and whether the `schedule` property was invalid (the habit then applies every day).
 	 */
-	static fromFile(file: HabitFile, dateFilter?: Set<string>): { habit: Habit, invalidEntries: InvalidEntry[], hasInvalidSchedule: boolean, hasInvalidCadence: boolean } {
+	static fromFile(file: HabitFile, dateFilter?: Set<string>, cadence: Cadence = 'day'): { habit: Habit, invalidEntries: InvalidEntry[], hasInvalidSchedule: boolean } {
 		const { frontmatter } = file
 
-		if (!frontmatter) return { habit: this.empty(file), invalidEntries: [], hasInvalidSchedule: false, hasInvalidCadence: false }
+		if (!frontmatter) return { habit: this.empty(file, cadence), invalidEntries: [], hasInvalidSchedule: false }
 
 		const { id: habitId, name, path: habitPath } = this.parseFile(file)
 		const invalidEntries: InvalidEntry[] = []
 
 		const { schedule, isValid: isScheduleValid } = Schedule.fromFrontmatter(frontmatter[Habit.SCHEDULE_KEY])
 
-		const { cadence, isValid: isCadenceValid } = cadenceFromFrontmatter(frontmatter[Habit.CADENCE_KEY])
-
 		const order = this.parseOrder(frontmatter[Habit.ORDER_KEY])
 
 		const entries = Object.entries(frontmatter).flatMap(([date, status]) => {
-			if (date === Habit.SCHEDULE_KEY || date === Habit.CADENCE_KEY || date === Habit.ORDER_KEY) return []
+			if (date === Habit.SCHEDULE_KEY || date === Habit.ORDER_KEY) return []
 
 			if (dateFilter && !dateFilter.has(date)) return []
 
@@ -124,7 +119,7 @@ class Habit implements THabit {
 			return new Entry({ habitId, habitPath, date: new DateValue(date), status: status as Status })
 		})
 
-		return { habit: new Habit({ id: habitId, name, path: habitPath, entries, schedule, cadence, order }), invalidEntries, hasInvalidSchedule: !isScheduleValid, hasInvalidCadence: !isCadenceValid }
+		return { habit: new Habit({ id: habitId, name, path: habitPath, entries, schedule, cadence, order }), invalidEntries, hasInvalidSchedule: !isScheduleValid }
 	}
 
 	/**
@@ -134,13 +129,6 @@ class Habit implements THabit {
 	 */
 	isOffDay(entry: Entry) {
 		return this.cadence === 'day' && entry.status === Entry.STATUS.unstarted && !this.schedule.appliesOn(entry.date)
-	}
-
-	/**
-	 @returns The day the entry for `date` is stored under: the date itself, or the start of its week or month.
-	 */
-	entryDate(date: DateValue): DateValue {
-		return periodStart(date, this.cadence)
 	}
 
 	/* getTodayEntry(): Entry {

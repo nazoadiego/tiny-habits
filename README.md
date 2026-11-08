@@ -95,17 +95,21 @@ schedule: [wed]
 
 Days outside the schedule show as a paler skip. Nothing is written to the note for them, and you can still mark them like any other day. A habit with no `schedule`, or with none of the weekdays chosen, applies every day. You never have to set one.
 
-## Weekly and monthly habits
+## Weekly and monthly tables
 
-A habit doesn't have to come around every day. Click the pencil button next to a habit's name and choose Weekly or Monthly under Repeats. The choice is saved in that habit's own note as an `every` property, which you can also edit by hand:
+A table is made of days, weeks or months, and every habit in it follows. Set it with `cadence` in the `habits` block, which is `day` when left out:
 
-```yaml
-every: week
-```
+    ```habits
+    {
+      "folderPath": "Areas/Habits/Monthly",
+      "displayName": "Monthly",
+      "cadence": "month"
+    }
+    ```
 
-A weekly or monthly habit shows as one wide cell across the days of its week (weeks start on Monday) or its month, with its dates in the corner. Marking it once means you did it for that whole week or month. The entry is stored under the first day of the period, like `2026-11-02: completed` for the week starting Monday, November 2. When the dates on screen cut a period, the cell covers only the days you can see. On a phone it shows the current week or month.
+A weekly table has one column per week (weeks start on Monday), the last 6 with the current one on the right. A monthly table has one column per month, the last 6 likewise. Marking a cell once means you did it for that whole week or month. The entry is stored under the first day of the period, like `2026-11-02: completed` for the week starting Monday, November 2. The arrow buttons move by one week or month, and on a phone the table shows the current one.
 
-A habit with no `every` property is daily, and the weekday schedule above only applies to daily habits.
+The weekday schedule above only applies to daily tables. A habit's cadence is its table's, so the form has no Repeats choice: pick the table when adding a habit, and an existing habit can only move to a table with the same cadence.
 
 ## Selecting several entries
 
@@ -124,7 +128,8 @@ Press Escape to clear the selection. Clicking an entry outside the selection, or
     ```habits
     {
       "folderPath": "Areas/Habits/Tiny - Morning", // the absolute path to the folder containing your habits
-      "displayName": "Morning" // (optional) To customize the name that appears in the table
+      "displayName": "Morning", // (optional) To customize the name that appears in the table
+      "cadence": "day" // (optional) "day" (default), "week" or "month": what each column of the table is
     }
     ```
 

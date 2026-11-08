@@ -7,19 +7,12 @@ import HabitForm from 'components/HabitForm.svelte'
 import SomethingWentWrongMessage from 'components/SomethingWentWrongMessage.svelte'
 import addHabit from 'app/addHabit'
 import SourceSettings from 'models/SourceSettings'
-import DateRange from 'models/DateRange'
 import type { Status } from 'models/Entry'
 import type Entry from 'models/Entry'
 import type Habit from 'models/Habit'
-import { visibleEntryDates } from 'models/Cadence'
+import { CADENCE_NAMES, type Cadence } from 'models/Cadence'
 import type { Platform } from 'platform/Platform'
 import { iconContext } from 'platform/iconContext'
-
-const NUMBER_OF_DAYS = 7
-
-function buildDateFilter(offset: number = 0): Set<string> {
-	return visibleEntryDates(DateRange.fromToday(NUMBER_OF_DAYS - 1, offset).getDates())
-}
 
 /**
  @description
@@ -30,6 +23,10 @@ export default class TinyHabits {
 	private readonly platform
 	private readonly habitRepository
 	private readonly dateFilters: Map<string, Set<string>> = new Map()
+	/** What one column is in each table, by folder. */
+	private readonly cadences: Map<string, Cadence> = new Map()
+	/** The tables on screen, by the element they were rendered into. */
+	private readonly tables: Map<HTMLElement, { folderPath: string, cadence: Cadence }> = new Map()
 
 	constructor(platform: Platform) {
 		this.platform = platform
@@ -54,7 +51,8 @@ export default class TinyHabits {
 
 		if (settings == undefined) return mount(SomethingWentWrongMessage, { target: element })
 
-		await this.loadHabitStore(settings.folderPath, buildDateFilter())
+		this.warnOnCadenceConflict(element, settings)
+		this.cadences.set(settings.folderPath, settings.cadence)
 
 		return mount(HabitsTable, {
 			target: element,
@@ -67,6 +65,22 @@ export default class TinyHabits {
 				settings
 			}
 		})
+	}
+
+	/**
+	 @description
+		The habits of a folder, and the dates they keep, are stored once per folder. Two tables on one folder with
+		different cadences would overwrite each other's, so this warns when a table joins one that is still on screen.
+	 */
+	private warnOnCadenceConflict(element: HTMLElement, { folderPath, cadence }: SourceSettings) {
+		for (const other of this.tables.keys()) if (!other.isConnected) this.tables.delete(other)
+
+		const conflict = [...this.tables.values()].find(table => table.folderPath === folderPath && table.cadence !== cadence)
+		this.tables.set(element, { folderPath, cadence })
+
+		if (conflict == undefined) return
+
+		this.platform.notify(`Two habit tables on "${folderPath}" use different cadences (${CADENCE_NAMES[conflict.cadence]} and ${CADENCE_NAMES[cadence]}). Use one cadence per folder, or the tables will show the wrong entries.`)
 	}
 
 	/**
@@ -90,7 +104,7 @@ export default class TinyHabits {
 		this.platform.openModal(habit == undefined ? 'New habit' : 'Edit habit', (container, close) => {
 			const form = mount(HabitForm, {
 				target: container,
-				props: { habit, folderPath, habitsByTable: get(habitStore), save, close }
+				props: { habit, folderPath, habitsByTable: get(habitStore), cadenceByTable: Object.fromEntries(this.cadences), save, close }
 			})
 
 			return () => void unmount(form)
@@ -103,7 +117,7 @@ export default class TinyHabits {
 		if (dateFilter) this.dateFilters.set(folderPath, dateFilter)
 
 		const filter = dateFilter ?? this.dateFilters.get(folderPath)
-		const habits = await this.habitRepository.allHabits(folderPath, filter)
+		const habits = await this.habitRepository.allHabits(folderPath, filter, this.cadences.get(folderPath))
 
 		habitStore.update(currentStore => ({ ...currentStore, [folderPath]: habits }))
 	}

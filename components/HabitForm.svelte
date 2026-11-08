@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte'
 	import Habit from 'models/Habit'
-	import { CADENCES, CADENCE_NAMES, type Cadence } from 'models/Cadence'
+	import { CADENCE_NAMES, type Cadence } from 'models/Cadence'
 	import { positionLabels } from 'models/HabitOrder'
 	import Schedule, { WEEKDAYS, WEEKDAY_NAMES, type Weekday } from 'models/Schedule'
 	import type { HabitDetails } from 'repositories/HabitRepository'
@@ -13,22 +13,30 @@
 		folderPath: string;
 		/** The tables the habit can go to, by folder. */
 		habitsByTable: Record<string, Habit[]>;
+		/** What one column is in each table, by folder. Tables missing here are daily. */
+		cadenceByTable: Record<string, Cadence>;
 		/** Saves the form. Resolves to whether it worked; the dialog stays open when it didn't. */
 		save: (details: HabitDetails, siblings: Habit[]) => Promise<boolean>;
 		close: () => void;
 	}
 
-	const { habit, folderPath: startFolder, habitsByTable, save, close }: $Props = $props()
+	const { habit, folderPath: startFolder, habitsByTable, cadenceByTable, save, close }: $Props = $props()
+
+	const cadenceOf = (folder: string): Cadence => cadenceByTable[folder] ?? 'day'
 
 	// The form is mounted once per dialog: it starts from what it is given and keeps its own state after that.
-	const initial = untrack(() => ({ name: habit?.name ?? '', table: startFolder, cadence: habit?.cadence ?? 'day', schedule: habit?.schedule ?? Schedule.unscheduled(), tables: Object.keys(habitsByTable), position: habit == undefined ? undefined : habitsByTable[startFolder]?.findIndex(other => other.path === habit.path), isEditing: habit != undefined }))
+	const initial = untrack(() => ({ name: habit?.name ?? '', table: startFolder, schedule: habit?.schedule ?? Schedule.unscheduled(), allTables: Object.keys(habitsByTable), position: habit == undefined ? undefined : habitsByTable[startFolder]?.findIndex(other => other.path === habit.path), isEditing: habit != undefined }))
 
-	const { isEditing, tables } = initial
+	const { isEditing, allTables } = initial
+
+	// A habit's cadence is its table's, so an existing habit can only go to a table with the same cadence.
+	const tables = isEditing ? allTables.filter(folder => cadenceOf(folder) === cadenceOf(startFolder)) : allTables
+	const hasOtherCadences = new Set(tables.map(folder => cadenceOf(folder))).size > 1
 
 	let name = $state(initial.name)
 	let table = $state(initial.table)
-	let cadence: Cadence = $state(initial.cadence)
 	let schedule = $state(initial.schedule)
+	const cadence = $derived(cadenceOf(table))
 	let isSaving = $state(false)
 
 	/** The other habits of the chosen table, in the order it shows them. */
@@ -55,8 +63,8 @@
 
 	const CADENCE_HINTS: Record<Cadence, string> = {
 		day: 'Leave all weekdays off for every day. Other days show as skipped, and you can still mark them.',
-		week: 'One entry per week, weeks start on Monday. Mark it on any day that week and the whole week counts.',
-		month: 'One entry per month. Mark it on any day that month and the whole month counts.'
+		week: 'One entry per week, weeks start on Monday. Set by the table.',
+		month: 'One entry per month. Set by the table.'
 	}
 
 	let nameInput: HTMLInputElement | undefined = $state()
@@ -72,7 +80,8 @@
 
 		isSaving = true
 
-		const details = { name: Habit.parseName(name).name ?? name.trim(), folderPath: table, cadence, schedule, position }
+		// Weekdays only apply to a daily table; the picker is hidden for the others, so a choice made before switching tables is dropped.
+		const details = { name: Habit.parseName(name).name ?? name.trim(), folderPath: table, schedule: cadence === 'day' ? schedule : Schedule.unscheduled(), position }
 		const wasSaved = await save(details, siblings)
 
 		if (wasSaved) close()
@@ -107,28 +116,18 @@
 			<label for="habit-table">Table</label>
 			<select id="habit-table" class="dropdown" bind:value={table} onchange={changeTable}>
 				{#each tables as folder (folder)}
-					<option value={folder}>{folder}</option>
+					<option value={folder}>{hasOtherCadences ? `${folder} (${CADENCE_NAMES[cadenceOf(folder)]})` : folder}</option>
 				{/each}
 			</select>
 			{#if isEditing}
-				<small class="faint">Changing it moves the note to that table's folder.</small>
+				<small class="faint">Changing it moves the note to that table's folder.{tables.length < allTables.length ? ` Only ${CADENCE_NAMES[cadence].toLowerCase()} tables are listed.` : ''}</small>
 			{/if}
 		</div>
 	{/if}
 
-	<div class="field">
-		<span class="label" id="habit-repeats">Repeats</span>
-		<div class="chips" role="group" aria-labelledby="habit-repeats">
-			{#each CADENCES as option (option)}
-				<button type="button" class="chip cadence" aria-pressed={cadence === option} onclick={() => cadence = option}>
-					{CADENCE_NAMES[option]}
-				</button>
-			{/each}
-		</div>
-		{#if cadence !== 'day'}
-			<small class="faint">{CADENCE_HINTS[cadence]}</small>
-		{/if}
-	</div>
+	{#if cadence !== 'day'}
+		<small class="faint cadence-hint">{CADENCE_HINTS[cadence]}</small>
+	{/if}
 
 	{#if cadence === 'day'}
 		<div class="field">
@@ -179,6 +178,10 @@
 		width: 100%;
 	}
 
+	small.cadence-hint {
+		margin: -8px 0 16px;
+	}
+
 	small.faint {
 		color: var(--text-faint);
 	}
@@ -201,11 +204,6 @@
 		background-color: rgba(var(--mono-rgb-0), 0.4);
 		box-shadow: none;
 		cursor: pointer;
-	}
-
-	button.chip.cadence {
-		width: auto;
-		padding-inline: 12px;
 	}
 
 	button.chip[aria-pressed="true"] {

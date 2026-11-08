@@ -57,19 +57,16 @@ describe('Habit.parseName', () => {
 const habitFile = (frontmatter: Record<string, unknown>) => ({ basename: 'Long run', path: 'habits/Long run.md', frontmatter })
 
 describe('Habit cadence', () => {
+	it('is the cadence of its table, daily without one', () => {
+		expect(Habit.fromFile(habitFile({})).habit.cadence).toBe('day')
+		expect(Habit.fromFile(habitFile({}), undefined, 'month').habit.cadence).toBe('month')
+		expect(Habit.fromFile({ basename: 'Long run', path: 'habits/Long run.md', frontmatter: undefined }, undefined, 'week').habit.cadence).toBe('week')
+	})
+
 	it('has no off days when it is weekly, whatever its schedule says', () => {
-		const { habit } = Habit.fromFile(habitFile({ every: 'week', schedule: ['mon'] }))
+		const { habit } = Habit.fromFile(habitFile({ schedule: ['mon'] }), undefined, 'week')
 		const entry = Entry.empty({ habitId: habit.id, habitPath: habit.path, date: new DateValue('2026-11-04') })
 
 		expect(habit.isOffDay(entry)).toBe(false)
-	})
-
-	it('stores a weekly entry under the Monday and a monthly one under the first', () => {
-		const week = Habit.fromFile(habitFile({ every: 'week' })).habit
-		const month = Habit.fromFile(habitFile({ every: 'month' })).habit
-		const date = new DateValue('2026-11-04')
-
-		expect(week.entryDate(date).toYearMonthDayString()).toBe('2026-11-02')
-		expect(month.entryDate(date).toYearMonthDayString()).toBe('2026-11-01')
 	})
 })

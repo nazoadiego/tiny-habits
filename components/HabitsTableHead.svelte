@@ -1,13 +1,15 @@
 <script lang="ts">
 	import type DateValue from 'models/DateValue'
+	import { columnLabel, periodLabel, type Cadence } from 'models/Cadence'
 
 	interface $Props {
 		title: string;
 		dates: DateValue[];
+		cadence: Cadence;
 		toggleCollapse: () => void;
 	}
 
-	const { title, dates, toggleCollapse }: $Props = $props()
+	const { title, dates, cadence, toggleCollapse }: $Props = $props()
 </script>
 
 <thead>
@@ -15,15 +17,16 @@
 		<th onclick={toggleCollapse} class="group-title">
 			{title || 'Missing Habit Group Header'}
 		</th>
-		{#each dates as date (date.toDayString())}
+		{#each dates as date (date.toYearMonthDayString())}
+			{@const label = columnLabel(date, cadence)}
 			<th
 				class="date-cell"
-				aria-label={date.toFullDateWithWeekday()}
+				aria-label={cadence === 'day' ? date.toFullDateWithWeekday() : periodLabel(date, cadence)}
 			>
 				<div>
-					{date.toDayOfTheWeek()}
+					{label.top}
 				</div>
-				<small>{date.toDayString()}</small>
+				<small>{label.bottom}</small>
 			</th>
 		{/each}
 	</tr>

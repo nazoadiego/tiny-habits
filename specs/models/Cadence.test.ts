@@ -1,29 +1,11 @@
-import { cadenceFromFrontmatter, periodLabel, periodStart, segmentsOf, visibleEntryDates } from 'models/Cadence'
+import { columnLabel, entryDatesOf, periodLabel, periodStart, shiftPeriod, visibleDates } from 'models/Cadence'
 import DateValue from 'models/DateValue'
 
 // 2026-11-02 is a Monday, so 2026-11-01 is a Sunday.
-const dates = (...days: string[]) => days.map(day => new DateValue(day))
-const window = dates('2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02', '2026-11-03')
-
-const summary = (cadence: 'day' | 'week' | 'month') => segmentsOf(window, cadence).map(({ start, span }) => [start.toYearMonthDayString(), span])
+const day = (value: string) => new DateValue(value)
+const ymd = (dates: DateValue[]) => dates.map(date => date.toYearMonthDayString())
 
 describe('Cadence', () => {
-	describe('cadenceFromFrontmatter', () => {
-		it('is daily when the property is missing', () => {
-			expect(cadenceFromFrontmatter(undefined)).toEqual({ cadence: 'day', isValid: true })
-		})
-
-		it('reads week and month', () => {
-			expect(cadenceFromFrontmatter('week')).toEqual({ cadence: 'week', isValid: true })
-			expect(cadenceFromFrontmatter('month')).toEqual({ cadence: 'month', isValid: true })
-		})
-
-		it('falls back to daily when the value is not a cadence', () => {
-			expect(cadenceFromFrontmatter('sometimes')).toEqual({ cadence: 'day', isValid: false })
-			expect(cadenceFromFrontmatter(['week'])).toEqual({ cadence: 'day', isValid: false })
-		})
-	})
-
 	describe('periodStart', () => {
 		it('is the date itself for a daily habit', () => {
 			expect(periodStart(new DateValue('2026-11-04'), 'day').toYearMonthDayString()).toBe('2026-11-04')
@@ -40,20 +22,6 @@ describe('Cadence', () => {
 		})
 	})
 
-	describe('segmentsOf', () => {
-		it('has one cell per day for a daily habit', () => {
-			expect(summary('day')).toHaveLength(7)
-		})
-
-		it('spans the visible days of each week', () => {
-			expect(summary('week')).toEqual([['2026-10-26', 5], ['2026-11-02', 2]])
-		})
-
-		it('spans the visible days of each month', () => {
-			expect(summary('month')).toEqual([['2026-10-01', 4], ['2026-11-01', 3]])
-		})
-	})
-
 	describe('periodLabel', () => {
 		it('names a week inside one month by its days', () => {
 			expect(periodLabel(new DateValue('2026-11-02'), 'week')).toBe('Nov 2 – 8')
@@ -64,19 +32,68 @@ describe('Cadence', () => {
 		})
 
 		it('names a month', () => {
-			expect(periodLabel(new DateValue('2026-10-01'), 'month')).toBe('October')
+			expect(periodLabel(new DateValue('2026-10-01'), 'month')).toBe('October 2026')
 		})
 	})
 
-	describe('visibleEntryDates', () => {
-		it('keeps the visible days and the starts of their weeks and months', () => {
-			const kept = visibleEntryDates(window)
+	describe('shiftPeriod', () => {
+		it('moves by days, weeks or months', () => {
+			expect(shiftPeriod(day('2026-11-02'), 'day', -1).toYearMonthDayString()).toBe('2026-11-01')
+			expect(shiftPeriod(day('2026-11-02'), 'week', -2).toYearMonthDayString()).toBe('2026-10-19')
+			expect(shiftPeriod(day('2026-11-01'), 'month', -2).toYearMonthDayString()).toBe('2026-09-01')
+			expect(shiftPeriod(day('2026-11-01'), 'month', 3).toYearMonthDayString()).toBe('2027-02-01')
+		})
+	})
 
-			expect(kept.has('2026-10-28')).toBe(true)
-			expect(kept.has('2026-10-26')).toBe(true)
-			expect(kept.has('2026-10-01')).toBe(true)
+	describe('visibleDates', () => {
+		const today = day('2026-11-04')
+
+		it('is the last 7 days for a daily table, ending today', () => {
+			const dates = ymd(visibleDates('day', 0, today))
+
+			expect(dates).toHaveLength(7)
+			expect(dates.at(0)).toBe('2026-10-29')
+			expect(dates.at(-1)).toBe('2026-11-04')
+		})
+
+		it('is the last 6 weeks, each by its Monday, ending with the current week', () => {
+			expect(ymd(visibleDates('week', 0, today))).toEqual(['2026-09-28', '2026-10-05', '2026-10-12', '2026-10-19', '2026-10-26', '2026-11-02'])
+		})
+
+		it('is the last 6 months, each by its first day, ending with the current month', () => {
+			expect(ymd(visibleDates('month', 0, today))).toEqual(['2026-06-01', '2026-07-01', '2026-08-01', '2026-09-01', '2026-10-01', '2026-11-01'])
+		})
+
+		it('moves by whole periods with the offset', () => {
+			expect(ymd(visibleDates('month', -1, today)).at(-1)).toBe('2026-10-01')
+			expect(ymd(visibleDates('week', 1, today)).at(-1)).toBe('2026-11-09')
+			expect(ymd(visibleDates('month', 2, today)).at(-1)).toBe('2027-01-01')
+		})
+	})
+
+	describe('entryDatesOf', () => {
+		it('keeps exactly the visible columns', () => {
+			const kept = entryDatesOf(visibleDates('month', 0, day('2026-11-04')))
+
 			expect(kept.has('2026-11-01')).toBe(true)
-			expect(kept.has('2026-10-25')).toBe(false)
+			expect(kept.has('2026-06-01')).toBe(true)
+			expect(kept.has('2026-05-01')).toBe(false)
+			expect(kept.has('2026-11-04')).toBe(false)
+		})
+	})
+
+	describe('columnLabel', () => {
+		it('says the weekday over the day of the month for a day', () => {
+			expect(columnLabel(day('2026-11-04'), 'day')).toEqual({ top: 'Wed', bottom: '4' })
+		})
+
+		it('says the first day over the last for a week, with the month when it changes', () => {
+			expect(columnLabel(day('2026-11-02'), 'week')).toEqual({ top: 'Nov 2', bottom: '– 8' })
+			expect(columnLabel(day('2026-10-26'), 'week')).toEqual({ top: 'Oct 26', bottom: '– Nov 1' })
+		})
+
+		it('says the month over the year for a month', () => {
+			expect(columnLabel(day('2026-11-01'), 'month')).toEqual({ top: 'Nov', bottom: '2026' })
 		})
 	})
 })

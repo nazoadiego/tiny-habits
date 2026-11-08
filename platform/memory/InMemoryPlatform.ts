@@ -1,4 +1,4 @@
-import type { CreateHabitFileResult, Frontmatter, FrontmatterUpdate, HabitFile, IconRenderer, Platform, TextQuestion } from 'platform/Platform'
+import type { CreateHabitFileResult, Frontmatter, FrontmatterUpdate, HabitFile, IconRenderer, ModalRenderer, Platform, RenameHabitFileResult } from 'platform/Platform'
 
 type InMemoryFile = { path: string, frontmatter?: Frontmatter }
 
@@ -6,8 +6,7 @@ type InMemoryPlatformOptions = {
 	folders: string[]
 	files: InMemoryFile[]
 	notify?: (message: string) => void
-	askText?: (question: TextQuestion) => Promise<string | undefined>
-	askChoice?: (question: string, choices: string[]) => Promise<string | undefined>
+	openModal?: (title: string, render: ModalRenderer) => void
 	setIcon?: IconRenderer
 }
 
@@ -20,16 +19,14 @@ export default class InMemoryPlatform implements Platform {
 	private readonly listeners: ((folderPath: string) => void)[] = []
 	private readonly notifyCallback
 	private readonly iconRenderer
-	private readonly textAsker
-	private readonly choiceAsker
+	private readonly modalOpener
 
-	constructor({ folders, files, notify, askText, askChoice, setIcon }: InMemoryPlatformOptions) {
+	constructor({ folders, files, notify, openModal, setIcon }: InMemoryPlatformOptions) {
 		this.folders = new Set(folders)
 		this.files = new Map(files.map(file => [file.path, file.frontmatter]))
 		this.notifyCallback = notify ?? ((message: string) => console.info(`[notice] ${message}`))
 		this.iconRenderer = setIcon ?? (() => {})
-		this.textAsker = askText ?? (() => Promise.resolve(undefined))
-		this.choiceAsker = askChoice ?? (() => Promise.resolve(undefined))
+		this.modalOpener = openModal ?? (() => {})
 
 		for (const path of this.files.keys()) {
 			if (!this.folders.has(parentPath(path))) throw new Error(`File "${path}" is outside the declared folders`)
@@ -79,12 +76,27 @@ export default class InMemoryPlatform implements Platform {
 		return 'created'
 	}
 
-	askText(question: TextQuestion): Promise<string | undefined> {
-		return this.textAsker(question)
+	async renameHabitFile(path: string, newPath: string): Promise<RenameHabitFileResult> {
+		if (!this.files.has(path)) return 'missing'
+		if (this.files.has(newPath)) return 'exists'
+
+		const oldFolder = parentPath(path)
+		const newFolder = parentPath(newPath)
+		for (let folder = newFolder; folder !== '/'; folder = parentPath(folder)) this.folders.add(folder)
+
+		this.files.set(newPath, this.files.get(path))
+		this.files.delete(path)
+
+		queueMicrotask(() => {
+			this.emitFolderChanged(oldFolder)
+			if (newFolder !== oldFolder) this.emitFolderChanged(newFolder)
+		})
+
+		return 'renamed'
 	}
 
-	askChoice(question: string, choices: string[]): Promise<string | undefined> {
-		return this.choiceAsker(question, choices)
+	openModal(title: string, render: ModalRenderer): void {
+		this.modalOpener(title, render)
 	}
 
 	notify(message: string): void {

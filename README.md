@@ -87,7 +87,7 @@ To mark an entry with an specific status these are the shortcuts:
 
 ## Scheduling a habit by weekday
 
-A habit doesn't have to apply every day. Click the calendar button next to a habit's name and pick the weekdays it applies on. The choice is saved in that habit's own note as a `schedule` property, which you can also edit by hand:
+A habit doesn't have to apply every day. Click the pencil button next to a habit's name and pick the weekdays it applies on. The choice is saved in that habit's own note as a `schedule` property, which you can also edit by hand:
 
 ```yaml
 schedule: [wed]
@@ -97,7 +97,7 @@ Days outside the schedule show as a paler skip. Nothing is written to the note f
 
 ## Weekly and monthly habits
 
-A habit doesn't have to come around every day. Click the calendar button next to a habit's name and choose Weekly or Monthly under Repeats. The choice is saved in that habit's own note as an `every` property, which you can also edit by hand:
+A habit doesn't have to come around every day. Click the pencil button next to a habit's name and choose Weekly or Monthly under Repeats. The choice is saved in that habit's own note as an `every` property, which you can also edit by hand:
 
 ```yaml
 every: week

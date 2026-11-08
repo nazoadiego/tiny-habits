@@ -29,3 +29,19 @@ export function reorder(habits: Habit[], fromIndex: number, toIndex: number): Or
 	// A habit is written unless its `order` is already its position, so the first move numbers every habit.
 	return moved.flatMap((habit, order) => habit.order === order ? [] : [{ habit, order }])
 }
+
+/**
+ @description The names of the places a habit can take in a table of `total` habits, like "1st of 3" and "3rd of 3 (last)".
+ @returns One label per place, first place first.
+ */
+export function positionLabels(total: number): string[] {
+	return Array.from({ length: total }, (_, index) => `${ordinal(index + 1)} of ${total}${index === total - 1 ? ' (last)' : ''}`)
+}
+
+function ordinal(number: number) {
+	const lastTwoDigits = number % 100
+	if (lastTwoDigits >= 11 && lastTwoDigits <= 13) return `${number}th`
+
+	const suffix = ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[number % 10] ?? 'th'
+	return `${number}${suffix}`
+}

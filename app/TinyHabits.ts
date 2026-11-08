@@ -1,8 +1,9 @@
-import { mount } from 'svelte'
+import { mount, unmount } from 'svelte'
 import { get } from 'svelte/store'
-import HabitRepository from 'repositories/HabitRepository'
+import HabitRepository, { type HabitDetails } from 'repositories/HabitRepository'
 import { habitStore } from 'stores/store'
 import HabitsTable from 'components/HabitsTable.svelte'
+import HabitForm from 'components/HabitForm.svelte'
 import SomethingWentWrongMessage from 'components/SomethingWentWrongMessage.svelte'
 import addHabit from 'app/addHabit'
 import SourceSettings from 'models/SourceSettings'
@@ -10,8 +11,6 @@ import DateRange from 'models/DateRange'
 import type { Status } from 'models/Entry'
 import type Entry from 'models/Entry'
 import type Habit from 'models/Habit'
-import type Schedule from 'models/Schedule'
-import type { Cadence } from 'models/Cadence'
 import { visibleEntryDates } from 'models/Cadence'
 import type { Platform } from 'platform/Platform'
 import { iconContext } from 'platform/iconContext'
@@ -62,8 +61,7 @@ export default class TinyHabits {
 			context: iconContext((iconElement, icon) => this.platform.setIcon(iconElement, icon)),
 			props: {
 				updateEntries: (entries: Entry[], status: Status) => this.habitRepository.updateEntries(entries, status),
-				updateSchedule: (habit: Habit, schedule: Schedule) => this.habitRepository.updateSchedule(habit, schedule),
-				updateCadence: (habit: Habit, cadence: Cadence) => this.habitRepository.updateCadence(habit, cadence),
+				editHabit: (habit: Habit) => this.openHabitForm(settings.folderPath, habit),
 				moveHabit: (habits: Habit[], fromIndex: number, toIndex: number) => this.habitRepository.moveHabit(habits, fromIndex, toIndex),
 				loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
 				settings
@@ -73,11 +71,30 @@ export default class TinyHabits {
 
 	/**
 	 @description
-		Asks for a name and creates the habit in a table's folder.
-		The tables are the ones this session has rendered; with several, the user picks one.
+		Opens the habit form for a new habit. The tables are the ones this session has rendered;
+		with several, the user picks one in the form.
 	 */
 	addHabit() {
-		return addHabit(this.platform, this.habitRepository, Object.keys(get(habitStore)))
+		return addHabit(this.platform, Object.keys(get(habitStore)), (folderPath) => this.openHabitForm(folderPath))
+	}
+
+	/**
+	 @description Opens the habit form: to edit `habit`, or to create a habit when there is none.
+	 @param folderPath The table the form starts on.
+	 */
+	private openHabitForm(folderPath: string, habit?: Habit) {
+		const save = (details: HabitDetails, siblings: Habit[]) => habit == undefined
+			? this.habitRepository.createHabit(details, siblings)
+			: this.habitRepository.updateHabit(habit, details, siblings)
+
+		this.platform.openModal(habit == undefined ? 'New habit' : 'Edit habit', (container, close) => {
+			const form = mount(HabitForm, {
+				target: container,
+				props: { habit, folderPath, habitsByTable: get(habitStore), save, close }
+			})
+
+			return () => void unmount(form)
+		})
 	}
 
 	async loadHabitStore(folderPath: string | undefined, dateFilter?: Set<string>) {

@@ -128,3 +128,43 @@ th,
 td {
 	vertical-align: top;
 }
+
+/* The modal Obsidian draws around the habit form. */
+.modal-container {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  position: relative;
+  width: min(480px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 24px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l, 12px);
+  color: var(--text-normal);
+}
+
+.modal-title {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.modal-button-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

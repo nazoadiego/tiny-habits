@@ -17,20 +17,33 @@ const platform = new InMemoryPlatform({
 	folders: [HABITS_FOLDER, EMPTY_FOLDER],
 	files: seedHabitFiles(),
 	notify: showNotice,
-	// The dev page has no command palette, so plain browser prompts stand in for the dialogs.
-	askText: ({ title, validate }) => {
-		let reason: string | undefined
+	// A stand-in for Obsidian's modal: a backdrop and a dialog that close on Escape or a click outside.
+	openModal: (title, render) => {
+		const container = document.createElement('div')
+		container.className = 'modal-container'
+		container.innerHTML = '<div class="modal-bg"></div><div class="modal"><div class="modal-title"></div><div class="modal-content"></div></div>'
 
-		// Asks again while the text is invalid, which is what the Obsidian dialog does by not submitting.
-		while (true) {
-			const input = globalThis.prompt(reason ? `${title}\n${reason}` : title)
-			if (input == undefined) return Promise.resolve(undefined)
+		const content = container.querySelector<HTMLElement>('.modal-content')
+		const heading = container.querySelector<HTMLElement>('.modal-title')
+		if (content == undefined || heading == undefined) return
 
-			reason = validate(input)
-			if (reason == undefined) return Promise.resolve(input)
+		heading.textContent = title
+		document.body.append(container)
+
+		let teardown: (() => void) | void = undefined
+		const close = () => {
+			document.removeEventListener('keydown', handleKeydown)
+			teardown?.()
+			container.remove()
 		}
+		function handleKeydown(event: KeyboardEvent) {
+			if (event.key === 'Escape') close()
+		}
+
+		container.querySelector('.modal-bg')?.addEventListener('click', close)
+		document.addEventListener('keydown', handleKeydown)
+		teardown = render(content, close)
 	},
-	askChoice: (question, choices) => Promise.resolve(globalThis.prompt(`${question}\n${choices.join('\n')}`, choices[0]) ?? undefined),
 	setIcon
 })
 

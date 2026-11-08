@@ -5,7 +5,6 @@
 	import { periodLabel, segmentsOf } from 'models/Cadence'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
-	import ScheduleEditor from './ScheduleEditor.svelte'
 	import Icon from './icons/Icon.svelte'
 	import type { THabitRepository } from 'repositories/HabitRepository'
 	import type { CollapseStatus } from 'UI/CollapseStatus'
@@ -20,26 +19,17 @@
 		habits: Habit[];
 		dates: DateValue[];
 		updateEntries: THabitRepository['updateEntries'];
-		updateSchedule: THabitRepository['updateSchedule'];
-		updateCadence: THabitRepository['updateCadence'];
+		editHabit: (habit: Habit) => void;
 		moveHabit: (fromIndex: number, toIndex: number) => Promise<void>;
 		collapseStatus: CollapseStatus;
 		selection: EntrySelection;
 	}
 
-	let { habits, dates, updateEntries, updateSchedule, updateCadence, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
+	let { habits, dates, updateEntries, editHabit, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
 	let tableBody: HTMLTableSectionElement | undefined = $state()
-
-	/** The habit whose schedule editor is open. Only one at a time. */
-	let editingHabitId: Habit['id'] | undefined = $state()
-
-	function toggleScheduleEditor(habit: Habit) {
-		editingHabitId = editingHabitId === habit.id ? undefined : habit.id
-	}
-
 
 	/** On a phone the table shows only the last date, so every habit shows just its current day, week or month. */
 	let isNarrow = $state(false)
@@ -294,13 +284,6 @@
 					{@render entryCell(entry, habit.isOffDay(entry), segment.span, habit.cadence === 'day' ? undefined : periodLabel(segment.start, habit.cadence))}
 				{/each}
 			</tr>
-			{#if editingHabitId === habit.id}
-				<tr class="schedule-row">
-					<td colspan={dates.length + 1}>
-						<ScheduleEditor {habit} {updateSchedule} {updateCadence} close={() => editingHabitId = undefined} />
-					</td>
-				</tr>
-			{/if}
 		{/each}
 	{/if}
 </tbody>
@@ -325,12 +308,11 @@
 			{habit.name}
 		</a>
 		<button
-			class="clickable-icon schedule-button"
-			aria-label="Edit schedule for {habit.name}"
-			aria-expanded={editingHabitId === habit.id}
-			onclick={() => toggleScheduleEditor(habit)}
+			class="clickable-icon edit-button"
+			aria-label="Edit {habit.name}"
+			onclick={() => editHabit(habit)}
 		>
-			<Icon icon="lucide-calendar-days" />
+			<Icon icon="lucide-pencil" />
 		</button>
 	</td>
 {/snippet}
@@ -426,12 +408,12 @@
 		background-color: rgba(var(--mono-rgb-0), 0.2);
 		overflow-wrap: anywhere;
 		vertical-align: middle;
-		/* Room for the schedule button on both sides, so the name stays centered. */
+		/* Room for the edit button on both sides, so the name stays centered. */
 		padding-inline: 36px;
 	}
 
 	/* A flat icon in the corner of the cell. Obsidian's clickable-icon class supplies its hover look. */
-	button.schedule-button {
+	button.edit-button {
 		position: absolute;
 		inset-inline-end: 6px;
 		top: 50%;
@@ -439,7 +421,7 @@
 		opacity: 0;
 	}
 
-	/* The grip mirrors the schedule button, on the other side of the name. */
+	/* The grip mirrors the edit button, on the other side of the name. */
 	button.grip {
 		position: absolute;
 		inset-inline-start: 6px;
@@ -478,23 +460,16 @@
 	}
 
 	/* Always reachable by touch and keyboard; the hover reveal only declutters pointer use. */
-	tr:hover button.schedule-button,
-	button.schedule-button:focus-visible,
-	button.schedule-button[aria-expanded="true"] {
+	tr:hover button.edit-button,
+	button.edit-button:focus-visible {
 		opacity: 1;
 	}
 
 	@media (hover: none) {
-		button.schedule-button,
+		button.edit-button,
 		button.grip {
 			opacity: 1;
 		}
-	}
-
-	tr.schedule-row > td {
-		padding: 0;
-		background-color: rgba(var(--mono-rgb-0), 0.2);
-		text-align: start;
 	}
 
 	.disable-text-selection {

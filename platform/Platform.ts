@@ -31,17 +31,20 @@ export type Platform = {
 
 	/**
 	 @description
-		Asks the user for a line of text. The host shows `validate`'s message while the text is invalid
-		and doesn't let the user submit it.
-	 @returns undefined when the user cancels.
+		Moves and/or renames a note, creating the destination folder first when it doesn't exist.
+		Links to the note follow it where the host supports that.
+	 @returns 'exists' when the destination is taken, 'missing' when there is no note at `path`.
 	 */
-	askText(question: TextQuestion): Promise<string | undefined>
+	renameHabitFile(path: string, newPath: string): Promise<RenameHabitFileResult>
 
 	/**
-	 @description Asks the user to pick one of the choices.
-	 @returns undefined when the user cancels.
+	 @description
+		Opens a modal dialog and calls `render` to fill it. `render` may return a function that tears down what it rendered,
+		which the host calls when the modal closes, however it closes.
+	 @param title The dialog's heading.
+	 @param render Gets the dialog's content element, and a function that closes the dialog.
 	 */
-	askChoice(question: string, choices: string[]): Promise<string | undefined>
+	openModal(title: string, render: ModalRenderer): void
 
 	notify(message: string): void
 
@@ -56,16 +59,11 @@ export type HabitFile = {
 	frontmatter: Frontmatter | undefined
 }
 
-export type TextQuestion = {
-	title: string
-	placeholder?: string
-	/** Label of the button that submits the answer. */
-	submitLabel: string
-	/** @returns What is wrong with the text, or undefined when it is fine. */
-	validate: (input: string) => string | undefined
-}
+export type ModalRenderer = (container: HTMLElement, close: () => void) => (() => void) | void
 
 export type CreateHabitFileResult = 'created' | 'exists'
+
+export type RenameHabitFileResult = 'renamed' | 'exists' | 'missing'
 
 export type Frontmatter = Record<string, unknown>
 

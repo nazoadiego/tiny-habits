@@ -1,6 +1,5 @@
-import { Notice, type Plugin, setIcon, TFile, TFolder, type TAbstractFile } from 'obsidian'
-import type { CreateHabitFileResult, FrontmatterUpdate, HabitFile, Platform, TextQuestion } from 'platform/Platform'
-import { askChoice, askText } from './prompts'
+import { type App, Modal, Notice, type Plugin, setIcon, TFile, TFolder, type TAbstractFile } from 'obsidian'
+import type { CreateHabitFileResult, FrontmatterUpdate, HabitFile, ModalRenderer, Platform, RenameHabitFileResult } from 'platform/Platform'
 
 export default class ObsidianPlatform implements Platform {
 	private readonly plugin
@@ -80,12 +79,22 @@ export default class ObsidianPlatform implements Platform {
 		}
 	}
 
-	askText(question: TextQuestion): Promise<string | undefined> {
-		return askText(this.app, question)
+	async renameHabitFile(path: string, newPath: string): Promise<RenameHabitFileResult> {
+		const file = this.app.vault.getFileByPath(path)
+		if (!(file instanceof TFile)) return 'missing'
+
+		if (this.app.vault.getAbstractFileByPath(newPath) != undefined) return 'exists'
+
+		await this.ensureFolder(newPath.slice(0, newPath.lastIndexOf('/')))
+		// The file manager, not the vault, so links to the note are updated too.
+		await this.app.fileManager.renameFile(file, newPath)
+
+		return 'renamed'
 	}
 
-	askChoice(question: string, choices: string[]): Promise<string | undefined> {
-		return askChoice(this.app, question, choices)
+	openModal(title: string, render: ModalRenderer): void {
+		const modal = new HabitModal(this.app, title, render)
+		modal.open()
 	}
 
 	notify(message: string): void {
@@ -94,5 +103,24 @@ export default class ObsidianPlatform implements Platform {
 
 	setIcon(element: HTMLElement, icon: string): void {
 		setIcon(element, icon)
+	}
+}
+
+class HabitModal extends Modal {
+	private teardown: (() => void) | void
+
+	constructor(app: App, private readonly title: string, private readonly render: ModalRenderer) {
+		super(app)
+	}
+
+	onOpen() {
+		this.setTitle(this.title)
+		this.modalEl.addClass('tiny-habits-modal')
+		this.teardown = this.render(this.contentEl, () => this.close())
+	}
+
+	onClose() {
+		this.teardown?.()
+		this.contentEl.empty()
 	}
 }

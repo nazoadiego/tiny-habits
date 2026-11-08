@@ -5,6 +5,7 @@
 	import HabitsTableBody from './HabitsTableBody.svelte'
 	import Icon from './icons/Icon.svelte'
 	import { visibleEntryDates } from 'models/Cadence'
+	import type Habit from 'models/Habit'
 	import type SourceSettings from 'models/SourceSettings'
 	import { CollapseStatus } from 'UI/CollapseStatus'
 	import type { THabitRepository } from 'repositories/HabitRepository'
@@ -13,13 +14,12 @@
 	interface $Props {
 		settings: SourceSettings;
 		updateEntries: THabitRepository['updateEntries'];
-		updateSchedule: THabitRepository['updateSchedule'];
-		updateCadence: THabitRepository['updateCadence'];
+		editHabit: (habit: Habit) => void;
 		moveHabit: THabitRepository['moveHabit'];
 		loadHabits: (folderPath: string, dateFilter: Set<string>) => void;
 	}
 
-	const { updateEntries, updateSchedule, updateCadence, moveHabit, settings, loadHabits }: $Props = $props()
+	const { updateEntries, editHabit, moveHabit, settings, loadHabits }: $Props = $props()
 
 	const habits = $derived($habitStore[settings.folderPath])
 
@@ -72,8 +72,7 @@
 		{habits}
 		{dates}
 		{updateEntries}
-		{updateSchedule}
-		{updateCadence}
+		{editHabit}
 		moveHabit={(fromIndex, toIndex) => moveHabit(habits, fromIndex, toIndex)}
 		{collapseStatus}
 		bind:selection

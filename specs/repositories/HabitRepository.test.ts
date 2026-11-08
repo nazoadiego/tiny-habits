@@ -37,6 +37,10 @@ function entryFor(habitPath: string, date: string, habitId = 'Read') {
 	return Entry.empty({ habitId, habitPath, date: new DateValue(date) })
 }
 
+/** The details of a form that changes nothing about the habit, but where it goes. */
+const same = (habit: { name: string, cadence: 'day' | 'week' | 'month', schedule: Schedule }, position: number, folderPath = 'habits') =>
+	({ name: habit.name, folderPath, cadence: habit.cadence, schedule: habit.schedule, position })
+
 describe('HabitRepository', () => {
 	describe('allHabits', () => {
 		it('builds one habit per file directly in the folder, sorted by name', async () => {
@@ -140,61 +144,147 @@ describe('HabitRepository', () => {
 		})
 	})
 
-	describe('updateSchedule', () => {
-		it('writes the schedule to the habit note, keeping the entries', async () => {
+	describe('createHabit', () => {
+		it('creates the note with a plain habit and leaves the other habits alone', async () => {
 			const { platform, repository } = buildPlatform()
-			const meditate = await habitNamed(repository, 'Meditate')
+			const habits = await repository.allHabits('habits')
 
-			await repository.updateSchedule(meditate, Schedule.of(['mon', 'wed']))
+			const wasCreated = await repository.createHabit({ name: 'Run', folderPath: 'habits', cadence: 'day', schedule: Schedule.unscheduled(), position: undefined }, habits)
 
-			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', schedule: ['mon', 'wed'] })
+			expect(wasCreated).toBe(true)
+			expect(platform.frontmatterOf('habits/Run.md')).toBeUndefined()
+			expect(platform.frontmatterOf('habits/Read.md')?.order).toBeUndefined()
 		})
 
-		it('removes the property when no day is chosen', async () => {
+		it('saves the cadence and the weekdays in the new note', async () => {
 			const { platform, repository } = buildPlatform()
-			const write = await habitNamed(repository, 'Write')
+			const habits = await repository.allHabits('habits')
 
-			await repository.updateSchedule(write, Schedule.unscheduled())
+			await repository.createHabit({ name: 'Swim', folderPath: 'habits', cadence: 'day', schedule: Schedule.of(['mon', 'fri']), position: undefined }, habits)
+			await repository.createHabit({ name: 'Plan', folderPath: 'habits', cadence: 'week', schedule: Schedule.unscheduled(), position: undefined }, habits)
 
-			expect(platform.frontmatterOf('habits/Write.md')).toEqual({ '2026-01-07': 'completed' })
+			expect(platform.frontmatterOf('habits/Swim.md')).toEqual({ schedule: ['mon', 'fri'] })
+			expect(platform.frontmatterOf('habits/Plan.md')).toEqual({ every: 'week' })
 		})
 
-		it('notifies when the note is gone', async () => {
+		it('puts the habit at the chosen position', async () => {
+			const { repository } = buildPlatform()
+			const habits = await repository.allHabits('habits')
+
+			await repository.createHabit({ name: 'Run', folderPath: 'habits', cadence: 'day', schedule: Schedule.unscheduled(), position: 0 }, habits)
+
+			const reloaded = await repository.allHabits('habits')
+			expect(reloaded.map(habit => habit.name)).toEqual(['Run', 'Broken', 'Meditate', 'No frontmatter', 'Read', 'Write'])
+		})
+
+		it('creates the table folder when it is new', async () => {
+			const { platform, repository } = buildPlatform()
+
+			await repository.createHabit({ name: 'Run', folderPath: 'fitness', cadence: 'day', schedule: Schedule.unscheduled(), position: 0 }, [])
+
+			expect(platform.listHabitFiles('fitness')?.map(file => file.basename)).toEqual(['Run'])
+		})
+
+		it('tells the user when the habit already exists, and writes nothing', async () => {
 			const { platform, repository, notices } = buildPlatform()
-			const meditate = await habitNamed(repository, 'Meditate')
-			vi.spyOn(platform, 'updateFrontmatter').mockResolvedValue(false)
+			const habits = await repository.allHabits('habits')
 
-			await repository.updateSchedule(meditate, Schedule.of(['mon']))
+			const wasCreated = await repository.createHabit({ name: 'Read', folderPath: 'habits', cadence: 'week', schedule: Schedule.unscheduled(), position: 0 }, habits)
 
-			expect(notices).toContain('Couldn\'t update Meditate')
+			expect(wasCreated).toBe(false)
+			expect(notices).toContain('"Read" already exists in habits')
+			expect(platform.frontmatterOf('habits/Read.md')?.every).toBeUndefined()
 		})
 	})
 
-	describe('updateCadence', () => {
-		it('writes the cadence to the habit note, keeping the entries', async () => {
+	describe('updateHabit', () => {
+		it('writes the cadence and the weekdays to the habit note, keeping the entries', async () => {
 			const { platform, repository } = buildPlatform()
+			const habits = await repository.allHabits('habits')
 			const meditate = await habitNamed(repository, 'Meditate')
+			const siblings = habits.filter(habit => habit.path !== meditate.path)
 
-			await repository.updateCadence(meditate, 'month')
+			await repository.updateHabit(meditate, { ...same(meditate, 1), cadence: 'week' }, siblings)
+			await repository.updateHabit(meditate, { ...same(meditate, 1), schedule: Schedule.of(['mon', 'wed']) }, siblings)
 
-			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', every: 'month' })
+			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', every: 'week', schedule: ['mon', 'wed'] })
 		})
 
-		it('removes the property when the habit is daily again', async () => {
-			const { platform, repository } = buildPlatform([LONG_RUN])
+		it('removes the properties when the habit is back to every day', async () => {
+			const { platform, repository } = buildPlatform([{ path: 'habits/Long run.md', frontmatter: { every: 'week', schedule: ['mon'], '2026-10-26': 'completed' } }])
+			const habits = await repository.allHabits('habits')
 			const longRun = await habitNamed(repository, 'Long run')
 
-			await repository.updateCadence(longRun, 'day')
+			await repository.updateHabit(longRun, { ...same(longRun, habits.findIndex(habit => habit.path === longRun.path)), cadence: 'day', schedule: Schedule.unscheduled() }, habits.filter(habit => habit.path !== longRun.path))
 
 			expect(platform.frontmatterOf('habits/Long run.md')).toEqual({ '2026-10-26': 'completed' })
 		})
 
+		it('writes nothing when nothing changed', async () => {
+			const { platform, repository } = buildPlatform()
+			const habits = await repository.allHabits('habits')
+			const write = habits.find(habit => habit.name === 'Write')!
+			const updateFrontmatter = vi.spyOn(platform, 'updateFrontmatter')
+
+			await repository.updateHabit(write, same(write, habits.findIndex(habit => habit.path === write.path)), habits.filter(habit => habit.path !== write.path))
+
+			expect(updateFrontmatter).not.toHaveBeenCalled()
+		})
+
+		it('renames the note, keeping its entries', async () => {
+			const { platform, repository } = buildPlatform()
+			const habits = await repository.allHabits('habits')
+			const read = await habitNamed(repository, 'Read')
+
+			const wasUpdated = await repository.updateHabit(read, { ...same(read, habits.findIndex(habit => habit.path === read.path)), name: 'Read a book' }, habits.filter(habit => habit.path !== read.path))
+
+			expect(wasUpdated).toBe(true)
+			expect(platform.frontmatterOf('habits/Read.md')).toBeUndefined()
+			expect(platform.frontmatterOf('habits/Read a book.md')).toEqual({ '2026-01-01': 'completed', '2026-01-02': 'failed', tags: 'not-an-entry' })
+		})
+
+		it('moves the note to another table at the chosen position', async () => {
+			const { platform, repository } = buildPlatform()
+			const read = await habitNamed(repository, 'Read')
+			const archived = await repository.allHabits('habits/archive')
+
+			await repository.updateHabit(read, same(read, 0, 'habits/archive'), archived)
+
+			expect(platform.frontmatterOf('habits/Read.md')).toBeUndefined()
+			const reloaded = await repository.allHabits('habits/archive')
+			expect(reloaded.map(habit => habit.name)).toEqual(['Read', 'Old'])
+		})
+
+		it('moves the habit to the chosen position among the table', async () => {
+			const { repository } = buildPlatform()
+			const habits = await repository.allHabits('habits')
+			const write = habits.find(habit => habit.name === 'Write')!
+
+			await repository.updateHabit(write, same(write, 0), habits.filter(habit => habit.path !== write.path))
+
+			const reloaded = await repository.allHabits('habits')
+			expect(reloaded.map(habit => habit.name)).toEqual(['Write', 'Broken', 'Meditate', 'No frontmatter', 'Read'])
+		})
+
+		it('changes nothing and says why when the new name is taken', async () => {
+			const { platform, repository, notices } = buildPlatform()
+			const habits = await repository.allHabits('habits')
+			const read = await habitNamed(repository, 'Read')
+
+			const wasUpdated = await repository.updateHabit(read, { ...same(read, 0), name: 'Write', cadence: 'month' }, habits.filter(habit => habit.path !== read.path))
+
+			expect(wasUpdated).toBe(false)
+			expect(notices).toContain('"Write" already exists in habits')
+			expect(platform.frontmatterOf('habits/Read.md')?.every).toBeUndefined()
+		})
+
 		it('notifies when the note is gone', async () => {
 			const { platform, repository, notices } = buildPlatform()
+			const habits = await repository.allHabits('habits')
 			const meditate = await habitNamed(repository, 'Meditate')
 			vi.spyOn(platform, 'updateFrontmatter').mockResolvedValue(false)
 
-			await repository.updateCadence(meditate, 'week')
+			await repository.updateHabit(meditate, { ...same(meditate, 1), cadence: 'week' }, habits.filter(habit => habit.path !== meditate.path))
 
 			expect(notices).toContain('Couldn\'t update Meditate')
 		})

@@ -8,19 +8,3 @@
   /* Font */
   --tiny-table-font-size: 16px;
 }
-
-/* The Add Habit dialog: a full-width input, the reason a name is invalid, then the buttons. */
-.tiny-habits-prompt-input {
-  width: 100%;
-}
-
-.tiny-habits-prompt-error {
-  margin-top: var(--size-4-2);
-  color: var(--text-error);
-  font-size: var(--font-ui-small);
-}
-
-/* No reason to show: take no space, so the buttons sit right under the input. */
-.tiny-habits-prompt-error:empty {
-  display: none;
-}

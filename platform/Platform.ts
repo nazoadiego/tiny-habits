@@ -38,6 +38,22 @@ export type Platform = {
 	renameHabitFile(path: string, newPath: string): Promise<RenameHabitFileResult>
 
 	/**
+	 @returns Every folder path of the vault (without the root), sorted.
+	 */
+	listFolders(): string[]
+
+	/**
+	 @description Creates the folder (and its parents) when it doesn't exist.
+	 */
+	createFolder(folderPath: string): Promise<void>
+
+	/**
+	 @description Inserts the text into the note being edited, at the cursor.
+	 @returns false when no note is being edited.
+	 */
+	insertAtCursor(text: string): boolean
+
+	/**
 	 @description
 		Opens a modal dialog and calls `render` to fill it. `render` may return a function that tears down what it rendered,
 		which the host calls when the modal closes, however it closes.

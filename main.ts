@@ -1,4 +1,4 @@
-import { type Editor, Plugin } from 'obsidian'
+import { Plugin } from 'obsidian'
 import ObsidianPlatform from 'platform/obsidian/ObsidianPlatform'
 import TinyHabits from 'app/TinyHabits'
 
@@ -20,11 +20,7 @@ export default class TinyHabitsPlugin extends Plugin {
 		this.addCommand({
 			id: 'tiny-habits-add-table',
 			name: 'Add Table',
-			editorCallback: (editor: Editor) => {
-				const newTableBlock = '```habits\n{\n\t"folderPath": "habits",\n\t"displayName": "My Habits"\n}\n```'
-
-				editor.replaceRange(newTableBlock, editor.getCursor())
-			}
+			callback: () => tinyHabits.addTable()
 		})
 
 		this.addCommand({

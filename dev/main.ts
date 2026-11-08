@@ -44,6 +44,14 @@ const platform = new InMemoryPlatform({
 		document.addEventListener('keydown', handleKeydown)
 		teardown = render(content, close)
 	},
+	// There is no note here: show what would be written into it.
+	insertAtCursor: (text) => {
+		const output = document.querySelector('#inserted-block')
+		if (output == undefined) return false
+
+		output.textContent = text
+		return true
+	},
 	setIcon
 })
 
@@ -67,6 +75,7 @@ document.addEventListener('click', (event) => {
 	showNotice(`Would open ${link.getAttribute('href')} in Obsidian`)
 })
 
+document.querySelector('#add-table')?.addEventListener('click', () => tinyHabits.addTable())
 document.querySelector('#add-habit')?.addEventListener('click', () => tinyHabits.addHabit())
 
 const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle')

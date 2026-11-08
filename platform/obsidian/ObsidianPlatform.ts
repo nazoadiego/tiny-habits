@@ -1,4 +1,4 @@
-import { type App, Modal, Notice, type Plugin, setIcon, TFile, TFolder, type TAbstractFile } from 'obsidian'
+import { type App, MarkdownView, Modal, Notice, type Plugin, setIcon, TFile, TFolder, type TAbstractFile } from 'obsidian'
 import type { CreateHabitFileResult, FrontmatterUpdate, HabitFile, ModalRenderer, Platform, RenameHabitFileResult } from 'platform/Platform'
 
 export default class ObsidianPlatform implements Platform {
@@ -66,6 +66,23 @@ export default class ObsidianPlatform implements Platform {
 		await this.app.vault.create(path, '')
 
 		return 'created'
+	}
+
+	listFolders(): string[] {
+		return this.app.vault.getAllFolders(false).map(folder => folder.path).toSorted((first, second) => first.localeCompare(second))
+	}
+
+	createFolder(folderPath: string): Promise<void> {
+		return this.ensureFolder(folderPath)
+	}
+
+	insertAtCursor(text: string): boolean {
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor
+		if (editor == undefined) return false
+
+		editor.replaceRange(text, editor.getCursor())
+
+		return true
 	}
 
 	// Creates each missing level on its own, so it works the same whatever the vault adapter does with nested paths.

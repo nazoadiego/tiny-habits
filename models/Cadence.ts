@@ -26,11 +26,10 @@ export function periodStart(date: DateValue, cadence: Cadence): DateValue {
 }
 
 /**
- @description A short name for the period that starts on `start`: "Oct 26 – Nov 1", "Nov 2 – 8" or "October".
+ @description A short name for the week or month that starts on `start`: "Oct 26 – Nov 1", "Nov 2 – 8" or "October 2026".
  */
-export function periodLabel(start: DateValue, cadence: Cadence): string {
-	if (cadence === 'month') return start.toMonthName()
-	if (cadence === 'day') return start.toShortMonthDay()
+export function periodLabel(start: DateValue, cadence: Exclude<Cadence, 'day'>): string {
+	if (cadence === 'month') return `${start.toMonthName()} ${start.toYearString()}`
 
 	const end = start.addDays(6)
 	const endLabel = start.startOfMonth().isSameDay(end.startOfMonth()) ? end.toDayString() : end.toShortMonthDay()
@@ -40,9 +39,6 @@ export function periodLabel(start: DateValue, cadence: Cadence): string {
 
 /** How many columns a table shows: a week of days, or half a year of weeks or months. */
 export const VISIBLE_PERIODS: Record<Cadence, number> = { day: 7, week: 6, month: 6 }
-
-/** What one step back or forward moves a table by. */
-export const PERIOD_NAMES: Record<Cadence, string> = { day: 'day', week: 'week', month: 'month' }
 
 /** The start of the period `count` periods after the one starting on `start` (before it when negative). */
 export function shiftPeriod(start: DateValue, cadence: Cadence, count: number): DateValue {

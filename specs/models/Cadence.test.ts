@@ -32,7 +32,7 @@ describe('Cadence', () => {
 		})
 
 		it('names a month', () => {
-			expect(periodLabel(new DateValue('2026-10-01'), 'month')).toBe('October')
+			expect(periodLabel(new DateValue('2026-10-01'), 'month')).toBe('October 2026')
 		})
 	})
 

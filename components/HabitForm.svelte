@@ -31,7 +31,7 @@
 
 	// A habit's cadence is its table's, so an existing habit can only go to a table with the same cadence.
 	const tables = isEditing ? allTables.filter(folder => cadenceOf(folder) === cadenceOf(startFolder)) : allTables
-	const hasOtherCadences = new Set(allTables.map(folder => cadenceOf(folder))).size > 1
+	const hasOtherCadences = new Set(tables.map(folder => cadenceOf(folder))).size > 1
 
 	let name = $state(initial.name)
 	let table = $state(initial.table)
@@ -80,7 +80,8 @@
 
 		isSaving = true
 
-		const details = { name: Habit.parseName(name).name ?? name.trim(), folderPath: table, schedule, position }
+		// Weekdays only apply to a daily table; the picker is hidden for the others, so a choice made before switching tables is dropped.
+		const details = { name: Habit.parseName(name).name ?? name.trim(), folderPath: table, schedule: cadence === 'day' ? schedule : Schedule.unscheduled(), position }
 		const wasSaved = await save(details, siblings)
 
 		if (wasSaved) close()

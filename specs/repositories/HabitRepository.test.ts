@@ -4,7 +4,7 @@ import Entry from 'models/Entry'
 import DateValue from 'models/DateValue'
 import Schedule from 'models/Schedule'
 
-const LONG_RUN = { path: 'habits/Long run.md', frontmatter: { every: 'week', '2026-10-26': 'completed' } }
+const LONG_RUN = { path: 'habits/Long run.md', frontmatter: { '2026-10-26': 'completed' } }
 
 function buildPlatform(extraFiles: { path: string, frontmatter?: Record<string, unknown> }[] = []) {
 	const notices: string[] = []
@@ -38,8 +38,8 @@ function entryFor(habitPath: string, date: string, habitId = 'Read') {
 }
 
 /** The details of a form that changes nothing about the habit, but where it goes. */
-const same = (habit: { name: string, cadence: 'day' | 'week' | 'month', schedule: Schedule }, position: number, folderPath = 'habits') =>
-	({ name: habit.name, folderPath, cadence: habit.cadence, schedule: habit.schedule, position })
+const same = (habit: { name: string, schedule: Schedule }, position: number, folderPath = 'habits') =>
+	({ name: habit.name, folderPath, schedule: habit.schedule, position })
 
 describe('HabitRepository', () => {
 	describe('allHabits', () => {
@@ -106,33 +106,18 @@ describe('HabitRepository', () => {
 			expect(notices).toContain('Invalid schedule in Habit file Broken. Use a list of weekdays, like [mon, wed, fri]. It applies every day for now')
 		})
 
-		it('reads the every property and never as an entry', async () => {
+		it('gives every habit the cadence of its table', async () => {
 			const { repository, notices } = buildPlatform([LONG_RUN])
 
-			const habits = await repository.allHabits('habits')
-			const longRun = habits.find(habit => habit.name === 'Long run')
+			const monthly = await repository.allHabits('habits', undefined, 'month')
+			const daily = await repository.allHabits('habits')
 
-			expect(longRun?.cadence).toBe('week')
-			expect(longRun?.entries.map(entry => entry.frontMatterDate())).toEqual(['2026-10-26'])
+			expect(monthly.every(habit => habit.cadence === 'month')).toBe(true)
+			expect(daily.every(habit => habit.cadence === 'day')).toBe(true)
+			expect(monthly.find(habit => habit.name === 'Long run')?.entries.map(entry => entry.frontMatterDate())).toEqual(['2026-10-26'])
 			expect(notices.filter(notice => notice.includes('Long run'))).toEqual([])
 		})
 
-		it('makes a habit daily when there is no every property', async () => {
-			const { repository } = buildPlatform()
-
-			const habits = await repository.allHabits('habits')
-
-			expect(habits.find(habit => habit.name === 'Read')?.cadence).toBe('day')
-		})
-
-		it('notifies about an invalid every property and makes the habit daily', async () => {
-			const { repository, notices } = buildPlatform([{ path: 'habits/Odd.md', frontmatter: { every: 'sometimes' } }])
-
-			const habits = await repository.allHabits('habits')
-
-			expect(habits.find(habit => habit.name === 'Odd')?.cadence).toBe('day')
-			expect(notices).toContain('Invalid every in Habit file Odd. Use week or month. It is daily for now')
-		})
 
 		it('notifies and returns no habits when the folder does not exist', async () => {
 			const { repository, notices } = buildPlatform()
@@ -149,29 +134,27 @@ describe('HabitRepository', () => {
 			const { platform, repository } = buildPlatform()
 			const habits = await repository.allHabits('habits')
 
-			const wasCreated = await repository.createHabit({ name: 'Run', folderPath: 'habits', cadence: 'day', schedule: Schedule.unscheduled(), position: undefined }, habits)
+			const wasCreated = await repository.createHabit({ name: 'Run', folderPath: 'habits', schedule: Schedule.unscheduled(), position: undefined }, habits)
 
 			expect(wasCreated).toBe(true)
 			expect(platform.frontmatterOf('habits/Run.md')).toBeUndefined()
 			expect(platform.frontmatterOf('habits/Read.md')?.order).toBeUndefined()
 		})
 
-		it('saves the cadence and the weekdays in the new note', async () => {
+		it('saves the weekdays in the new note', async () => {
 			const { platform, repository } = buildPlatform()
 			const habits = await repository.allHabits('habits')
 
-			await repository.createHabit({ name: 'Swim', folderPath: 'habits', cadence: 'day', schedule: Schedule.of(['mon', 'fri']), position: undefined }, habits)
-			await repository.createHabit({ name: 'Plan', folderPath: 'habits', cadence: 'week', schedule: Schedule.unscheduled(), position: undefined }, habits)
+			await repository.createHabit({ name: 'Swim', folderPath: 'habits', schedule: Schedule.of(['mon', 'fri']), position: undefined }, habits)
 
 			expect(platform.frontmatterOf('habits/Swim.md')).toEqual({ schedule: ['mon', 'fri'] })
-			expect(platform.frontmatterOf('habits/Plan.md')).toEqual({ every: 'week' })
 		})
 
 		it('puts the habit at the chosen position', async () => {
 			const { repository } = buildPlatform()
 			const habits = await repository.allHabits('habits')
 
-			await repository.createHabit({ name: 'Run', folderPath: 'habits', cadence: 'day', schedule: Schedule.unscheduled(), position: 0 }, habits)
+			await repository.createHabit({ name: 'Run', folderPath: 'habits', schedule: Schedule.unscheduled(), position: 0 }, habits)
 
 			const reloaded = await repository.allHabits('habits')
 			expect(reloaded.map(habit => habit.name)).toEqual(['Run', 'Broken', 'Meditate', 'No frontmatter', 'Read', 'Write'])
@@ -180,7 +163,7 @@ describe('HabitRepository', () => {
 		it('creates the table folder when it is new', async () => {
 			const { platform, repository } = buildPlatform()
 
-			await repository.createHabit({ name: 'Run', folderPath: 'fitness', cadence: 'day', schedule: Schedule.unscheduled(), position: 0 }, [])
+			await repository.createHabit({ name: 'Run', folderPath: 'fitness', schedule: Schedule.unscheduled(), position: 0 }, [])
 
 			expect(platform.listHabitFiles('fitness')?.map(file => file.basename)).toEqual(['Run'])
 		})
@@ -189,33 +172,32 @@ describe('HabitRepository', () => {
 			const { platform, repository, notices } = buildPlatform()
 			const habits = await repository.allHabits('habits')
 
-			const wasCreated = await repository.createHabit({ name: 'Read', folderPath: 'habits', cadence: 'week', schedule: Schedule.unscheduled(), position: 0 }, habits)
+			const wasCreated = await repository.createHabit({ name: 'Read', folderPath: 'habits', schedule: Schedule.unscheduled(), position: 0 }, habits)
 
 			expect(wasCreated).toBe(false)
 			expect(notices).toContain('"Read" already exists in habits')
-			expect(platform.frontmatterOf('habits/Read.md')?.every).toBeUndefined()
+			expect(platform.frontmatterOf('habits/Read.md')?.schedule).toBeUndefined()
 		})
 	})
 
 	describe('updateHabit', () => {
-		it('writes the cadence and the weekdays to the habit note, keeping the entries', async () => {
+		it('writes the weekdays to the habit note, keeping the entries', async () => {
 			const { platform, repository } = buildPlatform()
 			const habits = await repository.allHabits('habits')
 			const meditate = await habitNamed(repository, 'Meditate')
 			const siblings = habits.filter(habit => habit.path !== meditate.path)
 
-			await repository.updateHabit(meditate, { ...same(meditate, 1), cadence: 'week' }, siblings)
 			await repository.updateHabit(meditate, { ...same(meditate, 1), schedule: Schedule.of(['mon', 'wed']) }, siblings)
 
-			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', every: 'week', schedule: ['mon', 'wed'] })
+			expect(platform.frontmatterOf('habits/Meditate.md')).toEqual({ '2026-01-01': 'skip', schedule: ['mon', 'wed'] })
 		})
 
-		it('removes the properties when the habit is back to every day', async () => {
-			const { platform, repository } = buildPlatform([{ path: 'habits/Long run.md', frontmatter: { every: 'week', schedule: ['mon'], '2026-10-26': 'completed' } }])
+		it('removes the schedule when the habit is back to every day', async () => {
+			const { platform, repository } = buildPlatform([{ path: 'habits/Long run.md', frontmatter: { schedule: ['mon'], '2026-10-26': 'completed' } }])
 			const habits = await repository.allHabits('habits')
 			const longRun = await habitNamed(repository, 'Long run')
 
-			await repository.updateHabit(longRun, { ...same(longRun, habits.findIndex(habit => habit.path === longRun.path)), cadence: 'day', schedule: Schedule.unscheduled() }, habits.filter(habit => habit.path !== longRun.path))
+			await repository.updateHabit(longRun, { ...same(longRun, habits.findIndex(habit => habit.path === longRun.path)), schedule: Schedule.unscheduled() }, habits.filter(habit => habit.path !== longRun.path))
 
 			expect(platform.frontmatterOf('habits/Long run.md')).toEqual({ '2026-10-26': 'completed' })
 		})
@@ -271,11 +253,11 @@ describe('HabitRepository', () => {
 			const habits = await repository.allHabits('habits')
 			const read = await habitNamed(repository, 'Read')
 
-			const wasUpdated = await repository.updateHabit(read, { ...same(read, 0), name: 'Write', cadence: 'month' }, habits.filter(habit => habit.path !== read.path))
+			const wasUpdated = await repository.updateHabit(read, { ...same(read, 0), name: 'Write' }, habits.filter(habit => habit.path !== read.path))
 
 			expect(wasUpdated).toBe(false)
 			expect(notices).toContain('"Write" already exists in habits')
-			expect(platform.frontmatterOf('habits/Read.md')?.every).toBeUndefined()
+			expect(platform.frontmatterOf('habits/Read.md')?.schedule).toBeUndefined()
 		})
 
 		it('notifies when the note is gone', async () => {
@@ -284,7 +266,7 @@ describe('HabitRepository', () => {
 			const meditate = await habitNamed(repository, 'Meditate')
 			vi.spyOn(platform, 'updateFrontmatter').mockResolvedValue(false)
 
-			await repository.updateHabit(meditate, { ...same(meditate, 1), cadence: 'week' }, habits.filter(habit => habit.path !== meditate.path))
+			await repository.updateHabit(meditate, { ...same(meditate, 1), schedule: Schedule.of(['mon']) }, habits.filter(habit => habit.path !== meditate.path))
 
 			expect(notices).toContain('Couldn\'t update Meditate')
 		})

@@ -7,19 +7,12 @@ import HabitForm from 'components/HabitForm.svelte'
 import SomethingWentWrongMessage from 'components/SomethingWentWrongMessage.svelte'
 import addHabit from 'app/addHabit'
 import SourceSettings from 'models/SourceSettings'
-import DateRange from 'models/DateRange'
 import type { Status } from 'models/Entry'
 import type Entry from 'models/Entry'
 import type Habit from 'models/Habit'
-import { visibleEntryDates } from 'models/Cadence'
+import { entryDatesOf, visibleDates, type Cadence } from 'models/Cadence'
 import type { Platform } from 'platform/Platform'
 import { iconContext } from 'platform/iconContext'
-
-const NUMBER_OF_DAYS = 7
-
-function buildDateFilter(offset: number = 0): Set<string> {
-	return visibleEntryDates(DateRange.fromToday(NUMBER_OF_DAYS - 1, offset).getDates())
-}
 
 /**
  @description
@@ -30,6 +23,8 @@ export default class TinyHabits {
 	private readonly platform
 	private readonly habitRepository
 	private readonly dateFilters: Map<string, Set<string>> = new Map()
+	/** What one column is in each table, by folder. */
+	private readonly cadences: Map<string, Cadence> = new Map()
 
 	constructor(platform: Platform) {
 		this.platform = platform
@@ -54,7 +49,8 @@ export default class TinyHabits {
 
 		if (settings == undefined) return mount(SomethingWentWrongMessage, { target: element })
 
-		await this.loadHabitStore(settings.folderPath, buildDateFilter())
+		this.cadences.set(settings.folderPath, settings.cadence)
+		await this.loadHabitStore(settings.folderPath, entryDatesOf(visibleDates(settings.cadence)))
 
 		return mount(HabitsTable, {
 			target: element,
@@ -90,7 +86,7 @@ export default class TinyHabits {
 		this.platform.openModal(habit == undefined ? 'New habit' : 'Edit habit', (container, close) => {
 			const form = mount(HabitForm, {
 				target: container,
-				props: { habit, folderPath, habitsByTable: get(habitStore), save, close }
+				props: { habit, folderPath, habitsByTable: get(habitStore), cadenceByTable: Object.fromEntries(this.cadences), save, close }
 			})
 
 			return () => void unmount(form)
@@ -103,7 +99,7 @@ export default class TinyHabits {
 		if (dateFilter) this.dateFilters.set(folderPath, dateFilter)
 
 		const filter = dateFilter ?? this.dateFilters.get(folderPath)
-		const habits = await this.habitRepository.allHabits(folderPath, filter)
+		const habits = await this.habitRepository.allHabits(folderPath, filter, this.cadences.get(folderPath))
 
 		habitStore.update(currentStore => ({ ...currentStore, [folderPath]: habits }))
 	}

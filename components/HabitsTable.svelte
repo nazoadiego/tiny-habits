@@ -1,10 +1,9 @@
 <script lang="ts">
-	import DateRange from 'models/DateRange'
 	import { habitStore } from 'stores/store'
 	import HabitsTableHead from './HabitsTableHead.svelte'
 	import HabitsTableBody from './HabitsTableBody.svelte'
 	import Icon from './icons/Icon.svelte'
-	import { visibleEntryDates } from 'models/Cadence'
+	import { entryDatesOf, PERIOD_NAMES, visibleDates } from 'models/Cadence'
 	import type Habit from 'models/Habit'
 	import type SourceSettings from 'models/SourceSettings'
 	import { CollapseStatus } from 'UI/CollapseStatus'
@@ -23,16 +22,15 @@
 
 	const habits = $derived($habitStore[settings.folderPath])
 
-	const HEADER_NUMBER_OF_DAYS = 7
+	const cadence = $derived(settings.cadence)
+
+	/** How many days, weeks or months the table is moved from the current one. */
 	let currentOffset = $state(0)
 
-	const dates = $derived(
-		DateRange.fromToday(HEADER_NUMBER_OF_DAYS - 1, currentOffset)
-			.getDates()
-			.toReversed()
-	)
+	/** The columns: the first day of each day, week or month, oldest first. */
+	const dates = $derived(visibleDates(cadence, currentOffset))
 
-	const dateFilter = $derived(visibleEntryDates(dates))
+	const dateFilter = $derived(entryDatesOf(dates))
 
 	// Cleared whenever the date window moves, so no selected cell is ever out of view.
 	let selection = $state(EntrySelection.empty())
@@ -65,12 +63,14 @@
 	<HabitsTableHead
 		title={settings.displayName || settings.folderPath}
 		{dates}
+		{cadence}
 		{toggleCollapse}
 	/>
 
 	<HabitsTableBody
 		{habits}
 		{dates}
+		{cadence}
 		{updateEntries}
 		{editHabit}
 		moveHabit={(fromIndex, toIndex) => moveHabit(habits, fromIndex, toIndex)}
@@ -83,10 +83,10 @@
 	<button class="date-control" onclick={moveToToday} aria-label="Return to today">
 		<Icon icon="lucide-timer-reset" />
 	</button>
-	<button class="date-control" onclick={moveBack} aria-label="Previous day">
+	<button class="date-control" onclick={moveBack} aria-label="Previous {PERIOD_NAMES[cadence]}">
 		<Icon icon="lucide-chevron-left" />
 	</button>
-	<button class="date-control" onclick={moveForward} aria-label="Next day">
+	<button class="date-control" onclick={moveForward} aria-label="Next {PERIOD_NAMES[cadence]}">
 		<Icon icon="lucide-chevron-right" />
 	</button>
 </div>

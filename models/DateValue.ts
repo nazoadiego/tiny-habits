@@ -48,6 +48,16 @@ class DateValue implements TDateValue {
 		return this.value ? this.value.format('ddd') : '-'
 	}
 
+	// "Oct"
+	toShortMonthName() {
+		return this.value ? this.value.format('MMM') : '-'
+	}
+
+	// "2026"
+	toYearString() {
+		return this.value ? this.value.format('YYYY') : '-'
+	}
+
 	/**
 	 @returns The day of the week, from 0 (Sunday) to 6 (Saturday), or NaN for an invalid date.
 	 */
@@ -134,6 +144,12 @@ class DateValue implements TDateValue {
 		if (!this.value) return new DateValue('')
 
 		return new DateValue(this.value.add(days, 'day').toISOString())
+	}
+
+	addMonths(months: number): DateValue {
+		if (!this.value) return new DateValue('')
+
+		return new DateValue(this.value.add(months, 'month').toISOString())
 	}
 
 	subtractDays(days: number): DateValue {

@@ -1,6 +1,6 @@
 import TinyHabits from 'app/TinyHabits'
 import InMemoryPlatform from 'platform/memory/InMemoryPlatform'
-import { EMPTY_FOLDER, HABITS_FOLDER, seedHabitFiles } from './seedHabits'
+import { EMPTY_FOLDER, HABITS_FOLDER, MONTHLY_FOLDER, WEEKLY_FOLDER, seedHabitFiles } from './seedHabits'
 import { setIcon } from './icons'
 import '../styles.css'
 import './obsidian-theme.css'
@@ -14,7 +14,7 @@ function showNotice(message: string) {
 }
 
 const platform = new InMemoryPlatform({
-	folders: [HABITS_FOLDER, EMPTY_FOLDER],
+	folders: [HABITS_FOLDER, WEEKLY_FOLDER, MONTHLY_FOLDER, EMPTY_FOLDER],
 	files: seedHabitFiles(),
 	notify: showNotice,
 	// A stand-in for Obsidian's modal: a backdrop and a dialog that close on Escape or a click outside.

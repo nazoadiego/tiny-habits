@@ -2,7 +2,7 @@
 	import type Habit from 'models/Habit'
 	import Entry, { type Status } from 'models/Entry'
 	import DateValue from 'models/DateValue'
-	import { periodLabel, segmentsOf } from 'models/Cadence'
+	import { periodLabel, type Cadence } from 'models/Cadence'
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
 	import Icon from './icons/Icon.svelte'
@@ -18,6 +18,7 @@
 	interface $Props {
 		habits: Habit[];
 		dates: DateValue[];
+		cadence: Cadence;
 		updateEntries: THabitRepository['updateEntries'];
 		editHabit: (habit: Habit) => void;
 		moveHabit: (fromIndex: number, toIndex: number) => Promise<void>;
@@ -25,13 +26,13 @@
 		selection: EntrySelection;
 	}
 
-	let { habits, dates, updateEntries, editHabit, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
+	let { habits, dates, cadence, updateEntries, editHabit, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
 	let tableBody: HTMLTableSectionElement | undefined = $state()
 
-	/** On a phone the table shows only the last date, so every habit shows just its current day, week or month. */
+	/** On a phone the table shows only the last date, so every habit shows just its current day, week or month, whichever the table's columns are. */
 	let isNarrow = $state(false)
 
 	$effect(() => {
@@ -44,10 +45,8 @@
 		return () => query.removeEventListener('change', update)
 	})
 
-	/** The cells of a habit's row: one per visible day, or one per week or month, spanning the days it covers. */
-	function segmentsFor(habit: Habit) {
-		return segmentsOf(isNarrow ? dates.slice(-1) : dates, habit.cadence)
-	}
+	/** The columns the row shows a cell for. */
+	const shownDates = $derived(isNarrow ? dates.slice(-1) : dates)
 
 	const canReorder = $derived(habits.length > 1)
 
@@ -224,10 +223,8 @@
 		const verticalPosition = habitIds.indexOf(key.slice(0, separator))
 		if (verticalPosition === -1) return
 
-		// A weekly or monthly cell covers several dates: leave it from the side the cursor moves toward.
-		const columns = dates.map((date) => habits[verticalPosition].entryDate(date).toYearMonthDayString())
 		const entryDate = key.slice(separator + 1)
-		const horizontalPosition = direction === 'right' ? columns.lastIndexOf(entryDate) : columns.indexOf(entryDate)
+		const horizontalPosition = dates.findIndex((date) => date.toYearMonthDayString() === entryDate)
 		if (horizontalPosition === -1) return
 
 		const cursor = new Cursor({
@@ -241,7 +238,7 @@
 
 		const destination = habits[cursor.verticalPosition]
 
-		return `${destination.id}|${destination.entryDate(dates[cursor.horizontalPosition]).toYearMonthDayString()}`
+		return `${destination.id}|${dates[cursor.horizontalPosition].toYearMonthDayString()}`
 	}
 
 	const handleKeydown = createEntryKeydownHandler({
@@ -279,9 +276,9 @@
 		{#each habits as habit, index (habit.id)}
 			<tr data-habit-row class:dragging={dragging?.habitId === habit.id} style:--drag-offset={dragging?.habitId === habit.id ? `${dragging.offsetY}px` : undefined} class:drop-before={dropEdge(index) === 'before'} class:drop-after={dropEdge(index) === 'after'}>
 				{@render habitCell(habit)}
-				{#each segmentsFor(habit) as segment (segment.start.toYearMonthDayString())}
-					{@const entry = getEntryByDate(habit.entries, segment.start, habit.path, habit.id)}
-					{@render entryCell(entry, habit.isOffDay(entry), segment.span, habit.cadence === 'day' ? undefined : periodLabel(segment.start, habit.cadence))}
+				{#each shownDates as date (date.toYearMonthDayString())}
+					{@const entry = getEntryByDate(habit.entries, date, habit.path, habit.id)}
+					{@render entryCell(entry, habit.isOffDay(entry), cadence === 'day' ? undefined : periodLabel(date, cadence))}
 				{/each}
 			</tr>
 		{/each}
@@ -317,12 +314,11 @@
 	</td>
 {/snippet}
 
-{#snippet entryCell(entry: Entry, isOffDay: boolean, span: number, period?: string)}
+{#snippet entryCell(entry: Entry, isOffDay: boolean, period?: string)}
 	{@const isSelected = selection.has(EntrySelection.keyOf(entry))}
 	<td
 		tabindex="0"
 		role="button"
-		colspan={span}
 		aria-label="Mark habit as {entry.nextStatus()}{period ? `, ${period}` : ''}{isOffDay ? ', off day' : ''}{isSelected ? ', selected' : ''}"
 		data-habit-id={entry.habitId}
 		data-entry-date={entry.frontMatterDate()}

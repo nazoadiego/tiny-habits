@@ -11,24 +11,7 @@ export const CADENCE_NAMES: Record<Cadence, string> = {
 	month: 'Monthly'
 }
 
-const isCadence = (value: unknown): value is Cadence => CADENCES.includes(value as Cadence)
-
-/**
- @description Reads the `every` property of a habit note. A missing property means every day.
- @returns The cadence, and whether the property was valid. An invalid property falls back to every day.
- */
-export function cadenceFromFrontmatter(value: unknown): { cadence: Cadence, isValid: boolean } {
-	if (value == undefined) return { cadence: 'day', isValid: true }
-
-	if (isCadence(value)) return { cadence: value, isValid: true }
-
-	return { cadence: 'day', isValid: false }
-}
-
-/** The value of the `every` property, or undefined when the property should be absent (every day). */
-export function cadenceToFrontmatter(cadence: Cadence): Cadence | undefined {
-	return cadence === 'day' ? undefined : cadence
-}
+export const isCadence = (value: unknown): value is Cadence => CADENCES.includes(value as Cadence)
 
 /**
  @description
@@ -55,35 +38,44 @@ export function periodLabel(start: DateValue, cadence: Cadence): string {
 	return `${start.toShortMonthDay()} – ${endLabel}`
 }
 
-export type PeriodSegment = {
-	/** The first day of the period, which is the date the entry is stored under. */
-	start: DateValue,
-	/** How many of the visible dates fall in this period. */
-	span: number
-}
+/** How many columns a table shows: a week of days, or half a year of weeks or months. */
+export const VISIBLE_PERIODS: Record<Cadence, number> = { day: 7, week: 6, month: 6 }
 
-/**
- @description Groups consecutive visible dates by the period they fall in. A period the window cuts shows only its visible part.
- */
-export function segmentsOf(dates: DateValue[], cadence: Cadence): PeriodSegment[] {
-	const segments: PeriodSegment[] = []
+/** What one step back or forward moves a table by. */
+export const PERIOD_NAMES: Record<Cadence, string> = { day: 'day', week: 'week', month: 'month' }
 
-	for (const date of dates) {
-		const start = periodStart(date, cadence)
-		const last = segments.at(-1)
+/** The start of the period `count` periods after the one starting on `start` (before it when negative). */
+export function shiftPeriod(start: DateValue, cadence: Cadence, count: number): DateValue {
+	if (cadence === 'week') return start.addDays(7 * count)
+	if (cadence === 'month') return start.addMonths(count)
 
-		if (last?.start.isSameDay(start)) last.span += 1
-		else segments.push({ start, span: 1 })
-	}
-
-	return segments
+	return start.addDays(count)
 }
 
 /**
  @description
-	The dates a table keeps from each habit note: the visible days, plus the start of the week and the month each one falls in,
-	which is where weekly and monthly habits store their entries.
+	The columns of a table, oldest first: the days, weeks or months up to the current one, moved by `offset` periods.
+	Each is the first day of its period, which is the date a habit's entry is stored under.
  */
-export function visibleEntryDates(dates: DateValue[]): Set<string> {
-	return new Set(dates.flatMap(date => [date, date.startOfWeek(), date.startOfMonth()].map(day => day.toYearMonthDayString())))
+export function visibleDates(cadence: Cadence, offset: number = 0, today: DateValue = new DateValue(new Date().toISOString())): DateValue[] {
+	const last = shiftPeriod(periodStart(today, cadence), cadence, offset)
+	const length = VISIBLE_PERIODS[cadence]
+
+	return Array.from({ length }, (_element, index) => shiftPeriod(last, cadence, index + 1 - length))
+}
+
+/** The entry dates a table keeps from each habit note. */
+export function entryDatesOf(dates: DateValue[]): Set<string> {
+	return new Set(dates.map(date => date.toYearMonthDayString()))
+}
+
+/** What a column header says: two short lines, like "Mon" over "2", "Nov 2" over "– 8" or "Nov" over "2026". */
+export function columnLabel(start: DateValue, cadence: Cadence): { top: string, bottom: string } {
+	if (cadence === 'day') return { top: start.toDayOfTheWeek(), bottom: start.toDayString() }
+	if (cadence === 'month') return { top: start.toShortMonthName(), bottom: start.toYearString() }
+
+	const end = start.addDays(6)
+	const isSameMonth = start.startOfMonth().isSameDay(end.startOfMonth())
+
+	return { top: start.toShortMonthDay(), bottom: `– ${isSameMonth ? end.toDayString() : end.toShortMonthDay()}` }
 }

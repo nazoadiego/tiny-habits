@@ -27,3 +27,21 @@ describe('InMemoryPlatform', () => {
 		expect(await platform.renameHabitFile('habits/Gone.md', 'work/Gone.md')).toBe('missing')
 	})
 })
+
+describe('InMemoryPlatform folders', () => {
+	it('lists folders sorted and creates a folder with its parents', async () => {
+		const platform = new InMemoryPlatform({ folders: ['work', 'habits'], files: [] })
+
+		await platform.createFolder('habits/reading')
+
+		expect(platform.listFolders()).toEqual(['habits', 'habits/reading', 'work'])
+	})
+
+	it('inserts nowhere unless the host gives it a note', () => {
+		const inserted: string[] = []
+
+		expect(new InMemoryPlatform({ folders: [], files: [] }).insertAtCursor('x')).toBe(false)
+		expect(new InMemoryPlatform({ folders: [], files: [], insertAtCursor: text => inserted.push(text) > 0 }).insertAtCursor('x')).toBe(true)
+		expect(inserted).toEqual(['x'])
+	})
+})

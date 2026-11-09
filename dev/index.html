@@ -9,11 +9,15 @@
 		<header class="dev-toolbar">
 			<strong>Tiny Habits dev page</strong>
 			<span>In-memory habits, reset on reload.</span>
+			<button id="add-table" type="button">Add Table (command)</button>
 			<button id="add-habit" type="button">Add Habit (command)</button>
 			<button id="theme-toggle" type="button">Toggle dark mode</button>
 		</header>
 
 		<main class="markdown-preview-view">
+			<h2>Last block written by Add Table</h2>
+			<pre id="inserted-block"></pre>
+
 			<h2>Seeded habits</h2>
 			<div data-habits-source>
 				<script type="text/plain">{ "folderPath": "habits", "displayName": "My Habits" }</script>

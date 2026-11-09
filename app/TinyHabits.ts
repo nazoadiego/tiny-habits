@@ -4,6 +4,8 @@ import HabitRepository, { type HabitDetails } from 'repositories/HabitRepository
 import { habitStore } from 'stores/store'
 import HabitsTable from 'components/HabitsTable.svelte'
 import HabitForm from 'components/HabitForm.svelte'
+import TableForm from 'components/TableForm.svelte'
+import { tableBlock, type TableDetails } from 'models/TableBlock'
 import SomethingWentWrongMessage from 'components/SomethingWentWrongMessage.svelte'
 import addHabit from 'app/addHabit'
 import SourceSettings from 'models/SourceSettings'
@@ -90,6 +92,30 @@ export default class TinyHabits {
 	 */
 	addHabit() {
 		return addHabit(this.platform, Object.keys(get(habitStore)), (folderPath) => this.openHabitForm(folderPath))
+	}
+
+	/**
+	 @description
+		The "Add Table" command: asks for the table's name, folder and cadence, creates the folder if it is new,
+		and writes the `habits` block into the note being edited.
+	 */
+	addTable() {
+		this.platform.openModal('New table', (container, close) => {
+			const form = mount(TableForm, { target: container, props: { folders: this.platform.listFolders(), save: (details: TableDetails) => this.saveTable(details), close } })
+
+			return () => void unmount(form)
+		})
+	}
+
+	private async saveTable(details: TableDetails) {
+		const block = tableBlock(details)
+
+		if (!this.platform.listFolders().includes(details.folderPath)) await this.platform.createFolder(details.folderPath)
+
+		if (this.platform.insertAtCursor(block)) return true
+
+		this.platform.notify('Open a note to add the table to')
+		return false
 	}
 
 	/**

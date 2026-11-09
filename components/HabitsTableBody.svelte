@@ -21,12 +21,13 @@
 		cadence: Cadence;
 		updateEntries: THabitRepository['updateEntries'];
 		editHabit: (habit: Habit) => void;
+		createHabit: () => void;
 		moveHabit: (fromIndex: number, toIndex: number) => Promise<void>;
 		collapseStatus: CollapseStatus;
 		selection: EntrySelection;
 	}
 
-	let { habits, dates, cadence, updateEntries, editHabit, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
+	let { habits, dates, cadence, updateEntries, editHabit, createHabit, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
@@ -271,7 +272,7 @@
 
 <tbody class={collapseStatus.value} bind:this={tableBody}>
 	{#if noHabits}
-		<NoHabitsMessage numberOfDates={dates.length}/>
+		<NoHabitsMessage numberOfDates={dates.length} {createHabit} />
 	{:else}
 		{#each habits as habit, index (habit.id)}
 			<tr data-habit-row class:dragging={dragging?.habitId === habit.id} style:--drag-offset={dragging?.habitId === habit.id ? `${dragging.offsetY}px` : undefined} class:drop-before={dropEdge(index) === 'before'} class:drop-after={dropEdge(index) === 'after'}>

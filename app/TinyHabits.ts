@@ -62,6 +62,7 @@ export default class TinyHabits {
 			props: {
 				updateEntries: (entries: Entry[], status: Status) => this.habitRepository.updateEntries(entries, status),
 				editHabit: (habit: Habit) => this.openHabitForm(settings.folderPath, habit),
+				createHabit: () => this.openHabitForm(settings.folderPath),
 				moveHabit: (habits: Habit[], fromIndex: number, toIndex: number) => this.habitRepository.moveHabit(habits, fromIndex, toIndex),
 				loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
 				settings

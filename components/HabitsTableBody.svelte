@@ -288,30 +288,32 @@
 
 {#snippet habitCell(habit: Habit)}
 	<td class="habit-cell">
-		{#if canReorder}
+		<div class="habit-cell-content">
+			{#if canReorder}
+				<button
+					class="clickable-icon grip"
+					aria-label="Move {habit.name}. Drag, or press Alt and an arrow key"
+					data-habit-id={habit.id}
+					onpointerdown={(event) => startDrag(event, habit)}
+					onpointermove={moveDrag}
+					onpointerup={() => endDrag(true)}
+					onpointercancel={() => endDrag(false)}
+					onkeydown={(event) => handleGripKeydown(event, habit)}
+				>
+					<Icon icon="lucide-grip-vertical" />
+				</button>
+			{/if}
+			<a aria-label={habit.path} href={habit.path} class="internal-link">
+				{habit.name}
+			</a>
 			<button
-				class="clickable-icon grip"
-				aria-label="Move {habit.name}. Drag, or press Alt and an arrow key"
-				data-habit-id={habit.id}
-				onpointerdown={(event) => startDrag(event, habit)}
-				onpointermove={moveDrag}
-				onpointerup={() => endDrag(true)}
-				onpointercancel={() => endDrag(false)}
-				onkeydown={(event) => handleGripKeydown(event, habit)}
+				class="clickable-icon edit-button"
+				aria-label="Edit {habit.name}"
+				onclick={() => editHabit(habit)}
 			>
-				<Icon icon="lucide-grip-vertical" />
+				<Icon icon="lucide-pencil" />
 			</button>
-		{/if}
-		<a aria-label={habit.path} href={habit.path} class="internal-link">
-			{habit.name}
-		</a>
-		<button
-			class="clickable-icon edit-button"
-			aria-label="Edit {habit.name}"
-			onclick={() => editHabit(habit)}
-		>
-			<Icon icon="lucide-pencil" />
-		</button>
+		</div>
 	</td>
 {/snippet}
 
@@ -449,6 +451,43 @@
 	tr:hover button.edit-button,
 	button.edit-button:focus-visible {
 		opacity: 1;
+	}
+
+	/* Transparent to layout on desktop; becomes the one-line row on mobile. */
+	.habit-cell-content {
+		display: contents;
+	}
+
+	/*
+	 * Obsidian mobile: keep grip, name and pencil on one line, truncating long names,
+	 * instead of relying on absolutely positioned buttons that stacked in the cell.
+	 */
+	:global(body.is-mobile) td.habit-cell {
+		/* Keeps the row at the cell size; the 29px buttons would otherwise push it taller. */
+		padding-block: 0;
+		padding-inline: 6px;
+	}
+
+	:global(body.is-mobile) .habit-cell-content {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	:global(body.is-mobile) td.habit-cell button.grip,
+	:global(body.is-mobile) td.habit-cell button.edit-button {
+		position: static !important;
+		transform: none;
+		flex: none;
+	}
+
+	:global(body.is-mobile) td.habit-cell a {
+		flex: 1 1 0;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		text-align: center;
 	}
 
 	@media (hover: none) {

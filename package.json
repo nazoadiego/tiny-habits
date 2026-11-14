@@ -28,7 +28,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@types/node": "^26.6.6",
 		"@typescript-eslint/eslint-plugin": "^8.72.1",
-		"@typescript-eslint/parser": "^8.72.1",
+		"@typescript-eslint/parser": "^8.72.2",
 		"@vitest/coverage-v8": "4.0.16",
 		"@vitest/ui": "^4.1.12",
 		"builtin-modules": "5.5.0",

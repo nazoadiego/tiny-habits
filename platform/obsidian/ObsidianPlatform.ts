@@ -114,6 +114,10 @@ export default class ObsidianPlatform implements Platform {
 		modal.open()
 	}
 
+	openNote(path: string, inNewTab = false): void {
+		void this.app.workspace.openLinkText(path, '', inNewTab)
+	}
+
 	notify(message: string): void {
 		new Notice(message)
 	}

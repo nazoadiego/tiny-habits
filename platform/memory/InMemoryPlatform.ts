@@ -7,6 +7,7 @@ type InMemoryPlatformOptions = {
 	files: InMemoryFile[]
 	notify?: (message: string) => void
 	openModal?: (title: string, render: ModalRenderer) => void
+	openNote?: (path: string, inNewTab: boolean) => void
 	insertAtCursor?: (text: string) => boolean
 	setIcon?: IconRenderer
 }
@@ -21,14 +22,16 @@ export default class InMemoryPlatform implements Platform {
 	private readonly notifyCallback
 	private readonly iconRenderer
 	private readonly modalOpener
+	private readonly noteOpener
 	private readonly inserter
 
-	constructor({ folders, files, notify, openModal, insertAtCursor, setIcon }: InMemoryPlatformOptions) {
+	constructor({ folders, files, notify, openModal, openNote, insertAtCursor, setIcon }: InMemoryPlatformOptions) {
 		this.folders = new Set(folders)
 		this.files = new Map(files.map(file => [file.path, file.frontmatter]))
 		this.notifyCallback = notify ?? ((message: string) => console.info(`[notice] ${message}`))
 		this.iconRenderer = setIcon ?? (() => {})
 		this.modalOpener = openModal ?? (() => {})
+		this.noteOpener = openNote ?? (() => {})
 		this.inserter = insertAtCursor ?? (() => false)
 
 		for (const path of this.files.keys()) {
@@ -112,6 +115,10 @@ export default class InMemoryPlatform implements Platform {
 
 	openModal(title: string, render: ModalRenderer): void {
 		this.modalOpener(title, render)
+	}
+
+	openNote(path: string, inNewTab = false): void {
+		this.noteOpener(path, inNewTab)
 	}
 
 	notify(message: string): void {

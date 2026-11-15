@@ -62,6 +62,11 @@ export type Platform = {
 	 */
 	openModal(title: string, render: ModalRenderer): void
 
+	/**
+	 @description Opens the note in the host's editor, in a new tab when `inNewTab` is set.
+	 */
+	openNote(path: string, inNewTab?: boolean): void
+
 	notify(message: string): void
 
 	setIcon: IconRenderer

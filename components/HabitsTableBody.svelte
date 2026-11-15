@@ -6,6 +6,7 @@
 	import EntryIcon from './icons/EntryIcon.svelte'
 	import NoHabitsMessage from './NoHabitsMessage.svelte'
 	import Icon from './icons/Icon.svelte'
+	import { createLongPress } from 'UI/longPress'
 	import type { THabitRepository } from 'repositories/HabitRepository'
 	import type { CollapseStatus } from 'UI/CollapseStatus'
 	import { Cursor } from 'UI/Cursor'
@@ -21,13 +22,14 @@
 		cadence: Cadence;
 		updateEntries: THabitRepository['updateEntries'];
 		editHabit: (habit: Habit) => void;
+		openHabit: (habit: Habit, inNewTab: boolean) => void;
 		createHabit: () => void;
 		moveHabit: (fromIndex: number, toIndex: number) => Promise<void>;
 		collapseStatus: CollapseStatus;
 		selection: EntrySelection;
 	}
 
-	let { habits, dates, cadence, updateEntries, editHabit, createHabit, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
+	let { habits, dates, cadence, updateEntries, editHabit, openHabit, createHabit, moveHabit, collapseStatus, selection = $bindable() }: $Props = $props()
 
 	const noHabits = $derived(habits.length === 0)
 
@@ -126,6 +128,81 @@
 		if (dragging == undefined) return
 		if (dragging.slot === index) return 'before'
 		if (dragging.slot === habits.length && index === habits.length - 1) return 'after'
+	}
+
+	/**
+	 @description
+		A mouse or keyboard edits a habit with a click on its name. A finger edits it with a press and hold,
+		so a tap on the name does nothing and can't open the editor by accident while scrolling.
+	 */
+	let namePointer: string | undefined = undefined
+
+	/** The press being tracked: which finger, and which habit's name it is on. */
+	let press: { pointerId: number, habitId: Habit['id'] } | undefined = undefined
+
+	/** The habit whose name is being held long enough to count as a long press. */
+	let pressedHabitId: Habit['id'] | undefined = $state()
+
+	const longPress = createLongPress({
+		onArm: () => {
+			pressedHabitId = press?.habitId
+			if ('vibrate' in navigator) navigator.vibrate(15)
+		},
+		onReset: () => pressedHabitId = undefined
+	})
+
+	function cancelPress() {
+		press = undefined
+		longPress.cancel()
+	}
+
+	// A table that goes away mid-hold must not arm a press afterwards.
+	$effect(() => cancelPress)
+
+	function handleNamePointerDown(event: PointerEvent, habit: Habit) {
+		namePointer = event.pointerType
+		if (event.pointerType === 'mouse' || event.button !== 0 || !event.isPrimary) return
+
+		press = { pointerId: event.pointerId, habitId: habit.id }
+		longPress.start(event.clientX, event.clientY)
+	}
+
+	function handleNamePointerMove(event: PointerEvent) {
+		if (event.pointerId === press?.pointerId) longPress.move(event.clientX, event.clientY)
+	}
+
+	function handleNamePointerUp(event: PointerEvent) {
+		if (event.pointerId !== press?.pointerId) return
+
+		const habitId = press.habitId
+		press = undefined
+
+		// Looked up again: the table may have refreshed during the hold.
+		const habit = habits.find(other => other.id === habitId)
+		if (longPress.end() && habit) editHabit(habit)
+	}
+
+	function handleNameClick(event: MouseEvent, habit: Habit) {
+		const pointer = namePointer
+		namePointer = undefined
+
+		// A tap is not a click here. A keyboard activation comes without a pointerdown, so it still edits.
+		if (pointer != undefined && pointer !== 'mouse') return
+
+		if (event.ctrlKey || event.metaKey) openHabit(habit, true)
+		else editHabit(habit)
+	}
+
+	function handleNameContextMenu(event: MouseEvent) {
+		// A held finger must not open the system menu.
+		if (namePointer != undefined && namePointer !== 'mouse') event.preventDefault()
+	}
+
+	function handleNameAuxClick(event: MouseEvent, habit: Habit) {
+		if (event.button !== 1) return
+
+		event.preventDefault()
+		openHabit(habit, true)
 	}
 
 	/** Set while a Shift+drag is painting the selection. */
@@ -303,15 +380,20 @@
 					<Icon icon="lucide-grip-vertical" />
 				</button>
 			{/if}
-			<a aria-label={habit.path} href={habit.path} class="internal-link">
-				{habit.name}
-			</a>
 			<button
-				class="clickable-icon edit-button"
+				class="habit-name"
+				class:pressed={pressedHabitId === habit.id}
 				aria-label="Edit {habit.name}"
-				onclick={() => editHabit(habit)}
+				onclick={(event) => handleNameClick(event, habit)}
+				onpointerdown={(event) => handleNamePointerDown(event, habit)}
+				onauxclick={(event) => handleNameAuxClick(event, habit)}
+				onpointermove={handleNamePointerMove}
+				onpointerup={handleNamePointerUp}
+				onpointercancel={cancelPress}
+				onlostpointercapture={cancelPress}
+				oncontextmenu={handleNameContextMenu}
 			>
-				<Icon icon="lucide-pencil" />
+				{habit.name}
 			</button>
 		</div>
 	</td>
@@ -387,20 +469,11 @@
 		background-color: rgba(var(--mono-rgb-0), 0.2);
 		overflow-wrap: anywhere;
 		vertical-align: middle;
-		/* Room for the edit button on both sides, so the name stays centered. */
+		/* Room for the grip on the left, mirrored on the right, so the name stays centered. */
 		padding-inline: 36px;
 	}
 
 	/* A flat icon in the corner of the cell. Obsidian's clickable-icon class supplies its hover look. */
-	button.edit-button {
-		position: absolute;
-		inset-inline-end: 6px;
-		top: 50%;
-		transform: translateY(-50%);
-		opacity: 0;
-	}
-
-	/* The grip mirrors the edit button, on the other side of the name. */
 	button.grip {
 		position: absolute;
 		inset-inline-start: 6px;
@@ -447,10 +520,33 @@
 		box-shadow: inset 0 -3px 0 var(--interactive-accent);
 	}
 
-	/* Always reachable by touch and keyboard; the hover reveal only declutters pointer use. */
-	tr:hover button.edit-button,
-	button.edit-button:focus-visible {
-		opacity: 1;
+	/* The name is plain text that edits the habit, not a button to look at. */
+	button.habit-name {
+		background: none;
+		border: none;
+		box-shadow: none;
+		padding: 0;
+		height: auto;
+		font: inherit;
+		color: inherit;
+		text-align: center;
+		cursor: pointer;
+		/* A finger holding the name must not select it or open the system menu. */
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		user-select: none;
+		touch-action: manipulation;
+	}
+
+	@media (hover: hover) {
+		button.habit-name:hover {
+			text-decoration: underline;
+		}
+	}
+
+	button.habit-name:focus-visible {
+		outline: 3px solid var(--background-modifier-border);
+		outline-offset: 2px;
 	}
 
 	/* Transparent to layout on desktop; becomes the one-line row on mobile. */
@@ -459,11 +555,11 @@
 	}
 
 	/*
-	 * Obsidian mobile: keep grip, name and pencil on one line, truncating long names,
-	 * instead of relying on absolutely positioned buttons that stacked in the cell.
+	 * Obsidian mobile: no pencil, and no grip without a mouse. The name fills the cell and a press and hold on it edits the habit,
+	 * so reordering is done with the Position field of the editor.
 	 */
 	:global(body.is-mobile) td.habit-cell {
-		/* Keeps the row at the cell size; the 29px buttons would otherwise push it taller. */
+		/* Keeps the row at the cell size. */
 		padding-block: 0;
 		padding-inline: 6px;
 	}
@@ -471,28 +567,41 @@
 	:global(body.is-mobile) .habit-cell-content {
 		display: flex;
 		align-items: center;
-		gap: 4px;
 	}
 
-	:global(body.is-mobile) td.habit-cell button.grip,
-	:global(body.is-mobile) td.habit-cell button.edit-button {
+	:global(body.is-mobile) td.habit-cell button.grip {
 		position: static !important;
 		transform: none;
 		flex: none;
 	}
 
-	:global(body.is-mobile) td.habit-cell a {
+	/* No drag for a finger: reordering is the editor's Position field. A mouse or trackpad on a tablet keeps the grip. */
+	@media not (any-pointer: fine) {
+		:global(body.is-mobile) td.habit-cell button.grip {
+			display: none;
+		}
+	}
+
+	:global(body.is-mobile) td.habit-cell button.habit-name {
 		flex: 1 1 0;
 		min-width: 0;
+		min-height: var(--tiny-cell-size);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		text-align: center;
+		border-radius: var(--radius-m);
+	}
+
+	/* Held long enough: the name lifts and takes the accent, so the press is seen to register. */
+	button.habit-name.pressed {
+		background-color: color-mix(in srgb, var(--interactive-accent) 28%, transparent);
+		box-shadow: 0 0 0 2px var(--interactive-accent);
+		border-radius: var(--radius-m);
+		transform: scale(1.03);
 	}
 
 	@media (hover: none) {
-		button.edit-button,
-		button.grip {
+		:global(body:not(.is-mobile)) button.grip {
 			opacity: 1;
 		}
 	}

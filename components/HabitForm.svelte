@@ -15,12 +15,14 @@
 		habitsByTable: Record<string, Habit[]>;
 		/** What one column is in each table, by folder. Tables missing here are daily. */
 		cadenceByTable: Record<string, Cadence>;
+		/** Opens the habit's note. Only given when editing. */
+		openNote?: () => void;
 		/** Saves the form. Resolves to whether it worked; the dialog stays open when it didn't. */
 		save: (details: HabitDetails, siblings: Habit[]) => Promise<boolean>;
 		close: () => void;
 	}
 
-	const { habit, folderPath: startFolder, habitsByTable, cadenceByTable, save, close }: $Props = $props()
+	const { habit, folderPath: startFolder, habitsByTable, cadenceByTable, save, openNote, close }: $Props = $props()
 
 	const cadenceOf = (folder: string): Cadence => cadenceByTable[folder] ?? 'day'
 
@@ -95,6 +97,11 @@
 		void submit()
 	}
 
+	function openAndClose() {
+		close()
+		openNote?.()
+	}
+
 	function toggle(day: Weekday) {
 		schedule = schedule.toggle(day)
 	}
@@ -160,6 +167,9 @@
 	</div>
 
 	<div class="modal-button-container">
+		{#if openNote}
+			<button type="button" class="open-note" onclick={openAndClose}>Open note</button>
+		{/if}
 		<button type="button" onclick={close}>Cancel</button>
 		<button type="button" class="mod-cta" disabled={!canSave} onclick={submit}>{isEditing ? 'Save' : 'Add habit'}</button>
 	</div>
@@ -188,6 +198,14 @@
 
 	small.error {
 		color: var(--text-error);
+	}
+
+	/* A link-like secondary action on the left; Cancel and Save stay on the right. */
+	button.open-note {
+		margin-inline-end: auto;
+		background: none;
+		box-shadow: none;
+		color: var(--text-accent);
 	}
 
 	.chips {

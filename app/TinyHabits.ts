@@ -62,6 +62,7 @@ export default class TinyHabits {
 			props: {
 				updateEntries: (entries: Entry[], status: Status) => this.habitRepository.updateEntries(entries, status),
 				editHabit: (habit: Habit) => this.openHabitForm(settings.folderPath, habit),
+				openHabit: (habit: Habit, inNewTab: boolean) => this.platform.openNote(habit.path, inNewTab),
 				createHabit: () => this.openHabitForm(settings.folderPath),
 				moveHabit: (habits: Habit[], fromIndex: number, toIndex: number) => this.habitRepository.moveHabit(habits, fromIndex, toIndex),
 				loadHabits: (folderPath: string, dateFilter: Set<string>) => this.loadHabitStore(folderPath, dateFilter),
@@ -131,7 +132,7 @@ export default class TinyHabits {
 		this.platform.openModal(habit == undefined ? 'New habit' : 'Edit habit', (container, close) => {
 			const form = mount(HabitForm, {
 				target: container,
-				props: { habit, folderPath, habitsByTable: get(habitStore), cadenceByTable: Object.fromEntries(this.cadences), save, close }
+				props: { habit, folderPath, habitsByTable: get(habitStore), cadenceByTable: Object.fromEntries(this.cadences), save, openNote: habit && (() => this.platform.openNote(habit.path)), close }
 			})
 
 			return () => void unmount(form)

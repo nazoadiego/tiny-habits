@@ -16,12 +16,13 @@
 		settings: SourceSettings;
 		updateEntries: THabitRepository['updateEntries'];
 		editHabit: (habit: Habit) => void;
+		openHabit: (habit: Habit, inNewTab: boolean) => void;
 		createHabit: () => void;
 		moveHabit: THabitRepository['moveHabit'];
 		loadHabits: (folderPath: string, dateFilter: Set<string>) => void;
 	}
 
-	const { updateEntries, editHabit, createHabit, moveHabit, settings, loadHabits }: $Props = $props()
+	const { updateEntries, editHabit, openHabit, createHabit, moveHabit, settings, loadHabits }: $Props = $props()
 
 	const habits = $derived($habitStore[settings.folderPath])
 
@@ -99,6 +100,7 @@
 			{cadence}
 			{updateEntries}
 			{editHabit}
+			{openHabit}
 			{createHabit}
 			moveHabit={(fromIndex, toIndex) => moveHabit(habits, fromIndex, toIndex)}
 			{collapseStatus}

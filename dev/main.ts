@@ -44,6 +44,8 @@ const platform = new InMemoryPlatform({
 		document.addEventListener('keydown', handleKeydown)
 		teardown = render(content, close)
 	},
+	// There is no note to open here: say which one would open.
+	openNote: (path, inNewTab) => showNotice(`Would open ${path}${inNewTab ? ' in a new tab' : ''}`),
 	// There is no note here: show what would be written into it.
 	insertAtCursor: (text) => {
 		const output = document.querySelector('#inserted-block')
